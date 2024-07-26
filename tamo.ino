@@ -14,31 +14,93 @@ Programmer > Arduino as ISP
 
 #include <TinyWireM.h>
 //this library is modified!
-// #include "Tiny4kOLED/src/Tiny4kOLEDprintless.h"
 #include "Tiny4kOLEDprintless.h"
 #include <avr/pgmspace.h>
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
 #include <avr/power.h>    // Power management
 
-//not sure what this does
-// #define TINY4KOLED_QUICK_BEGIN
-
 #define W 64
 #define H 32
 
 #define BUTTON_PIN 3
 #define LED_PIN 4
+#define RAND_PIN 5 //PB5 is the ISP reset pin, but also can be used to get a rand number? maybe?
 
 #define display oled
 
 using namespace std;
 
 bool BUTTON = false;
-uint16_t lastTime;
+// bool randomGenSeeded = false;
+uint16_t lastTime = 0;
 
 bool itsbeen(uint16_t time){
   return((millis()-lastTime)>time);  
+}
+
+/*
+  Clears area to the right and left of main sprite
+  so you don't need to do a full screen clear when switching
+  between different sprites
+*/
+void clearEdges(){
+  //left side
+  oled.setCursor(0,0);
+  oled.fillLength(0,20);
+  oled.setCursor(0,1);
+  oled.fillLength(0,20);
+
+  //right side
+  oled.setCursor(52,0);
+  oled.fillLength(0,20);
+  oled.setCursor(52,1);
+  oled.fillLength(0,20);
+}
+
+//Clears visible area of screen
+void clearScreen(){
+  for (uint8_t m = 0; m < 2; m++) {
+		oled.setCursor(0, m);
+		oled.fillToEOP(0);
+	}
+}
+
+//This is taken from:
+//https://forum.arduino.cc/t/the-reliable-but-not-very-sexy-way-to-seed-random/65872
+
+#include <EEPROM.h>
+
+void seedRandomNumberGenerator()
+{
+  static const uint32_t HappyPrime = 937;
+  union
+  {
+    uint32_t i;
+    uint8_t b[4];
+  }
+  raw;
+  int8_t i;
+  unsigned int seed;
+  
+  for ( i=0; i < sizeof(raw.b); ++i )
+  {
+    raw.b[i] = EEPROM.read( i );
+  }
+
+  do
+  {
+    raw.i += HappyPrime;
+    seed = raw.i & 0x7FFFFFFF;
+  }
+  while ( (seed < 1) || (seed > 2147483646) );
+
+  randomSeed( seed );  
+
+  for ( i=0; i < sizeof(raw.b); ++i )
+  {
+    EEPROM.write( i, raw.b[i] );
+  }
 }
 
 void readButtons(){
@@ -60,57 +122,52 @@ void hardwareSleep(){
   oled.off();
   digitalWrite(LED_PIN,LOW);
 
-  //https://bigdanzblog.wordpress.com/2014/08/10/attiny85-wake-from-sleep-on-pin-state-change-code-example/
+  // //https://bigdanzblog.wordpress.com/2014/08/10/attiny85-wake-from-sleep-on-pin-state-change-code-example/
   GIMSK |= _BV(PCIE);                     // Enable Pin Change Interrupts
   PCMSK |= _BV(PCINT3);                   // Use PB3 as interrupt pin
-  ADCSRA &= ~_BV(ADEN);                   // ADC off
-  set_sleep_mode(SLEEP_MODE_PWR_DOWN);    // replaces above statement
 
-  sleep_enable();                         // Sets the Sleep Enable bit in the MCUCR Register (SE BIT)
-  // sei();                                  // Enable interrupts
-  sleep_cpu();                            // sleep
-
-  // cli();                                  // Disable interrupts
-  PCMSK &= ~_BV(PCINT3);                  // Turn off PB3 as interrupt pin
-  sleep_disable();                        // Clear SE bit
-  ADCSRA |= _BV(ADEN);                    // ADC on
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);   // sleep mode is set here
+  sleep_enable();                          // enables the sleep bit in the mcucr register so sleep is possible  
+  sleep_cpu();                            // sleep (idk what the diff is)
+  // sleep_mode();                          // here the device is actually put to sleep!!
 }
 
+//Interrupt callback to wake Attiny back up
+ISR(PCINT0_vect){
+  sleep_disable();                       // first thing after waking from sleep: disable sleep...
+  clearScreen();
+  PCMSK &= ~_BV(PCINT3);                  // Turn off PB3 as interrupt pin
+  oled.on();//turn screen back on
+}
+
+
 #include "sprites.h"
-//animation class
 #include "Animation.h"
 #include "Tamo.h"
 Tamo tamo;
 
-void titleScreen(){
-  delay(100);
-}
-
 void initOled(){
   //start i2c communication w little oled
-  // oled.begin(72,40, sizeof(tiny4koled_init_64x32br), tiny4koled_init_64x32br);
   oled.begin(72, 40, sizeof(tiny4koled_init_72x40br), tiny4koled_init_72x40br);
   #ifdef FULLSIZE
   oled.enableZoomIn();//Need this so the sprites aren't all weird
   #endif
   oled.setRotation(2);//flip display upside-down
   oled.switchFrame();
-  // oled.setPages(12);
   oled.on();
 }
 
 void setup() {
+
+  ADCSRA &= ~_BV(ADEN);                   // ADC off
+
   pinMode(BUTTON_PIN,INPUT_PULLUP);
-  srand(analogRead(BUTTON_PIN));
   digitalWrite(BUTTON_PIN,HIGH);
   pinMode(LED_PIN,OUTPUT);
+
+  seedRandomNumberGenerator();
+
   initOled();
-
-
-  // cli();                                  // Disable interrupts
-  PCMSK &= ~_BV(PCINT3);                  // Turn off PB3 as interrupt pin
-  sleep_disable();                        // Clear SE bit
-  // ADCSRA |= _BV(ADEN);                    // ADC on
 
   //intro
   oled.clear();
@@ -124,6 +181,5 @@ void setup() {
 
 
 void loop() {
-  tamo.neutral();
-  tamo.vibeCheck();
+  tamo.update();
 }

@@ -2,14 +2,11 @@
 
 class Animation{
   public:
-    //either 0 (stopped), 1 (playing forward), or -1 (playing backward)
-    int8_t playState;
-    bool hasPlayedAtLeastOnce;
+    bool hasPlayedAtLeastOnce = false;
     int8_t xCoord;
     int8_t yCoord;
     uint8_t width;
     uint8_t height;
-    // uint16_t color;
     //stores the current frame
     uint8_t currentFrame;
     //stores total number of frames
@@ -18,29 +15,23 @@ class Animation{
     uint32_t timeLastFramePlayed;
     //stores milliseconds per frame (framerate)
     uint32_t msPerFrame;
-    Animation();
-    Animation(int16_t x1, int16_t y1, uint16_t w, uint16_t h, const unsigned char * buffer[], uint16_t frameCount, uint32_t frameRate, uint16_t c);
     //checks to see if it's been enough time
     bool isFrameReady();
     //draws current frame
     void showCurrentFrame();
     void update();
     void nextFrame();
-    Animation * introAnim;
-    bool introAnimation;
+
     const unsigned char ** frames;
 
-    //destructor
-    // ~Animation(){
-    //   delete frames;
-    // }
+    Animation();
+    Animation(int16_t x1, int16_t y1, uint16_t w, uint16_t h, const unsigned char * buffer[], uint16_t frameCount, uint32_t frameRate, uint16_t c);
 };
 
 Animation::Animation(){
 }
 
 Animation::Animation(int16_t x1, int16_t y1, uint16_t w, uint16_t h, const unsigned char * buffer[], uint16_t frameCount, uint32_t frameRate, uint16_t c){
-  playState = 1;
   currentFrame = 0;
   numberOfFrames = frameCount;
   msPerFrame = frameRate;
@@ -52,10 +43,9 @@ Animation::Animation(int16_t x1, int16_t y1, uint16_t w, uint16_t h, const unsig
     frames[i] = buffer[i];
   }
   xCoord = x1;
-  yCoord = y1;
+  yCoord = y1/8;
   width = w;
   height = h;
-  // color = c;
   hasPlayedAtLeastOnce = false;
 }
 //returns TRUE if it's been enough time for the next frame to be shown
@@ -69,52 +59,26 @@ bool Animation::isFrameReady(){
 }
 void Animation::showCurrentFrame(){
   #ifdef FULLSIZE
-  oled.bitmap2x(xCoord,yCoord/8,xCoord+width,yCoord/8+height/8,frames[currentFrame]);
+  // oled.bitmap2x(xCoord,yCoord/8,xCoord+width,yCoord/8+height/8,frames[currentFrame]);
+  oled.bitmap2x(xCoord,yCoord,xCoord+width,yCoord+height/16,frames[currentFrame]);
   #else
-  oled.bitmap(xCoord,yCoord/8,xCoord+width,yCoord/8+height/8,frames[currentFrame]);
+  // oled.bitmap(xCoord,yCoord/8,xCoord+width,yCoord/8+height/8,frames[currentFrame]);
+  oled.bitmap(xCoord,yCoord,xCoord+width,yCoord+height/16,frames[currentFrame]);
   #endif
 }
 
 void Animation::nextFrame(){
-  switch(playState){
-    //stopped, just return
-    case 0:
-      break;
-    case 1:
-      currentFrame++;
-      if(currentFrame>=numberOfFrames){
-        currentFrame = 0;
-        hasPlayedAtLeastOnce = true;
-      }
-      break;
-    case -1:
-      if(currentFrame == 0){
-        currentFrame = numberOfFrames-1;
-        hasPlayedAtLeastOnce = true;
-      }
-      else
-        currentFrame--;
-      break;
+  currentFrame++;
+  if(currentFrame>=numberOfFrames){
+    currentFrame = 0;
+    hasPlayedAtLeastOnce = true;
   }
 }
 void Animation::update(){
-  //if it's not playing, just return
-  if(playState == 0){
-    return;
-  }
-  //if the intro animation is still on
-  if(introAnimation){
-    // (introAnim)->update();
-    // if(introAnim->hasPlayedAtLeastOnce){
-    //   introAnimation = false;
-    // }
-    // return;
-  }
   if(isFrameReady()){
     nextFrame();
     timeLastFramePlayed = millis();
+    // clearScreen();
   }
   showCurrentFrame();
-  // const int16_t limit = 100;
-  // analogWrite(LED_PIN,abs(limit/2-((millis()/100)%limit)));
 }
