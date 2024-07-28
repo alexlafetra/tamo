@@ -111,31 +111,23 @@ void Tamo::talk(){
 }
 
 void Tamo::think(){
-  sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,thinkingAnim,2,FAST,1);
+  // sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,thinkingAnim,2,FAST,1);
+  sprite = Animation(SPRITESTARTX-16,SPRITESTARTY,16,16,thinkingAnim,2,FAST,1);
+  actionSprite = Animation(SPRITESTARTX+16,SPRITESTARTY,13,16,dreamAnim_gun,4,SLOW,1);
   moodTime = random(100,500);
   bool headEmpty = true;
   actionSprite.hasPlayedAtLeastOnce = false;
-  while(!actionSprite.hasPlayedAtLeastOnce){
+  while(!actionSprite.hasPlayedAtLeastOnce && moodTime){
     moodTime--;
     readButtons();
     if(BUTTON && itsbeen(200)){
       lastTime = millis();
       break;
     }
-    if(headEmpty){
-      if(random(0,10) <= 8){//80% chance tamo will think of something
-        headEmpty = false;
-        sprite = Animation(SPRITESTARTX-16,SPRITESTARTY,16,16,thinkingAnim,2,FAST,1);
-        actionSprite = Animation(SPRITESTARTX+16,SPRITESTARTY,13,16,dreamAnim_gun,4,SLOW,1);
-      }
-    }
     sprite.update();
-    if(!headEmpty){
-      actionSprite.update();
-    }
+    actionSprite.update();
   }
-  if(!headEmpty)
-    clearEdges();
+  clearEdges();
   mood = NEUTRAL;
 }
 
@@ -157,6 +149,9 @@ void Tamo::poop(){
     if(BUTTON && itsbeen(200)){
       lastTime = millis();
       pooped = false;
+    }
+    if(itsbeen(60000)){
+      hardwareSleep();
     }
     sprite.update();
   }
@@ -261,7 +256,7 @@ void Tamo::vibeCheck(){
   const Mood possibleMoods[7] = {NEUTRAL,HAPPY,ANGRY,SAD,THINKING,EATING,POOPING};
   mood = possibleMoods[random(0,7)];
   const Thought possibleThoughts[9] = {LOVE,HEARTBREAK,DEATH,REVENGE,FOOD,SELF,FACE,MUSIC};
-  thought = possibleThoughts[random(0,9)];
+  thought = possibleThoughts[random(0,8)];
 }
 
 void Tamo::update(){
