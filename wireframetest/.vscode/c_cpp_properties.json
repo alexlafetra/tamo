@@ -1,0 +1,72 @@
+//
+// !!! WARNING !!! AUTO-GENERATED FILE!
+// PLEASE DO NOT MODIFY IT AND USE "platformio.ini":
+// https://docs.platformio.org/page/projectconf/section_env_build.html#build-flags
+//
+{
+    "configurations": [
+        {
+            "name": "PlatformIO",
+            "includePath": [
+                "/Users/alex/Desktop/tamogotchi/tamo/wireframetest/include",
+                "/Users/alex/Desktop/tamogotchi/tamo/wireframetest/src",
+                "/Users/alex/Desktop/tamogotchi/tamo/wireframetest/lib/Tiny4kOLED/src",
+                "/Users/alex/Desktop/tamogotchi/tamo/wireframetest/lib/TinyWireM",
+                "/Users/alex/.platformio/packages/framework-arduino-avr-attiny/libraries/Wire/src",
+                "/Users/alex/Desktop/tamogotchi/tamo/wireframetest/.pio/libdeps/program_via_ArduinoISP/Vector/src",
+                "/Users/alex/.platformio/packages/framework-arduino-avr-attiny/cores/tiny",
+                "/Users/alex/.platformio/packages/framework-arduino-avr-attiny/variants/tinyX5",
+                "/Users/alex/.platformio/packages/framework-arduino-avr-attiny/libraries/ATTinyCore/src",
+                "/Users/alex/.platformio/packages/framework-arduino-avr-attiny/libraries/EEPROM",
+                "/Users/alex/.platformio/packages/framework-arduino-avr-attiny/libraries/SPI",
+                "/Users/alex/.platformio/packages/framework-arduino-avr-attiny/libraries/Servo/src",
+                "/Users/alex/.platformio/packages/framework-arduino-avr-attiny/libraries/Servo_ATTinyCore/src",
+                "/Users/alex/.platformio/packages/framework-arduino-avr-attiny/libraries/SoftwareSerial",
+                "/Users/alex/.platformio/packages/framework-arduino-avr-attiny/libraries/tinyNeoPixel",
+                "/Users/alex/.platformio/packages/framework-arduino-avr-attiny/libraries/tinyNeoPixel_Static",
+                ""
+            ],
+            "browse": {
+                "limitSymbolsToIncludedHeaders": true,
+                "path": [
+                    "/Users/alex/Desktop/tamogotchi/tamo/wireframetest/include",
+                    "/Users/alex/Desktop/tamogotchi/tamo/wireframetest/src",
+                    "/Users/alex/Desktop/tamogotchi/tamo/wireframetest/lib/Tiny4kOLED/src",
+                    "/Users/alex/Desktop/tamogotchi/tamo/wireframetest/lib/TinyWireM",
+                    "/Users/alex/.platformio/packages/framework-arduino-avr-attiny/libraries/Wire/src",
+                    "/Users/alex/Desktop/tamogotchi/tamo/wireframetest/.pio/libdeps/program_via_ArduinoISP/Vector/src",
+                    "/Users/alex/.platformio/packages/framework-arduino-avr-attiny/cores/tiny",
+                    "/Users/alex/.platformio/packages/framework-arduino-avr-attiny/variants/tinyX5",
+                    "/Users/alex/.platformio/packages/framework-arduino-avr-attiny/libraries/ATTinyCore/src",
+                    "/Users/alex/.platformio/packages/framework-arduino-avr-attiny/libraries/EEPROM",
+                    "/Users/alex/.platformio/packages/framework-arduino-avr-attiny/libraries/SPI",
+                    "/Users/alex/.platformio/packages/framework-arduino-avr-attiny/libraries/Servo/src",
+                    "/Users/alex/.platformio/packages/framework-arduino-avr-attiny/libraries/Servo_ATTinyCore/src",
+                    "/Users/alex/.platformio/packages/framework-arduino-avr-attiny/libraries/SoftwareSerial",
+                    "/Users/alex/.platformio/packages/framework-arduino-avr-attiny/libraries/tinyNeoPixel",
+                    "/Users/alex/.platformio/packages/framework-arduino-avr-attiny/libraries/tinyNeoPixel_Static",
+                    ""
+                ]
+            },
+            "defines": [
+                "PLATFORMIO=60116",
+                "ARDUINO_AVR_ATTINYX5",
+                "NEOPIXELPORT=PORTB",
+                "CLOCK_SOURCE=6",
+                "F_CPU=8000000L",
+                "ARDUINO_ARCH_AVR",
+                "ARDUINO=10808",
+                "__AVR_ATtiny85__",
+                ""
+            ],
+            "cStandard": "gnu11",
+            "cppStandard": "gnu++11",
+            "compilerPath": "/Users/alex/.platformio/packages/toolchain-atmelavr/bin/avr-gcc",
+            "compilerArgs": [
+                "-mmcu=attiny85",
+                ""
+            ]
+        }
+    ],
+    "version": 4
+}
