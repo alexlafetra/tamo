@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- OK, YOU CAN MAKE CHANGES BELOW THIS LINE AGAIN -->
+
+  <style>
+    html{
+      height:100%;
+      /* background-color: black; */
+      /* overflow:hidden; */
+    }
+    body {
+      height:100%;
+      padding: 0;
+    }
+    #gui{
+      height:fit-content;
+      display:flex;
+      flex-direction:column;
+      position:relative;
+      /* background-color: white; */
+      padding:20px;
+      transition:0.5s;
+      font-family:'Times New Roman', Times, serif;
+      color:rgb(60,60,60);
+      justify-items: right;
+    }
+    canvas{
+      margin:auto;
+      display:block;
+      width:auto;
+    }
+  </style>
+</head>
+
+<body>
+  <div style = "width:80%; max-width:1000px;margin:auto">
+    <!-- <div class = "title">
+      Visualizing Gentrification with Flow Fields
+    </div>
+    <div class = "body_text">
+      <p>This project started </p>
+    </div> -->
+    <div id = "app" style = "display:flex;">
+        <main></main>
+         <div id = "gui">
+            <!-- <img src = "data/Prerendered/render_animated.gif" width = "300px;" height = "300px;"> -->
+        </div>
+        <div id = "outputText" style="white-space: pre-line"></div>
+    </div>
+  </div>
+
+</body>
+  <script language="javascript" type="text/javascript" src="libraries/p5.min.js"></script>
+  <script language="javascript" type="text/javascript" src="libraries/webgl-utils.js"></script>
+  <script language="javascript" type="text/javascript" src="main.js"></script>
+</html>
