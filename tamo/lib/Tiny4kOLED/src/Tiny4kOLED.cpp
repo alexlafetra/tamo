@@ -600,6 +600,18 @@ void SSD1306Device::bitmap(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const
 	}
 	setCursor(0, 0);
 }
+void SSD1306Device::bitmap(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1,  uint8_t bitmap[]) {
+	uint16_t j = 0;
+ 	for (uint8_t y = y0; y <= y1; y++) {
+		setCursor(x0,y);
+		ssd1306_send_data_start();
+		for (uint8_t x = x0; x < x1; x++) {
+			ssd1306_send_data_byte(bitmap[j++]);
+		}
+		ssd1306_send_stop();
+	}
+	setCursor(0, 0);
+}
 
 //this one i wrote...it's p janky
 void SSD1306Device::bitmap2x(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t bitmap[]) {

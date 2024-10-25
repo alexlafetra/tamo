@@ -187,7 +187,13 @@ void setup() {
   // delay(600);
 }
 
+uint8_t i = 0;
+#include "fbo.h"
 
 void loop() {
-  tamo.update();
+  // tamo.update();
+  oled.clear();
+  FrameBuffer f(64,32);
+  f.setPixel(i,i,1);
+  oled.bitmap(0,0,f.width,f.height,f.buffer);
 }
