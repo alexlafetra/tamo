@@ -10,7 +10,7 @@ Programmer > Arduino as ISP
 
 //If you need to debug the baby screen, use the 64x32 test sketch!
 #define TINY4KOLED_NO_PRINT
-#define FULLSIZE//enable zoom in, 2x bitmaps
+// #define FULLSIZE//enable zoom in, 2x bitmaps
 
 #include <TinyWireM.h>
 //this library is modified!
@@ -21,6 +21,8 @@ Programmer > Arduino as ISP
 #include <avr/power.h>    // Power management
 #include <EEPROM.h>
 // #include "display.h"
+#include "fbo.h"
+#include "WireFrame.h"
 
 #define W 64
 #define H 32
@@ -133,7 +135,6 @@ void hardwareSleep(){
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);   // sleep mode is set here
   sleep_enable();                          // enables the sleep bit in the mcucr register so sleep is possible  
   sleep_cpu();                            // sleep (idk what the diff is)
-  // sleep_mode();                          // here the device is actually put to sleep!!
 }
 
 //Interrupt callback to wake Attiny back up
@@ -185,15 +186,17 @@ void setup() {
   // delay(600);
   // oled.bitmap2x(20,0,39,2,bitmap_li);
   // delay(600);
+
 }
 
 uint8_t i = 0;
-#include "fbo.h"
-
 void loop() {
   // tamo.update();
   oled.clear();
   FrameBuffer f(64,32);
-  f.setPixel(i,i,1);
-  oled.bitmap(0,0,f.width,f.height,f.buffer);
+  f.setPixel(i,15,1);
+  f.setPixel(1,1,1);
+  oled.bitmap(0,0,f.width,f.height/16,f.buffer);
+  i++;
+  i%=64;
 }

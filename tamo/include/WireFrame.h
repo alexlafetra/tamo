@@ -1,5 +1,8 @@
 const uint8_t orthoMatrix[2][3] = {{1,0,0},{0,1,0}};
 
+// typedef unsigned char uint8_t;
+// typedef unsigned short int uint16_t;
+
 class Vertex{
   public:
   float x;
@@ -8,9 +11,6 @@ class Vertex{
   Vertex();
   Vertex(float,float,float);
   void render(uint8_t, uint8_t, float);
-  void render(uint8_t, uint8_t, float, uint8_t);
-  void render(uint8_t, uint8_t, float, uint8_t, bool);
-  void render(uint8_t, uint8_t,float, uint8_t, String);
   void rotate(float, uint8_t);
   void rotateAroundPoint(Vertex, float, uint8_t);
   void coordTransform(float transformer[3][3]);
@@ -45,32 +45,7 @@ void setPixel(uint8_t x, uint8_t y, uint16_t c){
 }
 
 void Vertex::render(uint8_t xOffset,uint8_t yOffset, float scale){
-  // display.fillCircle(x*scale+xOffset,y*scale+yOffset,2,SSD1306_WHITE);
-}
-void Vertex::render(uint8_t xOffset,uint8_t yOffset, float scale, uint8_t size){
-  // if(size)
-  //   display.fillCircle(x*scale+xOffset,y*scale+yOffset,size,SSD1306_WHITE);
-  // else
-  //   display.drawPixel(x*scale+xOffset,y*scale+yOffset,SSD1306_WHITE);
-}
-
-void Vertex::render(uint8_t xOffset,uint8_t yOffset, float scale, uint8_t size, bool full){
-  // if(size){
-  //   if(full)
-  //     display.fillCircle(x*scale+xOffset,y*scale+yOffset,size,SSD1306_WHITE);
-  //   else
-  //     display.drawCircle(x*scale+xOffset,y*scale+yOffset,size,SSD1306_WHITE);
-  // }
-  // else{
-    // display.drawPixel(x*scale+xOffset,y*scale+yOffset,1);
-    setPixel(x*scale+xOffset,y*scale+yOffset,1);
-  // }
-}
-void Vertex::render(uint8_t xOffset,uint8_t yOffset, float scale, uint8_t size, String text){
-  // if(size)
-  //   display.fillCircle(x*scale+xOffset,y*scale+yOffset,size,SSD1306_WHITE);
-  // else
-  //   display.drawPixel(x*scale+xOffset,y*scale+yOffset,SSD1306_WHITE);
+  setPixel(x*scale+xOffset,y*scale+yOffset,1);
 }
 
 void Vertex::moveTowardsPoint(Vertex v,float amount){
@@ -163,50 +138,71 @@ Vertex V(float x, float y, float z){
 }
 
 
-// class WireFrame{
-//   public:
-//   float currentAngle[3];
-//   Vector<Vertex> verts;
-//   //this should also be a Vector of arrays instead of a vec of vecs
-//   //bc each edge will only be between 2 points
-//   Vector<Vector<uint16_t>>edges;//should be 16-bit so it can handle more than 256 verts (just in case)
-//   Vector<uint16_t> dots;
-//   uint8_t xPos = 0;
-//   uint8_t yPos = 0;
-//   uint8_t dotSize = 0;
-//   float scale;
-//   bool drawEdges = true;
-//   bool drawDots = false;
-//   WireFrame(){};
-//   WireFrame(Vector<Vertex>);
-//   WireFrame(Vector<Vertex>,Vector<Vector<uint8_t>>);
-//   WireFrame(Vector<Vertex>,Vector<Vector<uint16_t>>);
+class WireFrame{
+  public:
+  float currentAngle[3];
+  //array of verts
+  Vertex* verts = nullptr;
+  uint16_t numberOfVertices = 0;
+  //array of vertex pairs [0,1] to form edges
+  uint16_t** edges = nullptr;
+  uint16_t numberOfEdges = 0;
 
-//   void render();
-//   void view();
-//   void renderDie();
-//   void renderDotsIfInFrontOf(float zCutoff);
-//   void rotate(float,uint8_t);
-//   void rotateRelativeTo(Vertex point, float amount,uint8_t axis);
-//   void scaleRelativeTo(Vertex point, float amount);
-//   void setRotation(float,uint8_t);
-//   bool isFarthestVert(uint8_t);
-//   bool isClosestVert(uint8_t);
-//   uint8_t getFarthestVert();
-//   uint8_t getClosestVert();
-//   void reset(uint8_t);
-//   void resetExceptFor(uint8_t);
-//   void rotateVertRelative(uint8_t,float,uint8_t);
-//   void join(WireFrame);
-//   void addVerts(Vector<Vertex>);
-//   void addEdges(Vector<Vector<uint16_t>>);
-//   void move(float,float,float);
-//   void moveTowardsPoint(Vertex v,float amount);
-//   void scaleAxis(float amount, uint8_t axis);
-//   void stitch(WireFrame);
-//   void applyScale();
-//   void rotateSpecificVertices(Vector<uint16_t> which, Vertex point, float amount, uint8_t axis);
-// };
+  uint8_t xPos = 0;
+  uint8_t yPos = 0;
+  float scale = 1.0;
+  // bool drawEdges = true;
+  // bool drawDots = false;
+  WireFrame(){};
+  WireFrame(uint16_t vertCount, Vertex* vertArray, uint16_t edgeCount, uint16_t** edgeArray){
+    numberOfVertices = vertCount;
+    numberOfEdges = edgeCount;
+
+    verts = new Vertex [numberOfVertices];
+    for(uint16_t i = 0; i<numberOfVertices; i++){
+      verts[i] = vertArray[i];
+    }
+    edges = new uint16_t* [numberOfEdges];
+    for(uint16_t i = 0; i<numberOfEdges; i++){
+      edges[i] = new uint16_t [2];
+      edges[i][0] = edgeArray[i][0];
+      edges[i][1] = edgeArray[i][2];
+    }
+  }
+
+  void render(){
+    for(uint16_t edge = 0; edge<numberOfEdges; edge++){
+      Vertex v1 = verts[edges[edge][0]];
+      Vertex v2 = verts[edges[edge][1]];
+      FrameBuffer f = FrameBuffer(64,32);
+      f.drawLine(v1.x*scale+xPos,v1.y*scale+yPos,v2.x*scale+xPos,v2.y*scale+yPos,1);
+      oled.bitmap(0,0,f.width,f.height,f.buffer);
+    }
+  }
+  // void view();
+  // void renderDie();
+  // void renderDotsIfInFrontOf(float zCutoff);
+  // void rotate(float,uint8_t);
+  // void rotateRelativeTo(Vertex point, float amount,uint8_t axis);
+  // void scaleRelativeTo(Vertex point, float amount);
+  // void setRotation(float,uint8_t);
+  // bool isFarthestVert(uint8_t);
+  // bool isClosestVert(uint8_t);
+  // uint8_t getFarthestVert();
+  // uint8_t getClosestVert();
+  // void reset(uint8_t);
+  // void resetExceptFor(uint8_t);
+  // void rotateVertRelative(uint8_t,float,uint8_t);
+  // void join(WireFrame);
+  // void addVerts(Vector<Vertex>);
+  // void addEdges(Vector<Vector<uint16_t>>);
+  // void move(float,float,float);
+  // void moveTowardsPoint(Vertex v,float amount);
+  // void scaleAxis(float amount, uint8_t axis);
+  // void stitch(WireFrame);
+  // void applyScale();
+  // void rotateSpecificVertices(Vector<uint16_t> which, Vertex point, float amount, uint8_t axis);
+};
 // WireFrame::WireFrame(Vector<Vertex> vertices){
 //   verts = vertices;
 //   scale = 1;
