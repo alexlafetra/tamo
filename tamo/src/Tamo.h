@@ -2,6 +2,7 @@
 #define SPRITESTARTY 0
 
 //Speeds for Sprites
+#define VVVFAST 50
 #define VVFAST 100
 #define VFAST 200
 #define FAST 400
@@ -39,7 +40,6 @@ class Tamo{
     Tamo();
     Tamo(Animation a);
     Animation sprite;
-    // Animation actionSprite;
     Mood mood = NEUTRAL;
     Thought thought = LOVE;
     int16_t moodTime = 0;
@@ -67,7 +67,6 @@ Tamo::Tamo(){
 Tamo::Tamo(Animation a){
   sprite = a;
 }
-
 
 bool Tamo::isFeeling(){
   return (moodTime>0 || !(sprite.isFrameReady() && sprite.hasPlayedAtLeastOnce));
@@ -116,7 +115,7 @@ void Tamo::talk(){
 
 void Tamo::think(){
   sprite = Animation(SPRITESTARTX-16,SPRITESTARTY,16,16,thinkingAnim,2,FAST,1);
-  Animation actionSprite(SPRITESTARTX+16,SPRITESTARTY,13,16,dreamAnim_gun,4,SLOW,1);
+  Animation actionSprite(SPRITESTARTX+16,SPRITESTARTY,13,16,dreamAnim_gun,4,MEDIUM,1);
   moodTime = random(100,500);
   actionSprite.hasPlayedAtLeastOnce = false;
   while(!actionSprite.hasPlayedAtLeastOnce && moodTime){
@@ -134,11 +133,10 @@ void Tamo::think(){
 }
 
 void Tamo::eat(){
-  sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,eatingAnim,2,MEDIUM,1);
-  moodTime = random(200,700);
+  sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,eatingAnim,2,FAST,1);
+  moodTime = 400;
   while(isFeeling()){
     moodTime--;
-    readButtons();
     sprite.update();
   }
   mood = HAPPY;
@@ -160,7 +158,7 @@ void Tamo::poop(){
   mood = NEUTRAL;
 }
 void Tamo::happy(){
-  sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,happyAnim,2,FAST,1);
+  sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,happyAnim,2,VFAST,1);
   moodTime = random(100,300);
   while(isFeeling()){
     moodTime--;
@@ -176,7 +174,7 @@ void Tamo::neutral(){
   while(isFeeling()){
     moodTime--;
     readButtons();
-    if(BUTTON && itsbeen(200)){
+    if(BUTTON && itsbeen(200) && mood == NEUTRAL){
       lastTime = millis();
       mood = TALKING;
       break;
@@ -189,7 +187,9 @@ void Tamo::neutral(){
 
 //sleep mode
 void Tamo::sleep(){
-  sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,sleepingAnim,2,SLOW,1);
+  sprite = Animation(0,SPRITESTARTY,16,16,sleepingAnim,4,VVVFAST,1);
+  Animation sprite2(32,SPRITESTARTY,16,16,sleepingAnim,4,VVVFAST,1);
+  // sprite2.currentFrame = 2;
   moodTime = 0;
   lastTime = millis();
   while(!itsbeen(TIME_BEFORE_SLEEP)){
@@ -198,12 +198,14 @@ void Tamo::sleep(){
     if(BUTTON && itsbeen(200)){
       lastTime = millis();
       mood = ANGRY;
+      clearEdges();
       return;
     }
     sprite.update();
+    sprite2.update();
   }
   hardwareSleep();
-  mood = NEUTRAL;
+  mood = SLEEPING;
 }
 
 void Tamo::cry(){
@@ -235,8 +237,8 @@ void Tamo::feelLikeCrying(){
 }
 
 void Tamo::feelMad(){
-  sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,tamoMadAnim,2,VFAST,1);
-  moodTime = random(100,200);
+  sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,tamoMadAnim,2,VVFAST,1);
+  moodTime = 200;
   while(isFeeling()){
     readButtons();
     sprite.update();
@@ -246,9 +248,8 @@ void Tamo::feelMad(){
 }
 
 void Tamo::vibeCheck(){
-  //if it's been 30s since the button was pressed, sleep the tamagotchi
+  //if it's been Xs since the button was pressed, sleep the tamagotchi
   if(itsbeen(TIME_BEFORE_SLEEP)){
-  // if(itsbeen(6000)){
     mood = SLEEPING;
     lastTime = millis();
     return;
@@ -256,7 +257,7 @@ void Tamo::vibeCheck(){
   //otherwise, choose a random mood
   const Mood possibleMoods[7] = {NEUTRAL,HAPPY,ANGRY,SAD,THINKING,EATING,POOPING};
   mood = possibleMoods[random(0,7)];
-  const Thought possibleThoughts[9] = {LOVE,HEARTBREAK,DEATH,REVENGE,FOOD,SELF,FACE,MUSIC};
+  const Thought possibleThoughts[8] = {LOVE,HEARTBREAK,DEATH,REVENGE,FOOD,SELF,FACE,MUSIC};
   thought = possibleThoughts[random(0,8)];
 }
 

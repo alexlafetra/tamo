@@ -21,7 +21,7 @@ class Animation{
     void showCurrentFrame();
     void update();
     void nextFrame();
-    const unsigned char ** frames;
+    const unsigned char ** frames = nullptr;
 
     Animation(){};
     Animation(int16_t x1, int16_t y1, uint16_t w, uint16_t h, const unsigned char* const buffer[], uint16_t frameCount, uint32_t frameRate, uint16_t c){

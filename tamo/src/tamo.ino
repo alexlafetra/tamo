@@ -30,7 +30,8 @@ Programmer > Arduino as ISP
 #define RAND_PIN 5 //PB5 is the ISP reset pin, but also can be used to get a rand number? maybe?
 #define BRIGHTNESS 16
 //time (ms) before tamo sleeps
-#define TIME_BEFORE_SLEEP 60000
+#define TIME_BEFORE_SLEEP 6000
+#define LONG_PRESS_TIME 500;
 
 #define display oled
 
@@ -39,10 +40,22 @@ using namespace std;
 bool BUTTON = false;
 // bool randomGenSeeded = false;
 uint64_t lastTime = 0;
+uint32_t timeOfLastButtonPress = 0;
 
 bool itsbeen(uint32_t time){
   return((millis()-lastTime)>time);  
 }
+
+void readButtons();
+void hardwareSleep();
+void clearEdges();
+void clearScreen();
+
+// #include "bitmaps.cpp"
+#include "sprites.h"
+#include "Animation.h"
+#include "Tamo.h"
+Tamo tamo;
 
 /*
   Clears area to the right and left of main sprite
@@ -108,12 +121,17 @@ void seedRandomNumberGenerator()
 }
 
 void readButtons(){
-  BUTTON = !digitalRead(BUTTON_PIN);
-  if(BUTTON){
+  bool val = !digitalRead(BUTTON_PIN);
+  if(val){
     analogWrite(LED_PIN,BRIGHTNESS);
+    BUTTON = true;
   }
   else{
     digitalWrite(LED_PIN,LOW);
+    //if the button *was* held, then you just released it
+    if(BUTTON)
+      timeOfLastButtonPress = millis();
+    BUTTON = false;
   }
 }
 
@@ -144,12 +162,6 @@ ISR(PCINT0_vect){
   oled.on();//turn screen back on
 }
 
-// #include "bitmaps.cpp"
-#include "sprites.h"
-#include "Animation.h"
-#include "Tamo.h"
-Tamo tamo;
-
 void initOled(){
   //start i2c communication w little oled
   oled.begin(72, 40, sizeof(tiny4koled_init_72x40br), tiny4koled_init_72x40br);
@@ -173,27 +185,20 @@ void setup() {
   pinMode(LED_PIN,OUTPUT);
   digitalWrite(LED_PIN,LOW);
 
-  seedRandomNumberGenerator();
+  // seedRandomNumberGenerator();
 
   initOled();
 
   //intro
-  // oled.clear();
-  // oled.bitmap2x(22,0,38,2,bitmap_hi);
-  // delay(600);
-  // oled.bitmap2x(20,0,39,2,bitmap_mai);
-  // delay(600);
-  // oled.bitmap2x(20,0,39,2,bitmap_li);
-  // delay(600);
+  oled.clear();
+  oled.bitmap2x(22,0,38,2,bitmap_hi);
+  delay(600);
+  oled.bitmap2x(20,0,39,2,bitmap_mai);
+  delay(600);
+  oled.bitmap2x(20,0,39,2,bitmap_li);
+  delay(600);
 }
 
-uint8_t i = 0;
-#include "fbo.h"
-
 void loop() {
-  // tamo.update();
-  oled.clear();
-  FrameBuffer f(64,32);
-  f.setPixel(i,i,1);
-  oled.bitmap(0,0,f.width,f.height,f.buffer);
+  tamo.update();
 }
