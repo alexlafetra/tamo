@@ -21,8 +21,6 @@ Programmer > Arduino as ISP
 #include <avr/power.h>    // Power management
 #include <EEPROM.h>
 // #include "display.h"
-#include "fbo.h"
-#include "WireFrame.h"
 
 #define W 64
 #define H 32
@@ -33,6 +31,16 @@ Programmer > Arduino as ISP
 #define BRIGHTNESS 16
 //time (ms) before tamo sleeps
 #define TIME_BEFORE_SLEEP 60000
+
+void ledOn(){
+  analogWrite(LED_PIN,BRIGHTNESS);
+}
+void ledOff(){
+  digitalWrite(LED_PIN,LOW);
+}
+
+#include "WireFrame.h"
+#include "fbo.h"
 
 #define display oled
 
@@ -73,7 +81,6 @@ void clearScreen(){
 		oled.fillToEOP(0);
 	}
 }
-
 //This is taken from:
 //https://forum.arduino.cc/t/the-reliable-but-not-very-sexy-way-to-seed-random/65872
 
@@ -149,7 +156,7 @@ ISR(PCINT0_vect){
 #include "sprites.h"
 #include "Animation.h"
 #include "Tamo.h"
-Tamo tamo;
+// Tamo tamo;
 
 void initOled(){
   //start i2c communication w little oled
@@ -163,6 +170,19 @@ void initOled(){
   oled.clear();
 }
 
+// WireFrame makeCube(){
+//   Vertex vArray[4] = {Vertex(-1,-1,-1),Vertex(-1,1,-1),Vertex(1,1,-1),Vertex(1,-1,1)};
+//   uint16_t edges[4][2] = {{0,1},{1,2},{2,3},{3,0}};
+//   WireFrame sq(4,vArray,4,edges);
+//   sq.scale = 3.0;
+//   sq.xPos = 8;
+//   sq.yPos = 8;
+//   return sq;
+// }
+
+FrameBuffer f;
+WireFrame w;
+
 void setup() {
   //turn ADC off
   ADCSRA &= ~_BV(ADEN);
@@ -174,7 +194,7 @@ void setup() {
   pinMode(LED_PIN,OUTPUT);
   digitalWrite(LED_PIN,LOW);
 
-  seedRandomNumberGenerator();
+  // seedRandomNumberGenerator();
 
   initOled();
 
@@ -187,16 +207,40 @@ void setup() {
   // oled.bitmap2x(20,0,39,2,bitmap_li);
   // delay(600);
 
+  f = FrameBuffer(32,32);
+  f.fill(0xFF);
+
+  Vertex vArray[4] = {Vertex(-1,-1,0),Vertex(-1,1,0),Vertex(1,1,0),Vertex(1,-1,0)};
+  // uint8_t edges[4][2] = {{0,1},{1,2},{2,3},{3,0}};
+  uint8_t edges[3][2] = {{0,3},{1,2},{2,0}};
+  w = WireFrame(4,vArray,3,edges);
+  w.scale = 4.0;
+  w.xPos = 0;
+  w.yPos = 2;
 }
 
 uint8_t i = 0;
+uint8_t j = 0;
 void loop() {
-  // tamo.update();
-  oled.clear();
-  FrameBuffer f(64,32);
-  f.setPixel(i,15,1);
-  f.setPixel(1,1,1);
-  oled.bitmap(0,0,f.width,f.height/16,f.buffer);
+  ledOn();
+  w.xPos = i;
+  f.clear();
+  f.renderWireFrame(w);
+  // f.drawLine(1,1,i,31,0);
+  // f.setPixel(i,j,0);
+  f.render(5,0);
   i++;
-  i%=64;
+  if(i>=32){
+    i = 0;
+    j++;
+    if(j>=32){
+      f.fill(0xFF);
+      j = 0;
+    }
+  }
+  ledOff();
+  // oled.bitmap(0,0,16,2,sprite_mad_1);
+  // delay(100);
+
+  // tamo.update();
 }

@@ -5,9 +5,9 @@ const uint8_t orthoMatrix[2][3] = {{1,0,0},{0,1,0}};
 
 class Vertex{
   public:
-  float x;
-  float y;
-  float z;
+  float x = 0;
+  float y = 0;
+  float z = 0;
   Vertex();
   Vertex(float,float,float);
   void render(uint8_t, uint8_t, float);
@@ -17,11 +17,7 @@ class Vertex{
   void moveTowardsPoint(Vertex v,float amount);
 };
 
-Vertex::Vertex(){
-  x = 0;
-  y = 0;
-  z = 0;
-}
+Vertex::Vertex(){}
 Vertex::Vertex(float x1, float y1, float z1){
   x = x1;
   y = y1;
@@ -37,15 +33,8 @@ void Vertex::rotateAroundPoint(Vertex v, float amt, uint8_t axis){
   z += v.z;
 }
 
-void setPixel(uint8_t x, uint8_t y, uint16_t c){
-  oled.setCursor(x,y);
-	oled.startData();
-  oled.sendData(0b10000000);
-  oled.endData();
-}
-
 void Vertex::render(uint8_t xOffset,uint8_t yOffset, float scale){
-  setPixel(x*scale+xOffset,y*scale+yOffset,1);
+  // setPixel(x*scale+xOffset,y*scale+yOffset,1);
 }
 
 void Vertex::moveTowardsPoint(Vertex v,float amount){
@@ -140,45 +129,100 @@ Vertex V(float x, float y, float z){
 
 class WireFrame{
   public:
-  float currentAngle[3];
+  // float currentAngle[3];
   //array of verts
-  Vertex* verts = nullptr;
-  uint16_t numberOfVertices = 0;
+  Vertex* verts  = nullptr;
+  uint8_t numberOfVertices = 0;
   //array of vertex pairs [0,1] to form edges
-  uint16_t** edges = nullptr;
-  uint16_t numberOfEdges = 0;
+  uint8_t** edges = nullptr;
+  uint8_t numberOfEdges = 0;
 
   uint8_t xPos = 0;
   uint8_t yPos = 0;
   float scale = 1.0;
-  // bool drawEdges = true;
-  // bool drawDots = false;
   WireFrame(){};
-  WireFrame(uint16_t vertCount, Vertex* vertArray, uint16_t edgeCount, uint16_t** edgeArray){
+  WireFrame(uint8_t vertCount, Vertex* vertArray, uint8_t edgeCount, uint8_t edgeArray [][2]){
     numberOfVertices = vertCount;
     numberOfEdges = edgeCount;
 
     verts = new Vertex [numberOfVertices];
-    for(uint16_t i = 0; i<numberOfVertices; i++){
+    for(uint8_t i = 0; i<numberOfVertices; i++){
       verts[i] = vertArray[i];
     }
-    edges = new uint16_t* [numberOfEdges];
-    for(uint16_t i = 0; i<numberOfEdges; i++){
-      edges[i] = new uint16_t [2];
-      edges[i][0] = edgeArray[i][0];
-      edges[i][1] = edgeArray[i][2];
+    edges = new uint8_t* [numberOfEdges];
+    for(uint8_t i = 0; i<numberOfEdges; i++){
+      edges[i] = new uint8_t [2];
+      edges[i] = edgeArray[i];
     }
   }
+  //destructor
+  ~WireFrame(){
+    for(uint16_t e = 0; e<numberOfEdges; e++){
+      delete [] edges[e];
+    }
+    delete [] edges;
+    delete [] verts;
+  }
+  //copy constructor
+  WireFrame(WireFrame& wf){
+    numberOfVertices = wf.numberOfVertices;
+    numberOfEdges = wf.numberOfEdges;
 
-  void render(){
-    for(uint16_t edge = 0; edge<numberOfEdges; edge++){
-      Vertex v1 = verts[edges[edge][0]];
-      Vertex v2 = verts[edges[edge][1]];
-      FrameBuffer f = FrameBuffer(64,32);
-      f.drawLine(v1.x*scale+xPos,v1.y*scale+yPos,v2.x*scale+xPos,v2.y*scale+yPos,1);
-      oled.bitmap(0,0,f.width,f.height,f.buffer);
+    verts = new Vertex [numberOfVertices];
+    for(uint8_t i = 0; i<numberOfVertices; i++){
+      verts[i] = wf.verts[i];
     }
+    edges = new uint8_t* [numberOfEdges];
+    for(uint8_t i = 0; i<numberOfEdges; i++){
+      edges[i] = new uint8_t [2];
+      edges[i][0] = wf.edges[i][0];
+      edges[i][1] = wf.edges[i][1];
+    }
+
+    xPos = wf.xPos;
+    yPos = wf.yPos;
+    scale = wf.scale;
   }
+  WireFrame& operator= (const WireFrame& wf){
+
+    if(this == &wf)
+      return *this;
+    if(verts)
+      delete [] verts;
+    if(edges){
+      for(uint8_t e = 0; e<numberOfEdges; e++){
+        delete [] edges[e];
+      }
+      delete [] edges;
+    }
+
+    numberOfVertices = wf.numberOfVertices;
+    numberOfEdges = wf.numberOfEdges;
+
+    verts = new Vertex [numberOfVertices];
+    for(uint8_t i = 0; i<numberOfVertices; i++){
+      verts[i] = wf.verts[i];
+    }
+    edges = new uint8_t* [numberOfEdges];
+    for(uint8_t i = 0; i<numberOfEdges; i++){
+      edges[i] = new uint8_t [2];
+      edges[i][0] = wf.edges[i][0];
+      edges[i][1] = wf.edges[i][1];
+    }
+
+    xPos = wf.xPos;
+    yPos = wf.yPos;
+    scale = wf.scale;
+
+    return *this;
+  }
+  // void render(FrameBuffer& f){
+  //   for(uint16_t edge = 0; edge<numberOfEdges; edge++){
+  //     Vertex v1 = verts[edges[edge][0]];
+  //     Vertex v2 = verts[edges[edge][1]];
+  //     f.drawLine(v1.x*scale+xPos,v1.y*scale+yPos,v2.x*scale+xPos,v2.y*scale+yPos,1);
+  //   }
+  // }
   // void view();
   // void renderDie();
   // void renderDotsIfInFrontOf(float zCutoff);
@@ -203,32 +247,6 @@ class WireFrame{
   // void applyScale();
   // void rotateSpecificVertices(Vector<uint16_t> which, Vertex point, float amount, uint8_t axis);
 };
-// WireFrame::WireFrame(Vector<Vertex> vertices){
-//   verts = vertices;
-//   scale = 1;
-//   drawEdges = true;
-//   drawDots = false;
-// }
-// WireFrame::WireFrame(Vector<Vertex> vertices,Vector<Vector<uint8_t>> edgeList){
-//   verts = vertices;
-//   //casting to 16-bit
-//   Vector<Vector<uint16_t>> edgeVec16Bit;
-//   for(int i = 0; i<edgeList.size(); i++){
-//     Vector<uint16_t> tempVec = {uint16_t(edgeList[i][0]),uint16_t(edgeList[i][1])};
-//     edgeVec16Bit.push_back(tempVec);
-//   }
-//   edges = edgeVec16Bit;
-//   scale = 1;
-//   drawEdges = true;
-//   drawDots = false;
-// }
-// WireFrame::WireFrame(Vector<Vertex> vertices,Vector<Vector<uint16_t>> edgeList){
-//   verts = vertices;
-//   edges = edgeList;
-//   scale = 1;
-//   drawEdges = true;
-//   drawDots = false;
-// }
 // void WireFrame::join(WireFrame w){
 
 //   int16_t offset = verts.size();

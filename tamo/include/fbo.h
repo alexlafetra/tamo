@@ -18,6 +18,7 @@ class FrameBuffer{
         width = w;
         height = h;
         init();
+        clear();
     }
     void init(){
         //if there's an old buffer, free its mem
@@ -26,12 +27,42 @@ class FrameBuffer{
         bufferSize = width*height/8+1;
         buffer = new uint8_t [bufferSize];
     }
-    void setPixel(uint8_t x, uint8_t y, uint8_t c){
-        uint16_t index = (y/8)+x*(width/8);
-        if(index > bufferSize)
+    void clear(){
+        fill(0x00);
+    }
+    void fill(uint8_t c){
+        for(uint16_t i = 0; i<bufferSize; i++){
+            buffer[i] = c;
+        }
+    }
+    void renderWireFrame(WireFrame& d){
+        for(uint16_t edge = 0; edge<d.numberOfEdges; edge++){
+            // Vertex v1 = d.verts[d.edges[edge][0]];
+            // Vertex v2 = d.verts[d.edges[edge][1]];
+            // drawLine(v1.x*d.scale+d.xPos,v1.y*d.scale+d.yPos,v2.x*d.scale+d.xPos,v2.y*d.scale+d.yPos,0);
+            // drawLine(d.verts[d.edges[edge][0]].x*d.scale+d.xPos,d.verts[d.edges[edge][0]].y*d.scale+d.yPos,d.verts[d.edges[edge][1]].x*d.scale+d.xPos,d.verts[d.edges[edge][1]].y*d.scale+d.yPos,1);
+        }
+        for(uint16_t v = 0; v<d.numberOfVertices; v++){
+            setPixel(d.verts[v].x*d.scale+d.xPos,d.verts[v].y*d.scale+d.yPos,0);
+        }
+        // delay(1000);
+    }
+    void setPixel(int16_t x, int16_t y, uint8_t c){
+        if((x < 0) || (y < 0) || (x > width) || (y > height))
+            return;
+        uint16_t index = width*(y/8)+x;
+
+        if(index >= bufferSize)
             return;
         uint8_t shift = (y%8);
-        buffer[index] |= (c<<shift);
+
+        if(c == 1)
+            buffer[index] |= uint8_t(1<<shift);
+        else if(c == 0)
+            buffer[index] &= ~uint8_t(1<<shift);
+    }
+    void render(uint8_t x0, uint8_t y0){
+        oled.renderFBO(x0,y0,width,3,buffer);
     }
     //stole this from Adafruit GFX!
     void drawLine(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint8_t color){
