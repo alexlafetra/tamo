@@ -10,7 +10,7 @@ Programmer > Arduino as ISP
 
 //If you need to debug the baby screen, use the 64x32 test sketch!
 #define TINY4KOLED_NO_PRINT
-#define FULLSIZE//enable zoom in, 2x bitmaps
+// #define FULLSIZE//enable zoom in, 2x bitmaps
 
 #include <TinyWireM.h>
 //this library is modified!
@@ -33,6 +33,22 @@ Programmer > Arduino as ISP
 #define TIME_BEFORE_SLEEP 6000
 #define LONG_PRESS_TIME 500;
 
+#define TAMO 0
+#define BUG 1
+#define CAT 2
+
+#define CREATURE TAMO
+
+void ledOn(){
+  analogWrite(LED_PIN,BRIGHTNESS);
+}
+void ledOff(){
+  digitalWrite(LED_PIN,LOW);
+}
+
+// #include "WireFrame.h"
+// #include "fbo.h"
+
 #define display oled
 
 using namespace std;
@@ -51,7 +67,6 @@ void hardwareSleep();
 void clearEdges();
 void clearScreen();
 
-// #include "bitmaps.cpp"
 #include "sprites.h"
 #include "Animation.h"
 #include "Tamo.h"
@@ -84,7 +99,6 @@ void clearScreen(){
 		oled.fillToEOP(0);
 	}
 }
-
 //This is taken from:
 //https://forum.arduino.cc/t/the-reliable-but-not-very-sexy-way-to-seed-random/65872
 
@@ -135,10 +149,6 @@ void readButtons(){
   }
 }
 
-void pulseLED(){
-  analogWrite(LED_PIN,abs(sin(float(millis())/1.0))*255.0);
-}
-
 void hardwareSleep(){
   //turn off OLED, LED
   oled.off();
@@ -151,7 +161,6 @@ void hardwareSleep(){
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);   // sleep mode is set here
   sleep_enable();                          // enables the sleep bit in the mcucr register so sleep is possible  
   sleep_cpu();                            // sleep (idk what the diff is)
-  // sleep_mode();                          // here the device is actually put to sleep!!
 }
 
 //Interrupt callback to wake Attiny back up
@@ -161,6 +170,12 @@ ISR(PCINT0_vect){
   PCMSK &= ~_BV(PCINT3);                  // Turn off PB3 as interrupt pin
   oled.on();//turn screen back on
 }
+
+// #include "bitmaps.cpp"
+// #include "sprites.h"
+// #include "Animation.h"
+// #include "Tamo.h"
+// Tamo tamo;
 
 void initOled(){
   //start i2c communication w little oled
@@ -173,6 +188,19 @@ void initOled(){
   oled.on();
   oled.clear();
 }
+
+// WireFrame makeCube(){
+//   Vertex vArray[4] = {Vertex(-1,-1,-1),Vertex(-1,1,-1),Vertex(1,1,-1),Vertex(1,-1,1)};
+//   uint16_t edges[4][2] = {{0,1},{1,2},{2,3},{3,0}};
+//   WireFrame sq(4,vArray,4,edges);
+//   sq.scale = 3.0;
+//   sq.xPos = 8;
+//   sq.yPos = 8;
+//   return sq;
+// }
+
+// FrameBuffer f;
+// WireFrame w;
 
 void setup() {
   //turn ADC off
@@ -190,15 +218,48 @@ void setup() {
   initOled();
 
   //intro
-  oled.clear();
-  oled.bitmap2x(22,0,38,2,bitmap_hi);
-  delay(600);
-  oled.bitmap2x(20,0,39,2,bitmap_mai);
-  delay(600);
-  oled.bitmap2x(20,0,39,2,bitmap_li);
-  delay(600);
+  // oled.clear();
+  // oled.bitmap2x(22,0,38,2,bitmap_hi);
+  // delay(600);
+  // oled.bitmap2x(20,0,39,2,bitmap_mai);
+  // delay(600);
+  // oled.bitmap2x(20,0,39,2,bitmap_li);
+  // delay(600);
+
+  // f = FrameBuffer(32,32);
+  // f.fill(0xFF);
+
+  // Vertex vArray[4] = {Vertex(-1,-1,0),Vertex(-1,1,0),Vertex(1,1,0),Vertex(1,-1,0)};
+  // // uint8_t edges[4][2] = {{0,1},{1,2},{2,3},{3,0}};
+  // uint8_t edges[3][2] = {{0,3},{1,2},{2,0}};
+  // w = WireFrame(4,vArray,3,edges);
+  // w.scale = 4.0;
+  // w.xPos = 0;
+  // w.yPos = 2;
 }
 
+uint8_t i = 0;
+uint8_t j = 0;
 void loop() {
+  // ledOn();
+  // w.xPos = i;
+  // f.clear();
+  // f.renderWireFrame(w);
+  // // f.drawLine(1,1,i,31,0);
+  // // f.setPixel(i,j,0);
+  // f.render(5,0);
+  // i++;
+  // if(i>=32){
+  //   i = 0;
+  //   j++;
+  //   if(j>=32){
+  //     f.fill(0xFF);
+  //     j = 0;
+  //   }
+  // }
+  // ledOff();
+  // oled.bitmap(0,0,16,2,sprite_mad_1);
+  // delay(100);
+
   tamo.update();
 }

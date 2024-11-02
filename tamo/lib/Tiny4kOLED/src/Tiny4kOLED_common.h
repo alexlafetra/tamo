@@ -130,6 +130,7 @@ class SSD1306Device {
 		void clearToEOP(void);
 		void bitmap(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t bitmap[]);
 		void bitmap(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint8_t bitmap[]);
+		void renderFBO(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1,  uint8_t bitmap[]);
 		void bitmap2x(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t bitmap[]);
 		void startData(void);
 		void sendData(const uint8_t data);
