@@ -50,6 +50,17 @@ class Sprite{
         const yLoc = int(mouseY/scale);
         return {x:xLoc,y:yLoc};
     }
+    saveImage(title){
+        let img = createImage(16,16);
+        img.loadPixels();
+        for(let i = 0; i<16; i++){
+            for(let j = 0; j<16; j++){
+                img.set(i,j,this.pixelData[i][j]?[255,255,255,255]:[0,0,0,0]);
+            }
+        }
+        img.updatePixels();
+        img.save(mainTitle+'_frame'+title+'.bmp', 'bmp');
+    }
     getBytes(){
         const bytes = new Uint8Array(32);
         for(let i = 0; i < (16*16); i++){
@@ -62,16 +73,14 @@ class Sprite{
         }
         return bytes;
     }
-    saveImage(title){
-        let img = createImage(16,16);
-        img.loadPixels();
-        for(let i = 0; i<16; i++){
-            for(let j = 0; j<16; j++){
-                img.set(i,j,this.pixelData[i][j]?[255,255,255,255]:[0,0,0,0]);
-            }
+    bytesToPixels(byteArray){
+        for(let i = 0; i < (16*16); i++){
+            const whichByte = int(i/8);
+            const whichBit = i%8;
+            const x = i%16;
+            const y = int(i/16);
+            this.pixelData[x][y] = (byteArray[whichByte]>>whichBit)&1;
         }
-        img.updatePixels();
-        img.save(mainTitle+'_frame'+title+'.bmp', 'bmp');
     }
 };
 
@@ -172,6 +181,19 @@ function clearCurrentCanvas(){
 function resetAll(){
     spriteSheet.activeSpriteID = 0;
     spriteSheet.sprites = [new Sprite()];
+}
+
+function byteArrayToCanvas(byteArray){
+    let bytes = [];
+    for(let i = 0; i<byteArray.length; i++){
+        if(byteArray.charAt(i) == ',' || (i == byteArray.length-1)){
+            bytes.push(Number(byteArray.slice(0,i)));
+            byteArray = byteArray.slice(i+2,byteArray.length);
+            i = 0;
+        }
+    }
+    console.log(bytes.length);
+    spriteSheet.sprites[0].bytesToPixels(bytes);
 }
 
 function setup(){

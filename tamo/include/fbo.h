@@ -9,7 +9,7 @@
 
 class FrameBuffer{
     public:
-    uint8_t width = 64;
+    uint8_t width = 32;
     uint8_t height = 32;
     uint8_t* buffer = nullptr;
     uint16_t bufferSize = 0;
@@ -17,37 +17,29 @@ class FrameBuffer{
     FrameBuffer(uint8_t w, uint8_t h){
         width = w;
         height = h;
-        init();
-        clear();
-    }
-    void init(){
+
         //if there's an old buffer, free its mem
         if(buffer)
             delete [] buffer;
-        bufferSize = width*height/8+1;
+        bufferSize = width*height/8;
         buffer = new uint8_t [bufferSize];
-    }
-    void clear(){
+
         fill(0x00);
     }
+    // ~FrameBuffer(){
+    //     delete [] buffer;
+    // }
     void fill(uint8_t c){
-        for(uint16_t i = 0; i<bufferSize; i++){
+        for(uint8_t i = 0; i<bufferSize; i++){
             buffer[i] = c;
         }
     }
-    void renderWireFrame(WireFrame& d){
+    void renderWireFrame(WireFrame& d, uint8_t c){
         for(uint16_t edge = 0; edge<d.numberOfEdges; edge++){
-            // Vertex v1 = d.verts[d.edges[edge][0]];
-            // Vertex v2 = d.verts[d.edges[edge][1]];
-            // drawLine(v1.x*d.scale+d.xPos,v1.y*d.scale+d.yPos,v2.x*d.scale+d.xPos,v2.y*d.scale+d.yPos,0);
-            // drawLine(d.verts[d.edges[edge][0]].x*d.scale+d.xPos,d.verts[d.edges[edge][0]].y*d.scale+d.yPos,d.verts[d.edges[edge][1]].x*d.scale+d.xPos,d.verts[d.edges[edge][1]].y*d.scale+d.yPos,1);
+            drawLine(d.verts[d.edges[edge][0]].x*d.scale+d.xPos,d.verts[d.edges[edge][0]].y*d.scale+d.yPos,d.verts[d.edges[edge][1]].x*d.scale+d.xPos,d.verts[d.edges[edge][1]].y*d.scale+d.yPos,c);
         }
-        for(uint16_t v = 0; v<d.numberOfVertices; v++){
-            setPixel(d.verts[v].x*d.scale+d.xPos,d.verts[v].y*d.scale+d.yPos,0);
-        }
-        // delay(1000);
     }
-    void setPixel(int16_t x, int16_t y, uint8_t c){
+    void setPixel(int8_t x, int8_t y, uint8_t c){
         if((x < 0) || (y < 0) || (x > width) || (y > height))
             return;
         uint16_t index = width*(y/8)+x;
@@ -62,10 +54,10 @@ class FrameBuffer{
             buffer[index] &= ~uint8_t(1<<shift);
     }
     void render(uint8_t x0, uint8_t y0){
-        oled.renderFBO(x0,y0,width,3,buffer);
+        oled.renderFBO2x(x0,y0,width,2,buffer);
     }
     //stole this from Adafruit GFX!
-    void drawLine(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint8_t color){
+    void drawLine(int8_t x0, int8_t y0, int8_t x1, int8_t y1, int8_t color){
         int16_t steep = abs(y1 - y0) > abs(x1 - x0);
         if (steep) {
             _swap_int16_t(x0, y0);

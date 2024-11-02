@@ -8,9 +8,11 @@ Programmer > Arduino as ISP
 
 */
 
+//https://github.com/Lorandil/ATTiny85-optimization-guide?tab=readme-ov-file
+
 //If you need to debug the baby screen, use the 64x32 test sketch!
 #define TINY4KOLED_NO_PRINT
-// #define FULLSIZE//enable zoom in, 2x bitmaps
+#define FULLSIZE//enable zoom in, 2x bitmaps
 
 #include <TinyWireM.h>
 //this library is modified!
@@ -18,9 +20,9 @@ Programmer > Arduino as ISP
 #include <avr/pgmspace.h>
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
-#include <avr/power.h>    // Power management
-#include <EEPROM.h>
-// #include "display.h"
+#include <avr/wdt.h>//to keep track of time
+// #include <avr/power.h>    // Power management
+// #include <EEPROM.h>
 
 #define W 64
 #define H 32
@@ -30,8 +32,11 @@ Programmer > Arduino as ISP
 #define RAND_PIN 5 //PB5 is the ISP reset pin, but also can be used to get a rand number? maybe?
 #define BRIGHTNESS 16
 //time (ms) before tamo sleeps
-#define TIME_BEFORE_SLEEP 6000
+#define TIME_BEFORE_SLEEP 1200000
 #define LONG_PRESS_TIME 500;
+#define DOUBLE_CLICK_TIME 100;
+#define MAX_HUNGER 4320 // takes 12hr = 720min = 4320s to run out
+#define MAX_MENTAL 8640 //takes 24hr to fully deplete
 
 #define TAMO 0
 #define BUG 1
@@ -49,11 +54,15 @@ void ledOff(){
 // #include "WireFrame.h"
 // #include "fbo.h"
 
-#define display oled
+// FrameBuffer f(32,16);
+// WireFrame w;
 
 using namespace std;
 
 bool BUTTON = false;
+bool LONG_PRESS = false;
+bool DOUBLE_CLICK = false;
+
 // bool randomGenSeeded = false;
 uint64_t lastTime = 0;
 uint32_t timeOfLastButtonPress = 0;
@@ -81,14 +90,14 @@ Tamo tamo;
 void clearEdges(){
   //left side
   oled.setCursor(0,0);
-  oled.fillLength(0,20);
+  oled.fillLength(0,16);
   oled.setCursor(0,1);
-  oled.fillLength(0,20);
+  oled.fillLength(0,16);
 
   //right side
-  oled.setCursor(52,0);
+  oled.setCursor(48,0);
   oled.fillLength(0,20);
-  oled.setCursor(52,1);
+  oled.setCursor(48,1);
   oled.fillLength(0,20);
 }
 
@@ -101,51 +110,50 @@ void clearScreen(){
 }
 //This is taken from:
 //https://forum.arduino.cc/t/the-reliable-but-not-very-sexy-way-to-seed-random/65872
-
-void seedRandomNumberGenerator()
-{
-  static const uint32_t HappyPrime = 17;
-  union
-  {
-    uint32_t i;
-    uint8_t b[4];
-  }
-  raw;
-  uint8_t i;
-  unsigned int seed;
-  
-  for ( i=0; i < sizeof(raw.b); ++i )
-  {
-    raw.b[i] = EEPROM.read( i );
-  }
-
-  do
-  {
-    raw.i += HappyPrime;
-    seed = raw.i & 0x7FFFFFFF;
-  }
-  while ( (seed < 1) || (seed > 2147483646) );
-
-  randomSeed( seed );  
-
-  for ( i=0; i < sizeof(raw.b); ++i )
-  {
-    EEPROM.write( i, raw.b[i] );
-  }
-}
+// void seedRandomNumberGenerator()
 
 void readButtons(){
   bool val = !digitalRead(BUTTON_PIN);
   if(val){
+    //if the button wasn't previously pressed, then it's a fresh press
+    if(!BUTTON){
+      if(millis()-timeOfLastButtonPress < 100){
+        DOUBLE_CLICK = true;
+      }
+      else{
+        DOUBLE_CLICK = false;
+      }
+      timeOfLastButtonPress = millis();
+      LONG_PRESS = false;
+    }
     analogWrite(LED_PIN,BRIGHTNESS);
     BUTTON = true;
+    if((millis() - timeOfLastButtonPress) > (500) ){
+      LONG_PRESS = true;
+    }
   }
   else{
     digitalWrite(LED_PIN,LOW);
     //if the button *was* held, then you just released it
-    if(BUTTON)
-      timeOfLastButtonPress = millis();
+    if(BUTTON){
+      if((millis() - timeOfLastButtonPress) > (500) ){
+        LONG_PRESS = true;
+      }
+    }
+    else{
+      LONG_PRESS = false;
+    }
     BUTTON = false;
+  }
+}
+
+uint8_t pseudoRandom(uint8_t min, uint8_t max){
+  return millis()%(max-min)+min;
+}
+
+void hardwareSleepCheck(){
+  if(itsbeen(TIME_BEFORE_SLEEP)){
+    hardwareSleep();
   }
 }
 
@@ -171,11 +179,16 @@ ISR(PCINT0_vect){
   oled.on();//turn screen back on
 }
 
-// #include "bitmaps.cpp"
-// #include "sprites.h"
-// #include "Animation.h"
-// #include "Tamo.h"
-// Tamo tamo;
+
+// Timer0 overflow interrupt, this triggers every 10 seconds!
+ISR(WDT_vect) {
+  // oled.fill(1);
+  // delay(100);
+  // oled.clear();
+  // analogWrite(LED_PIN,BRIGHTNESS);
+  // analogWrite(LED_PIN,0);
+  tamo.body();//tamo gets hungrier
+}
 
 void initOled(){
   //start i2c communication w little oled
@@ -184,82 +197,31 @@ void initOled(){
   oled.enableZoomIn();//Need this so the sprites aren't all weird
   #endif
   oled.setRotation(2);//flip display upside-down
-  oled.switchFrame();
   oled.on();
   oled.clear();
 }
-
-// WireFrame makeCube(){
-//   Vertex vArray[4] = {Vertex(-1,-1,-1),Vertex(-1,1,-1),Vertex(1,1,-1),Vertex(1,-1,1)};
-//   uint16_t edges[4][2] = {{0,1},{1,2},{2,3},{3,0}};
-//   WireFrame sq(4,vArray,4,edges);
-//   sq.scale = 3.0;
-//   sq.xPos = 8;
-//   sq.yPos = 8;
-//   return sq;
-// }
-
-// FrameBuffer f;
-// WireFrame w;
 
 void setup() {
   //turn ADC off
   ADCSRA &= ~_BV(ADEN);
 
-  //init button
-  pinMode(BUTTON_PIN,INPUT_PULLUP);
-  digitalWrite(BUTTON_PIN,HIGH);
-  //init led
-  pinMode(LED_PIN,OUTPUT);
+  //init I/O
+  DDRB &= ~(1 << PB3); // Set the button pin PB3 as input
+  PORTB |= (1 << PB3);  //activate pull-up resistor for PB3
+  // digitalWrite(BUTTON_PIN,HIGH);
+  DDRB |= ( 1 << PB4 );  //set led pin to output
   digitalWrite(LED_PIN,LOW);
 
-  // seedRandomNumberGenerator();
+  WDTCR = (1 << WDCE) | (1 << WDE); // Enable changes to WDT
+  WDTCR = (1 << WDP3) | (1 << WDP0) | (1 << WDIE); // Set prescaler to 1s and enable interrupt
+
+  // Enable global interrupts
+  sei();
+
 
   initOled();
-
-  //intro
-  // oled.clear();
-  // oled.bitmap2x(22,0,38,2,bitmap_hi);
-  // delay(600);
-  // oled.bitmap2x(20,0,39,2,bitmap_mai);
-  // delay(600);
-  // oled.bitmap2x(20,0,39,2,bitmap_li);
-  // delay(600);
-
-  // f = FrameBuffer(32,32);
-  // f.fill(0xFF);
-
-  // Vertex vArray[4] = {Vertex(-1,-1,0),Vertex(-1,1,0),Vertex(1,1,0),Vertex(1,-1,0)};
-  // // uint8_t edges[4][2] = {{0,1},{1,2},{2,3},{3,0}};
-  // uint8_t edges[3][2] = {{0,3},{1,2},{2,0}};
-  // w = WireFrame(4,vArray,3,edges);
-  // w.scale = 4.0;
-  // w.xPos = 0;
-  // w.yPos = 2;
 }
 
-uint8_t i = 0;
-uint8_t j = 0;
 void loop() {
-  // ledOn();
-  // w.xPos = i;
-  // f.clear();
-  // f.renderWireFrame(w);
-  // // f.drawLine(1,1,i,31,0);
-  // // f.setPixel(i,j,0);
-  // f.render(5,0);
-  // i++;
-  // if(i>=32){
-  //   i = 0;
-  //   j++;
-  //   if(j>=32){
-  //     f.fill(0xFF);
-  //     j = 0;
-  //   }
-  // }
-  // ledOff();
-  // oled.bitmap(0,0,16,2,sprite_mad_1);
-  // delay(100);
-
-  tamo.update();
+  tamo.feel();
 }
