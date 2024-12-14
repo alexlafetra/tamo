@@ -217,8 +217,7 @@ void setup() {
 
   // Enable global interrupts
   sei();
-
-
+  
   initOled();
 }
 

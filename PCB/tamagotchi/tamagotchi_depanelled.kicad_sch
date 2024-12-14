@@ -1421,6 +1421,10 @@
 		(color 0 0 0 0)
 		(uuid "d2208a90-cd35-432a-a8b5-7b1c2c5319b7")
 	)
+	(no_connect
+		(at 161.29 144.78)
+		(uuid "5e6ecd78-63c6-4c8c-8cbd-60e790f94cb9")
+	)
 	(polyline
 		(pts
 			(xy 149.225 75.565) (xy 172.72 75.565)
@@ -1624,28 +1628,6 @@
 		)
 		(uuid "fe23756b-018d-4d80-b4a1-545f076a6abc")
 	)
-	(global_label "LED3"
-		(shape input)
-		(at 121.92 84.455 90)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify left)
-		)
-		(uuid "08301a8b-960a-4df1-858a-7f3dc18b2b20")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 121.92 76.8132 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify left)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "Screen SDA"
 		(shape input)
 		(at 163.83 81.915 180)
@@ -1730,6 +1712,28 @@
 					(size 1.27 1.27)
 				)
 				(justify right)
+				(hide yes)
+			)
+		)
+	)
+	(global_label "LED2"
+		(shape input)
+		(at 121.92 84.455 90)
+		(fields_autoplaced yes)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "242d5e72-19d6-4d62-9524-7b072a01c8e7")
+		(property "Intersheetrefs" "${INTERSHEET_REFS}"
+			(at 121.92 76.8132 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
 				(hide yes)
 			)
 		)
@@ -1822,50 +1826,6 @@
 			)
 		)
 	)
-	(global_label "LED2"
-		(shape input)
-		(at 121.92 94.615 270)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "4dd13ffb-6cf6-4bce-a1d8-8f3b83f65d94")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 121.92 102.2568 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "LED3"
-		(shape input)
-		(at 129.54 132.08 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "582ad4ab-0620-4238-9bf8-fc018c0074cb")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 121.8982 132.08 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
 	(global_label "ISP MOSI"
 		(shape input)
 		(at 163.195 57.785 180)
@@ -1879,28 +1839,6 @@
 		(uuid "7313584f-52bf-42ae-b326-8de89d492ecd")
 		(property "Intersheetrefs" "${INTERSHEET_REFS}"
 			(at 152.1338 57.8644 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-				(hide yes)
-			)
-		)
-	)
-	(global_label "ISP MISO"
-		(shape input)
-		(at 161.29 144.78 180)
-		(fields_autoplaced yes)
-		(effects
-			(font
-				(size 1.27 1.27)
-			)
-			(justify right)
-		)
-		(uuid "aadfc6ff-f234-456f-a095-c72e8faf4d36")
-		(property "Intersheetrefs" "${INTERSHEET_REFS}"
-			(at 149.6567 144.78 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3126,73 +3064,6 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 137.16 132.08 90)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "6cc9e7aa-cabe-4f09-9026-27e0da4f51b5")
-		(property "Reference" "#PWR05"
-			(at 143.51 132.08 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Value" "GND"
-			(at 140.97 132.08 90)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(justify right)
-			)
-		)
-		(property "Footprint" ""
-			(at 137.16 132.08 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" ""
-			(at 137.16 132.08 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 137.16 132.08 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "4d5b10d1-c965-44b9-bb3a-181ca4578976")
-		)
-		(instances
-			(project "tamagotchi_depanelled"
-				(path "/2a14b213-c635-4588-8242-200502cb1fe7"
-					(reference "#PWR05")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "power:GND")
 		(at 158.115 104.14 270)
 		(unit 1)
 		(exclude_from_sim no)
@@ -3252,74 +3123,6 @@
 			(project "tamagotchi_depanelled"
 				(path "/2a14b213-c635-4588-8242-200502cb1fe7"
 					(reference "#PWR04")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
-		(lib_id "Device:LED")
-		(at 133.35 132.08 180)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "8d8372e6-89ae-42e1-896d-a5da64fb19b7")
-		(property "Reference" "D3"
-			(at 134.9375 124.968 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "LED"
-			(at 134.9375 127.508 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "LED_THT:LED_D1.8mm_W3.3mm_H2.4mm"
-			(at 133.35 132.08 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "~"
-			(at 133.35 132.08 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" ""
-			(at 133.35 132.08 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "1"
-			(uuid "6f064c50-eb63-4792-be2f-f619d05df57f")
-		)
-		(pin "2"
-			(uuid "9cc9c9d3-cf48-4cc0-afa5-375d99a7521f")
-		)
-		(instances
-			(project "tamagotchi_depanelled"
-				(path "/2a14b213-c635-4588-8242-200502cb1fe7"
-					(reference "D3")
 					(unit 1)
 				)
 			)

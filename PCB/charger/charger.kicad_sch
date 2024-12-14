@@ -4487,7 +4487,7 @@
 				)
 			)
 		)
-		(property "Value" "10K\\"
+		(property "Value" "10K"
 			(at 217.17 68.58 0)
 			(effects
 				(font
@@ -4497,7 +4497,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
-			(at 217.17 68.58 0)
+			(at 217.424 71.882 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4695,7 +4695,7 @@
 				)
 			)
 		)
-		(property "Footprint" "LED_SMD:LED_0402_1005Metric"
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 160.02 78.74 0)
 			(effects
 				(font
@@ -5033,7 +5033,7 @@
 				)
 			)
 		)
-		(property "Footprint" "LED_SMD:LED_0402_1005Metric"
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 160.02 71.12 0)
 			(effects
 				(font
