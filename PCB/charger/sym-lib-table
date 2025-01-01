@@ -1,5 +1,0 @@
-(sym_lib_table
-  (version 0)
-  (lib (name "Adafruit USB C microlipo charger-eagle-import")(type "KiCad")(uri "${KIPRJMOD}/Adafruit USB C microlipo charger-eagle-import.kicad_sym")(options "")(descr ""))
-  (lib (name "Adafruit MicroUSB Lipo-eagle-import")(type "KiCad")(uri "${KIPRJMOD}/Adafruit MicroUSB Lipo-eagle-import.kicad_sym")(options "")(descr ""))
-)
