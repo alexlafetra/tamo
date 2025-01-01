@@ -28,8 +28,11 @@ Programmer > Arduino as ISP
 #define H 32
 
 #define BUTTON_PIN 3
+#define BATTERY_PIN 4
+
 #define LED_PIN 4
 #define RAND_PIN 5 //PB5 is the ISP reset pin, but also can be used to get a rand number? maybe?
+#define AUX_LED_PIN 5 //second LED
 #define BRIGHTNESS 16
 //time (ms) before tamo sleeps
 #define TIME_BEFORE_SLEEP 1200000
@@ -201,16 +204,65 @@ void initOled(){
   oled.clear();
 }
 
+//lights up screen and LED until batt dies
+void batteryStressTest(){
+  oled.fill(0xFF);
+  analogWrite(LED_PIN,BRIGHTNESS);
+  analogWrite(AUX_LED_PIN,BRIGHTNESS);
+}
+
+#define MAX_ADC_VALUE 1024
+
+uint16_t readADC() {
+    // Start the conversion by setting the ADSC (ADC Start Conversion) bit
+    ADCSRA |= (1 << ADSC);
+    
+    // Wait for the conversion to finish by checking if ADSC is cleared
+    while (ADCSRA & (1 << ADSC)) {
+        // Wait here while conversion is in progress
+    }
+    
+    // The 10-bit result is stored in ADC (ADC is a 16-bit register, the result is in ADC[9:0])
+    return ADC;
+}
+
+void testADC(){
+  oled.clear();  
+  uint16_t quantVal = 1024;
+  //each val here is 8px tall, bc of how OLED pages work
+  const uint8_t length = 16;
+  uint8_t displayVal [length];
+  for(uint8_t i = 0; i<length; i++){
+    displayVal[i] = 0;
+  }
+  uint8_t numberOf1s = quantVal * float(length)/float(255);
+  for(uint8_t i = 0; i<numberOf1s; i++){
+    displayVal[i] = 255;
+  }
+  oled.renderFBO2x(16,0,length,0,displayVal);
+}
+
 void setup() {
   //turn ADC off
-  ADCSRA &= ~_BV(ADEN);
+  // ADCSRA &= ~_BV(ADEN);
 
   //init I/O
-  DDRB &= ~(1 << PB3); // Set the button pin PB3 as input
-  PORTB |= (1 << PB3);  //activate pull-up resistor for PB3
-  // digitalWrite(BUTTON_PIN,HIGH);
-  DDRB |= ( 1 << PB4 );  //set led pin to output
-  digitalWrite(LED_PIN,LOW);
+  DDRB &= ~(1 << PB3); // Set the button pin PB3 as input (main button)
+  PORTB |= (1 << PB3);  //activate pull-up resistor for PB3 (main button connects PB3 to GND)
+  
+  ADCSRA |= (1 << ADPS2) | (1 << ADPS1); // Prescaler: 64
+  ADCSRA |= (1 << ADEN);
+  // // Select the ADC channel 2 (PB4) by setting the MUX bits to 2 (for ADC2)
+  // // MUX[3:0] = 0010 (ADC2)
+  // ADMUX = (1 << MUX1); // This selects ADC2 as the input
+
+  // // Set the reference voltage to AVcc (default)
+  // ADMUX &= ~(1 << REFS1); // REFS1 = 0
+  // ADMUX |= (1 << REFS0);  // REFS0 = 1 (AVcc as reference)
+
+  // DDRB |= ( 1 << PB4 );  //set led pin to output
+  // DDRB |= ( 1 << PB5 );  //set aux led pin to output
+  // digitalWrite(LED_PIN,LOW);
 
   WDTCR = (1 << WDCE) | (1 << WDE); // Enable changes to WDT
   WDTCR = (1 << WDP3) | (1 << WDP0) | (1 << WDIE); // Set prescaler to 1s and enable interrupt
@@ -222,5 +274,6 @@ void setup() {
 }
 
 void loop() {
-  tamo.feel();
+  // tamo.feel();
+  testADC();
 }

@@ -1,4 +1,4 @@
-23426534326988614
+23433483264785028
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -88368,6 +88368,13 @@ CDRH105RNP Inductor
 2
 2
 Stepchild
+Dummy OLED
+
+
+0
+0
+0
+Stepchild
 Joycon Joystick
 
 
@@ -88416,6 +88423,13 @@ Logo
 0
 0
 0
+Stepchild
+MICROSD_BREAKOUT
+
+
+0
+6
+6
 Stepchild
 MIDI_DIN
 Din 5 (MIDI), Pro Signal P/N PSG03463
@@ -88472,6 +88486,20 @@ Connector
 0
 5
 5
+Stepchild
+Screen Board Template
+
+
+0
+8
+8
+Stepchild
+Screen Board Template_Cutouts
+
+
+0
+0
+0
 Stepchild
 Stepchild_OLED
 
