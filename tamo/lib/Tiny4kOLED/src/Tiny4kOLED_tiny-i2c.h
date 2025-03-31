@@ -45,7 +45,7 @@ static void tiny4koled_begin_tinyi2c(void) {
 	TinyI2C.init();
 #ifndef TINY4KOLED_QUICK_BEGIN
 	while (!tiny4koled_beginTransmission_tinyi2c()) {
-		delay(10);
+		// delay(10);
 	}
 	datacute_endTransmission_tinyi2c();
 #endif
@@ -55,6 +55,4 @@ static void tiny4koled_begin_tinyi2c(void) {
 SSD1306PrintDevice oled(&tiny4koled_begin_tinyi2c, &tiny4koled_beginTransmission_tinyi2c, &datacute_write_tinyi2c, &datacute_endTransmission_tinyi2c);
 #else
 SSD1306Device oled(&tiny4koled_begin_tinyi2c, &tiny4koled_beginTransmission_tinyi2c, &datacute_write_tinyi2c, &datacute_endTransmission_tinyi2c);
-#endif
-
 #endif

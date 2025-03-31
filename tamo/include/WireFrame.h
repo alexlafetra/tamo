@@ -111,7 +111,7 @@ class WireFrame{
   uint8_t yPos = 0;
   float scale = 1.0;
   WireFrame(){};
-  WireFrame(uint8_t vertCount, Vertex* vertArray, uint8_t edgeCount, uint8_t edgeArray [][2]){
+  WireFrame(uint8_t vertCount, const Vertex* vertArray, uint8_t edgeCount, const uint8_t edgeArray [][2]){
     numberOfVertices = vertCount;
     numberOfEdges = edgeCount;
 
@@ -126,13 +126,13 @@ class WireFrame{
     }
   }
   //destructor
-  // ~WireFrame(){
-    // for(uint16_t e = 0; e<numberOfEdges; e++){
-    //   delete [] edges[e];
-    // }
-    // delete [] edges;
-    // delete [] verts;
-  // }
+  ~WireFrame(){
+    for(uint16_t e = 0; e<numberOfEdges; e++){
+      delete [] edges[e];
+    }
+    delete [] edges;
+    delete [] verts;
+  }
 
   //copy constructor
   WireFrame(WireFrame& wf){

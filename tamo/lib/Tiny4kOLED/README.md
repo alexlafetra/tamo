@@ -170,7 +170,7 @@ void setup() {
 
 void loop() {
   updateDisplay();
-  delay(50);
+  // delay(50);
 }
 
 void updateDisplay() {

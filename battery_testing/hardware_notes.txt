@@ -1,0 +1,12 @@
+problem w/ v1 batt boards was that ATTINY pin 6 was attached to the batt V+, which stopped it from being programmable via ISP. Additionally, I missed a wire connection between the Vregulator and a resistor which meant the batt couldn't be charged
+
+full brightness test lasts 1:45ish
+
+should health be totally linked to battery charge??
+
+new design needs to:
+
+let the ATTIny measure batt voltage
+move the case screen hole up (and move the screen down a bit)
+    = in general, this should be more accurate 
+have a better spot for the third pin of the batt board so it doesn't poke the battery in the back

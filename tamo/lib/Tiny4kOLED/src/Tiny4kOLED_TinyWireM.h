@@ -52,7 +52,7 @@ static void tiny4koled_begin_tinywirem(void) {
 	TinyWireM.begin();
 #ifndef TINY4KOLED_QUICK_BEGIN
 	while (!tiny4koled_check_tinywirem()) {
-		delay(10);
+		// delay(10);
 	}
 #endif
 }

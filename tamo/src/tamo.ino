@@ -17,12 +17,12 @@ Programmer > Arduino as ISP
 #include <TinyWireM.h>
 //this library is modified!
 #include "Tiny4kOLEDprintless.h"
+// #include "Tiny4kOLED.h"
+
 #include <avr/pgmspace.h>
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
-#include <avr/wdt.h>//to keep track of time
-// #include <avr/power.h>    // Power management
-// #include <EEPROM.h>
+// #include <avr/wdt.h>//to keep track of time
 
 #define W 64
 #define H 32
@@ -32,10 +32,12 @@ Programmer > Arduino as ISP
 
 #define LED_PIN 4
 #define RAND_PIN 5 //PB5 is the ISP reset pin, but also can be used to get a rand number? maybe?
-// #define AUX_LED_PIN 5 //second LED
+#define AUX_LED_PIN 5 //second LED
 #define BRIGHTNESS 16
 //time (ms) before tamo sleeps
-#define TIME_BEFORE_SLEEP 1200000
+// #define TIME_BEFORE_SLEEP 120000
+// #define TIME_BEFORE_SLEEP 12000
+#define TIME_BEFORE_SLEEP 60000
 #define LONG_PRESS_TIME 500;
 #define DOUBLE_CLICK_TIME 100;
 #define MAX_HUNGER 4320 // takes 12hr = 720min = 4320s to run out
@@ -43,31 +45,25 @@ Programmer > Arduino as ISP
 
 #define TAMO 0
 #define BUG 1
-#define CAT 2
+#define PORCINI 3
 
-#define CREATURE TAMO
+#define CREATURE BUG
 
 void ledOn(){
-  analogWrite(LED_PIN,BRIGHTNESS);
+  // analogWrite(LED_PIN,BRIGHTNESS);
 }
 void ledOff(){
-  digitalWrite(LED_PIN,LOW);
+  // digitalWrite(LED_PIN,LOW);
 }
-
-// #include "WireFrame.h"
-// #include "fbo.h"
-
-// FrameBuffer f(32,16);
-// WireFrame w;
 
 using namespace std;
 
 bool BUTTON = false;
 bool LONG_PRESS = false;
 bool DOUBLE_CLICK = false;
+bool SINGLE_CLICK = false;
 
-// bool randomGenSeeded = false;
-uint64_t lastTime = 0;
+uint32_t lastTime = 0;
 uint32_t timeOfLastButtonPress = 0;
 
 bool itsbeen(uint32_t time){
@@ -77,6 +73,7 @@ bool itsbeen(uint32_t time){
 void readButtons();
 void hardwareSleep();
 void clearEdges();
+void clearEdges(uint8_t distanceL, uint8_t distanceR);
 void clearScreen();
 
 #include "sprites.h"
@@ -90,12 +87,26 @@ Tamo tamo;
   between different sprites
 */
 
+void clearEdges(uint8_t distanceL, uint8_t distanceR){
+  //left side
+  oled.setCursor(0,0);
+  oled.fillLength(0,distanceL);
+  oled.setCursor(0,1);
+  oled.fillLength(0,distanceL);
+
+  //right side
+  oled.setCursor(48,0);
+  oled.fillLength(0,64-distanceR);
+  oled.setCursor(48,1);
+  oled.fillLength(0,64-distanceR);
+}
+
 void clearEdges(){
   //left side
   oled.setCursor(0,0);
-  oled.fillLength(0,16);
+  oled.fillLength(0,20);
   oled.setCursor(0,1);
-  oled.fillLength(0,16);
+  oled.fillLength(0,20);
 
   //right side
   oled.setCursor(48,0);
@@ -104,6 +115,7 @@ void clearEdges(){
   oled.fillLength(0,20);
 }
 
+
 //Clears visible area of screen
 void clearScreen(){
   for (uint8_t m = 0; m < 2; m++) {
@@ -111,39 +123,52 @@ void clearScreen(){
 		oled.fillToEOP(0);
 	}
 }
-//This is taken from:
-//https://forum.arduino.cc/t/the-reliable-but-not-very-sexy-way-to-seed-random/65872
-// void seedRandomNumberGenerator()
 
+//reading inputs
 void readButtons(){
   bool val = !digitalRead(BUTTON_PIN);
+  //if the button is pressed
   if(val){
     //if the button wasn't previously pressed, then it's a fresh press
     if(!BUTTON){
       if(millis()-timeOfLastButtonPress < 100){
         DOUBLE_CLICK = true;
+        LONG_PRESS = false;
+        SINGLE_CLICK = false;
       }
       else{
         DOUBLE_CLICK = false;
+        SINGLE_CLICK = false;
       }
       timeOfLastButtonPress = millis();
-      LONG_PRESS = false;
     }
-    analogWrite(LED_PIN,BRIGHTNESS);
+    //turn on the LED
+    ledOn();
+    //set the button flag
     BUTTON = true;
+    //check to see if it's been held
     if((millis() - timeOfLastButtonPress) > (500) ){
       LONG_PRESS = true;
     }
   }
+  //if the button is released
   else{
+    //turn off the LED
     digitalWrite(LED_PIN,LOW);
     //if the button *was* held, then you just released it
     if(BUTTON){
+      //if it was held for a while, it's a long press
       if((millis() - timeOfLastButtonPress) > (500) ){
         LONG_PRESS = true;
       }
+      //if it wasn't, then it's a single click
+      else{
+        SINGLE_CLICK = true;
+      }
     }
+    //if the button wasn't pressed down before, then don't do anything
     else{
+      SINGLE_CLICK = false;
       LONG_PRESS = false;
     }
     BUTTON = false;
@@ -167,7 +192,8 @@ void hardwareSleep(){
 
   // //https://bigdanzblog.wordpress.com/2014/08/10/attiny85-wake-from-sleep-on-pin-state-change-code-example/
   GIMSK |= _BV(PCIE);                     // Enable Pin Change Interrupts
-  PCMSK |= _BV(PCINT3);                   // Use PB3 as interrupt pin
+  // PCMSK |= _BV(PCINT3);                   // Use PB3 as interrupt pin
+  PCMSK |= _BV(PCINT1);                   // Use PB3 as interrupt pin
 
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);   // sleep mode is set here
   sleep_enable();                          // enables the sleep bit in the mcucr register so sleep is possible  
@@ -178,20 +204,17 @@ void hardwareSleep(){
 ISR(PCINT0_vect){
   sleep_disable();                       // first thing after waking from sleep: disable sleep...
   clearScreen();
-  PCMSK &= ~_BV(PCINT3);                  // Turn off PB3 as interrupt pin
+  // PCMSK &= ~_BV(PCINT3);                  // Turn off PB3 as interrupt pin
+  PCMSK &= ~_BV(PCINT1);                  // Turn off PB3 as interrupt pin
   oled.on();//turn screen back on
+  lastTime = millis();
 }
 
 
 // Timer0 overflow interrupt, this triggers every 10 seconds!
-ISR(WDT_vect) {
-  // oled.fill(1);
-  // delay(100);
-  // oled.clear();
-  // analogWrite(LED_PIN,BRIGHTNESS);
-  // analogWrite(LED_PIN,0);
-  tamo.body();//tamo gets hungrier
-}
+// ISR(WDT_vect) {
+//   tamo.body();//tamo gets hungrier
+// }
 
 void initOled(){
   //start i2c communication w little oled
@@ -226,39 +249,46 @@ uint16_t readADC() {
 }
 
 void testADC(){
-  oled.clear();  
-  uint16_t quantVal = analogRead(BUTTON_PIN);
-  //each val here is 8px tall, bc of how OLED pages work
-  const uint8_t length = 16;
-  uint8_t displayVal [length];
-  for(uint8_t i = 0; i<length; i++){
-    displayVal[i] = 0;
-  }
-  uint8_t numberOf1s = quantVal * float(length)/float(255);
-  for(uint8_t i = 0; i<numberOf1s; i++){
-    displayVal[i] = 255;
-  }
-  oled.renderFBO2x(16,0,length,0,displayVal);
+  // oled.clear();  
+  // uint16_t quantVal = analogRead(BUTTON_PIN);
+  // //each val here is 8px tall, bc of how OLED pages work
+  // const uint8_t length = 16;
+  // uint8_t displayVal [length];
+  // for(uint8_t i = 0; i<length; i++){
+  //   displayVal[i] = 0;
+  // }
+  // uint8_t numberOf1s = quantVal * float(length)/float(255);
+  // for(uint8_t i = 0; i<numberOf1s; i++){
+  //   displayVal[i] = 255;
+  // }
+  // oled.renderFBO2x(16,0,length,0,displayVal);
 }
 
-void blinkLED_ADC(){
-  uint16_t val = analogRead(BUTTON_PIN);
-  oled.clear();  
-  uint8_t displayVal[2] = {val,val>>8};
-  oled.renderFBO2x(16,0,2,0,displayVal);
-  for(uint8_t bit = 0; bit<16; bit++){
-    if((val>>bit)&0x01)
-      digitalWrite(LED_PIN,HIGH);
-    else
-      digitalWrite(LED_PIN,LOW);
-    delay(500);
-  }
-  //blink 4 times to show the end of the frame
-  for(uint8_t i = 0; i<8; i++){
-    digitalWrite(LED_PIN,i%2);
-    delay(100);
-  }
-}
+#include "WireFrame.h"
+#include "fbo.h"
+
+FrameBuffer fbo(18,16);
+
+const Vertex verts[9] = {
+  //outline
+  Vertex(-2.5,-1.5,0),Vertex(2.5,-1.5,0),Vertex(2.5,1.5,0),Vertex(-2.5,1.5,0),
+  //triangle tip
+  Vertex(-1,0,0),
+  //stripes
+  Vertex(-1.25,-0.25,0),Vertex(2.5,-0.25,0),Vertex(-1.25,0.25,0),Vertex(2.5,0.25,0)
+};
+
+const uint8_t edges[8][2] = {
+  //rect
+  {0,1},{1,2},{2,3},{3,0},
+  //triangle
+  {0,4},{4,3},
+  //stripes
+  {5,6},{7,8}
+};
+
+WireFrame flag(9,verts,8,edges);
+
 
 void setup() {
   //turn ADC off
@@ -273,7 +303,6 @@ void setup() {
   //ADC3
   pinMode(BATTERY_PIN,INPUT);
 
-
   /*
       Turning on LED control
   */
@@ -283,17 +312,27 @@ void setup() {
   /*
       Turning on watchdog timer
   */
-  WDTCR = (1 << WDCE) | (1 << WDE); // Enable changes to WDT
-  WDTCR = (1 << WDP3) | (1 << WDP0) | (1 << WDIE); // Set prescaler to 1s and enable interrupt
+  // WDTCR = (1 << WDCE) | (1 << WDE); // Enable changes to WDT
+  // WDTCR = (1 << WDP3) | (1 << WDP0) | (1 << WDIE); // Set prescaler to 1s and enable interrupt
 
   // Enable global interrupts
   sei();
   
   initOled();
+  // oled.clear();
+
+  // oled.bitmap2x(8,0,37,2,free_palestine_bmp);
+  // flag = WireFrame(4,verts,3,edges);
+  flag.scale = 3.0;
+  flag.xPos = 7;
+  flag.yPos = 8;
+  flag.rotate(15,0);
 }
 
 void loop() {
+  flag.rotate(3,1);
+  fbo.fill(0);
+  fbo.renderWireFrame(flag,1);
+  oled.renderFBO2x(16,0,20,2,fbo.buffer);
   tamo.feel();
-  // blinkLED_ADC();
-  // analogWrite(LED_PIN,analogRead(BATTERY_PIN));
 }
