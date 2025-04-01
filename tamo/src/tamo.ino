@@ -154,7 +154,7 @@ void readButtons(){
   //if the button is released
   else{
     //turn off the LED
-    digitalWrite(LED_PIN,LOW);
+    // digitalWrite(LED_PIN,LOW);
     //if the button *was* held, then you just released it
     if(BUTTON){
       //if it was held for a while, it's a long press
@@ -188,7 +188,7 @@ void hardwareSleepCheck(){
 void hardwareSleep(){
   //turn off OLED, LED
   oled.off();
-  digitalWrite(LED_PIN,LOW);
+  // digitalWrite(LED_PIN,LOW);
 
   // //https://bigdanzblog.wordpress.com/2014/08/10/attiny85-wake-from-sleep-on-pin-state-change-code-example/
   GIMSK |= _BV(PCIE);                     // Enable Pin Change Interrupts
@@ -301,13 +301,13 @@ void setup() {
   DDRB &= ~(1 << PB1); // Set the button pin PB3 as input (main button)
   PORTB |= (1 << PB1);  //activate pull-up resistor for PB3 (main button connects PB3 to GND)
   //ADC3
-  pinMode(BATTERY_PIN,INPUT);
+  // pinMode(BATTERY_PIN,INPUT);
 
   /*
       Turning on LED control
   */
   DDRB |= ( 1 << PB4 );  //set led pin to output
-  digitalWrite(LED_PIN,LOW);
+  // digitalWrite(LED_PIN,LOW);
 
   /*
       Turning on watchdog timer
@@ -326,13 +326,13 @@ void setup() {
   flag.scale = 3.0;
   flag.xPos = 7;
   flag.yPos = 8;
-  flag.rotate(15,0);
+  // flag.rotate(15,0);
 }
 
 void loop() {
-  flag.rotate(3,1);
-  fbo.fill(0);
-  fbo.renderWireFrame(flag,1);
-  oled.renderFBO2x(16,0,20,2,fbo.buffer);
+  // flag.rotate(3,1);
+  // fbo.fill(0);
+  // fbo.renderWireFrame(flag,1);
+  // oled.renderFBO2x(16,0,20,2,fbo.buffer);
   tamo.feel();
 }
