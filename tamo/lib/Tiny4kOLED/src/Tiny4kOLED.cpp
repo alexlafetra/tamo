@@ -30,9 +30,7 @@ static bool (*wireBeginTransmissionFn)(void);
 static bool (*wireWriteFn)(uint8_t byte);
 static uint8_t (*wireEndTransmissionFn)(void);
 
-// static void (SSD1306Device::* decodeFn)(uint8_t c) = 0;
-// static void (SSD1306Device::* renderFn)(uint8_t c) = 0;
-static uint8_t (*combineFn)(uint8_t x, uint8_t y, uint8_t b) = 0;
+// static uint8_t (*combineFn)(uint8_t x, uint8_t y, uint8_t b) = 0;
 static uint8_t writesSinceSetCursor = 0;
 
 static void ssd1306_begin(void) {
@@ -70,7 +68,7 @@ static void ssd1306_send_command_byte(uint8_t byte) {
 }
 
 static void ssd1306_send_data_byte(uint8_t byte) {
-	if (combineFn) byte = (*combineFn)(oledX + writesSinceSetCursor, oledY, byte);
+	// if (combineFn) byte = (*combineFn)(oledX + writesSinceSetCursor, oledY, byte);
 	if (ssd1306_send_byte(byte) == 0) {
 		ssd1306_send_stop();
 		ssd1306_send_data_start();
@@ -134,10 +132,6 @@ SSD1306Device::SSD1306Device(void (*wireBeginFunc)(void), bool (*wireBeginTransm
 	wireEndTransmissionFn = wireEndTransmissionFunc;
 }
 
-void SSD1306Device::begin(void) {
-	begin(sizeof(tiny4koled_init_128x32r), tiny4koled_init_128x32r);
-}
-
 void SSD1306Device::begin(uint8_t init_sequence_length, const uint8_t init_sequence []) {
 	ssd1306_begin();
 
@@ -187,7 +181,7 @@ void SSD1306Device::setRotation(uint8_t rotation) {
 }
 
 void SSD1306Device::setCombineFunction(uint8_t (*combineFunc)(uint8_t, uint8_t, uint8_t)) {
-	combineFn = combineFunc;
+	// combineFn = combineFunc;
 }
 
 void SSD1306Device::setCursor(uint8_t x, uint8_t y) {
@@ -321,7 +315,7 @@ void SSD1306Device::endData(void) {
 }
 
 void SSD1306Device::invertOutput(bool enable) {
-	combineFn = enable ? &invertByte : NULL;
+	// combineFn = enable ? &invertByte : NULL;
 }	
 
 void SSD1306Device::switchRenderFrame(void) {

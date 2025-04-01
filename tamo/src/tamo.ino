@@ -15,11 +15,9 @@ Programmer > Arduino as ISP
 #define FULLSIZE//enable zoom in, 2x bitmaps
 
 #include <TinyWireM.h>
-//this library is modified!
-#include "Tiny4kOLEDprintless.h"
-// #include "Tiny4kOLED.h"
+#include "display.cpp"
 
-#include <avr/pgmspace.h>
+// #include <avr/pgmspace.h>
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
 // #include <avr/wdt.h>//to keep track of time
@@ -47,13 +45,13 @@ Programmer > Arduino as ISP
 #define BUG 1
 #define PORCINI 3
 
-#define CREATURE BUG
+#define CREATURE TAMO
 
 void ledOn(){
-  // analogWrite(LED_PIN,BRIGHTNESS);
+  analogWrite(LED_PIN,BRIGHTNESS);
 }
 void ledOff(){
-  // digitalWrite(LED_PIN,LOW);
+  digitalWrite(LED_PIN,LOW);
 }
 
 using namespace std;
@@ -115,13 +113,9 @@ void clearEdges(){
   oled.fillLength(0,20);
 }
 
-
 //Clears visible area of screen
 void clearScreen(){
-  for (uint8_t m = 0; m < 2; m++) {
-		oled.setCursor(0, m);
-		oled.fillToEOP(0);
-	}
+  oled.fill(0);
 }
 
 //reading inputs
@@ -219,9 +213,8 @@ ISR(PCINT0_vect){
 void initOled(){
   //start i2c communication w little oled
   oled.begin(72, 40, sizeof(tiny4koled_init_72x40br), tiny4koled_init_72x40br);
-  #ifdef FULLSIZE
+  // ssd1306_send_command2(0xD6, 0x01);
   oled.enableZoomIn();//Need this so the sprites aren't all weird
-  #endif
   oled.setRotation(2);//flip display upside-down
   oled.on();
   oled.clear();
@@ -248,47 +241,37 @@ uint16_t readADC() {
     return ADC;
 }
 
-void testADC(){
-  // oled.clear();  
-  // uint16_t quantVal = analogRead(BUTTON_PIN);
-  // //each val here is 8px tall, bc of how OLED pages work
-  // const uint8_t length = 16;
-  // uint8_t displayVal [length];
-  // for(uint8_t i = 0; i<length; i++){
-  //   displayVal[i] = 0;
-  // }
-  // uint8_t numberOf1s = quantVal * float(length)/float(255);
-  // for(uint8_t i = 0; i<numberOf1s; i++){
-  //   displayVal[i] = 255;
-  // }
-  // oled.renderFBO2x(16,0,length,0,displayVal);
-}
+// #include "WireFrame.h"
+// #include "fbo.h"
 
-#include "WireFrame.h"
-#include "fbo.h"
+// FrameBuffer fbo(18,16);
 
-FrameBuffer fbo(18,16);
+// const Vertex verts[9] = {
+//   //outline
+//   Vertex(-2.5,-1.5,0),Vertex(2.5,-1.5,0),Vertex(2.5,1.5,0),Vertex(-2.5,1.5,0),
+//   //triangle tip
+//   Vertex(-1,0,0),
+//   //stripes
+//   Vertex(-1.25,-0.25,0),Vertex(2.5,-0.25,0),Vertex(-1.25,0.25,0),Vertex(2.5,0.25,0)
+// };
 
-const Vertex verts[9] = {
-  //outline
-  Vertex(-2.5,-1.5,0),Vertex(2.5,-1.5,0),Vertex(2.5,1.5,0),Vertex(-2.5,1.5,0),
-  //triangle tip
-  Vertex(-1,0,0),
-  //stripes
-  Vertex(-1.25,-0.25,0),Vertex(2.5,-0.25,0),Vertex(-1.25,0.25,0),Vertex(2.5,0.25,0)
-};
+// const uint8_t edges[8][2] = {
+//   //rect
+//   {0,1},{1,2},{2,3},{3,0},
+//   //triangle
+//   {0,4},{4,3},
+//   //stripes
+//   {5,6},{7,8}
+// };
 
-const uint8_t edges[8][2] = {
-  //rect
-  {0,1},{1,2},{2,3},{3,0},
-  //triangle
-  {0,4},{4,3},
-  //stripes
-  {5,6},{7,8}
-};
+// WireFrame flag(9,verts,8,edges);
 
-WireFrame flag(9,verts,8,edges);
-
+// void initWireFrame(){
+  // flag.scale = 3.0;
+  // flag.xPos = 7;
+  // flag.yPos = 8;
+  // flag.rotate(15,0);
+// }
 
 void setup() {
   //turn ADC off
@@ -319,20 +302,10 @@ void setup() {
   sei();
   
   initOled();
-  // oled.clear();
-
-  // oled.bitmap2x(8,0,37,2,free_palestine_bmp);
-  // flag = WireFrame(4,verts,3,edges);
-  flag.scale = 3.0;
-  flag.xPos = 7;
-  flag.yPos = 8;
-  // flag.rotate(15,0);
+  // oled.blink(0);
+  oled.bitmap2x(8,0,37,2,free_palestine_bmp);
 }
 
 void loop() {
-  // flag.rotate(3,1);
-  // fbo.fill(0);
-  // fbo.renderWireFrame(flag,1);
-  // oled.renderFBO2x(16,0,20,2,fbo.buffer);
   tamo.feel();
 }
