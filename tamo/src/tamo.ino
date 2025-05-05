@@ -26,7 +26,6 @@ Programmer > Arduino as ISP
 #define H 32
 
 #define BUTTON_PIN 1
-#define BATTERY_PIN 3
 
 #define LED_PIN 4
 #define RAND_PIN 5 //PB5 is the ISP reset pin, but also can be used to get a rand number? maybe?
@@ -45,7 +44,7 @@ Programmer > Arduino as ISP
 #define BUG 1
 #define PORCINI 3
 
-#define CREATURE TAMO
+#define CREATURE BUG
 
 void ledOn(){
   analogWrite(LED_PIN,BRIGHTNESS);
@@ -148,7 +147,7 @@ void readButtons(){
   //if the button is released
   else{
     //turn off the LED
-    // digitalWrite(LED_PIN,LOW);
+    ledOff();
     //if the button *was* held, then you just released it
     if(BUTTON){
       //if it was held for a while, it's a long press
@@ -226,20 +225,20 @@ void batteryStressTest(){
   analogWrite(LED_PIN,BRIGHTNESS);
 }
 
-#define MAX_ADC_VALUE 1024
+// #define MAX_ADC_VALUE 1024
 
-uint16_t readADC() {
-    // Start the conversion by setting the ADSC (ADC Start Conversion) bit
-    ADCSRA |= (1 << ADSC);
+// uint16_t readADC() {
+//     // Start the conversion by setting the ADSC (ADC Start Conversion) bit
+//     ADCSRA |= (1 << ADSC);
     
-    // Wait for the conversion to finish by checking if ADSC is cleared
-    while (ADCSRA & (1 << ADSC)) {
-        // Wait here while conversion is in progress
-    }
+//     // Wait for the conversion to finish by checking if ADSC is cleared
+//     while (ADCSRA & (1 << ADSC)) {
+//         // Wait here while conversion is in progress
+//     }
     
-    // The 10-bit result is stored in ADC (ADC is a 16-bit register, the result is in ADC[9:0])
-    return ADC;
-}
+//     // The 10-bit result is stored in ADC (ADC is a 16-bit register, the result is in ADC[9:0])
+//     return ADC;
+// }
 
 // #include "WireFrame.h"
 // #include "fbo.h"
@@ -273,6 +272,18 @@ uint16_t readADC() {
   // flag.rotate(15,0);
 // }
 
+//This is from chatGPT
+long readVcc() {
+  // Read 1.1V reference against AVcc
+  ADMUX = _BV(MUX3) | _BV(MUX2); // Select internal 1.1V (on ATTiny85)
+  delay(2); // Wait for Vref to settle
+  ADCSRA |= _BV(ADSC); // Start conversion
+  while (bit_is_set(ADCSRA, ADSC)); // Wait until done
+  uint16_t result = ADC;
+  long vcc = (1100L * 1024L) / result; // Vcc in millivolts
+  return vcc;
+}
+
 void setup() {
   //turn ADC off
   // ADCSRA &= ~_BV(ADEN);
@@ -283,8 +294,7 @@ void setup() {
   //main button
   DDRB &= ~(1 << PB1); // Set the button pin PB3 as input (main button)
   PORTB |= (1 << PB1);  //activate pull-up resistor for PB3 (main button connects PB3 to GND)
-  //ADC3
-  // pinMode(BATTERY_PIN,INPUT);
+
 
   /*
       Turning on LED control
@@ -303,7 +313,7 @@ void setup() {
   
   initOled();
   // oled.blink(0);
-  oled.bitmap2x(8,0,37,2,free_palestine_bmp);
+  // oled.bitmap2x(8,0,37,2,free_palestine_bmp);
 }
 
 void loop() {

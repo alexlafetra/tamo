@@ -239,9 +239,11 @@ void setup() {
   DDRB &= ~(1 << PB1); // Set the button pin PB3 as input (main button)
   PORTB |= (1 << PB1);  //activate pull-up resistor for PB3 (main button connects PB3 to GND)
   //ADC3
-  analogReference( INTERNAL2V56_NO_CAP );
+  // analogReference( INTERNAL2V56_NO_CAP );
   // analogReference( INTERNAL1V1 );
-  pinMode(BATTERY_PIN,INPUT);
+  // pinMode(BATTERY_PIN,INPUT);
+
+  
 
   /*
       Turning on LED control
@@ -262,19 +264,42 @@ void setup() {
   oled.setFont(FONT6X8);
 }
 
-float batteryValue = 0;
+//had to ask the LLM for this one
+/*
+Basically, according to gpt, analogread always compares the pin value to VCC (meaning you can't read VCC -- it'll always be 1024)
+but you CAN measure the internal voltages using the ADC, which basically let's you measure VCC backwards.
+*/
+uint16_t chatGPTReadVoltage(){
+  // Read 1.1V reference against AVcc
+  ADMUX = _BV(MUX3) | _BV(MUX2); // Select internal 1.1V (on ATTiny85)
+  // delay(2); // Wait for Vref to settle
+  ADCSRA |= _BV(ADSC); // Start conversion
+  while (bit_is_set(ADCSRA, ADSC)); // Wait until done
+  uint16_t result = ADC;
+
+  long vcc = (1100L * 1024L) / result; // Vcc in millivolts
+  return result;
+}
+
+
+uint16_t batteryValue = 0;
+
 void readBattVoltage(){
-  float value = analogRead(BATTERY_PIN);
+  uint16_t value = chatGPTReadVoltage();
   if(value != batteryValue){
     batteryValue = value;
-    oled.clear();
+    String s = String(batteryValue);
+    while(s.length() < 5){
+      s = "0"+s;
+    }
     oled.setCursor(6,0);
-    oled.print(batteryValue);
+    oled.print(s);
   }
 }
 
 void loop() {
   // batteryStressTest();
   readBattVoltage();
+  // digitalWrite(LED_PIN,(millis()/200)%2);
   // tamo.feel();
 }

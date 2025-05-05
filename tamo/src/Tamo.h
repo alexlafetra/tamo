@@ -42,7 +42,8 @@ enum Mood:uint8_t{
   POOPING,
   SLEEPING,
   DEAD,
-  BIRTH
+  BIRTH,
+  FREEPALESTINE
 };
 
 #define NEEDS_TO_POOP 0
@@ -85,6 +86,7 @@ class Tamo{
     void basicEmotion(Mood moodAfter);
     void quickEmotion();
     void drawHealth();
+    void freePalestine();
 
     bool getStatusBit(uint8_t which);
     void setStatusBit(uint8_t which, bool state);
@@ -145,6 +147,19 @@ void Tamo::body(){
   }
 }
 
+void Tamo::freePalestine(){
+  oled.blink(0);
+  oled.bitmap2x(8,0,37,2,free_palestine_bmp);
+  lastTime = millis();
+  while(!SINGLE_CLICK){
+    if(itsbeen(1000))
+      readButtons();
+  }
+  oled.disableFadeOutAndBlinking();
+  clearEdges();
+  mood = NEUTRAL;
+}
+
 void Tamo::feel(){
   switch(mood){
     case RANDOM:
@@ -192,6 +207,9 @@ void Tamo::feel(){
     case EATING:
       eat();
       return;
+    case FREEPALESTINE:
+      freePalestine();
+      return;
     default:
       mood = RANDOM;
       return;
@@ -214,6 +232,7 @@ void Tamo::basicEmotion(Mood moodAfter){
     readButtons();
     // //feed tamo!
     if(LONG_PRESS){
+      lastTime = millis();
       mood = EATING;
       return;
     }
@@ -236,7 +255,7 @@ void Tamo::basicEmotion(){
 void Tamo::eat(){
   bool justBit = false;
   uint8_t bite = 0;
-  Animation food(SPRITESTARTX+8,SPRITESTARTY,16,16,food_animation,4,FAST,1);
+  Animation food(SPRITESTARTX+8,SPRITESTARTY,16,16,food_animation,5,FAST,1);
   oled.clear();
   lastTime = millis();
   while(true){
@@ -251,7 +270,10 @@ void Tamo::eat(){
         clearEdges(SPRITESTARTX+5,16);
       }
       justBit = true;
-      if(food.currentFrame == 2){
+      if(food.currentFrame == 3){
+        food.nextFrame();
+        food.showCurrentFrame();
+        delay(200);
         break;
       }
       else{
@@ -264,6 +286,11 @@ void Tamo::eat(){
         clearEdges();
       }
       justBit = false;
+    }
+    if(LONG_PRESS && itsbeen(1000)){
+      lastTime = millis();
+      mood = FREEPALESTINE;
+      return;
     }
     food.xCoord = SPRITESTARTX+bite;
     food.showCurrentFrame();
@@ -304,7 +331,7 @@ void Tamo::birth(){
   uint8_t hit = 0;
   mentalState = MAX_MENTAL;
   hunger = MAX_HUNGER;
-  sprite = Animation(SPRITESTARTX+32,SPRITESTARTY,16,16,egg_sprite,3,SLOW,1);
+  sprite = Animation(SPRITESTARTX+32,SPRITESTARTY,16,16,egg_sprite,4,SLOW,1);
   clearScreen();
   lastTime = millis();
   while(true){
@@ -313,6 +340,9 @@ void Tamo::birth(){
       lastTime = millis();
       hit = 5;
       if(sprite.currentFrame == 2){
+        sprite.nextFrame();
+        sprite.showCurrentFrame();
+        delay(200);
         break;
       }
       else{
