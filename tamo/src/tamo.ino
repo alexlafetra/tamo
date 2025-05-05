@@ -26,14 +26,10 @@ Programmer > Arduino as ISP
 #define H 32
 
 #define BUTTON_PIN 1
+#define LED_PIN 4 //primary LED
+#define AUX_LED_PIN 3 //secondary LED
 
-#define LED_PIN 4
-#define RAND_PIN 5 //PB5 is the ISP reset pin, but also can be used to get a rand number? maybe?
-#define AUX_LED_PIN 5 //second LED
-#define BRIGHTNESS 16
 //time (ms) before tamo sleeps
-// #define TIME_BEFORE_SLEEP 120000
-// #define TIME_BEFORE_SLEEP 12000
 #define TIME_BEFORE_SLEEP 60000
 #define LONG_PRESS_TIME 500;
 #define DOUBLE_CLICK_TIME 100;
@@ -43,15 +39,6 @@ Programmer > Arduino as ISP
 #define TAMO 0
 #define BUG 1
 #define PORCINI 3
-
-#define CREATURE BUG
-
-void ledOn(){
-  analogWrite(LED_PIN,BRIGHTNESS);
-}
-void ledOff(){
-  digitalWrite(LED_PIN,LOW);
-}
 
 using namespace std;
 
@@ -71,7 +58,6 @@ void readButtons();
 void hardwareSleep();
 void clearEdges();
 void clearEdges(uint8_t distanceL, uint8_t distanceR);
-void clearScreen();
 
 #include "sprites.h"
 #include "Animation.h"
@@ -112,11 +98,6 @@ void clearEdges(){
   oled.fillLength(0,20);
 }
 
-//Clears visible area of screen
-void clearScreen(){
-  oled.fill(0);
-}
-
 //reading inputs
 void readButtons(){
   bool val = !digitalRead(BUTTON_PIN);
@@ -136,7 +117,7 @@ void readButtons(){
       timeOfLastButtonPress = millis();
     }
     //turn on the LED
-    ledOn();
+    digitalWrite(LED_PIN,HIGH);
     //set the button flag
     BUTTON = true;
     //check to see if it's been held
@@ -147,7 +128,7 @@ void readButtons(){
   //if the button is released
   else{
     //turn off the LED
-    ledOff();
+    digitalWrite(LED_PIN,LOW);
     //if the button *was* held, then you just released it
     if(BUTTON){
       //if it was held for a while, it's a long press
@@ -181,12 +162,11 @@ void hardwareSleepCheck(){
 void hardwareSleep(){
   //turn off OLED, LED
   oled.off();
-  // digitalWrite(LED_PIN,LOW);
+  digitalWrite(LED_PIN,LOW);
 
   // //https://bigdanzblog.wordpress.com/2014/08/10/attiny85-wake-from-sleep-on-pin-state-change-code-example/
   GIMSK |= _BV(PCIE);                     // Enable Pin Change Interrupts
-  // PCMSK |= _BV(PCINT3);                   // Use PB3 as interrupt pin
-  PCMSK |= _BV(PCINT1);                   // Use PB3 as interrupt pin
+  PCMSK |= _BV(PCINT1);                   // Use PB1 as interrupt pin
 
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);   // sleep mode is set here
   sleep_enable();                          // enables the sleep bit in the mcucr register so sleep is possible  
@@ -196,9 +176,8 @@ void hardwareSleep(){
 //Interrupt callback to wake Attiny back up
 ISR(PCINT0_vect){
   sleep_disable();                       // first thing after waking from sleep: disable sleep...
-  clearScreen();
-  // PCMSK &= ~_BV(PCINT3);                  // Turn off PB3 as interrupt pin
-  PCMSK &= ~_BV(PCINT1);                  // Turn off PB3 as interrupt pin
+  oled.fill(0);
+  PCMSK &= ~_BV(PCINT1);                  // Turn off PB1 interrupt
   oled.on();//turn screen back on
   lastTime = millis();
 }
@@ -222,85 +201,53 @@ void initOled(){
 //lights up screen and LED until batt dies
 void batteryStressTest(){
   oled.fill(0xFF);
-  analogWrite(LED_PIN,BRIGHTNESS);
+  digitalWrite(LED_PIN,HIGH);
 }
 
-// #define MAX_ADC_VALUE 1024
+/*
+Calibration notes:
+@5V it's ~212
+@3.9V it's ~260
+@3.73 it's ~295
+@3.3V it's ~358
+@1.57 it's ~703
 
-// uint16_t readADC() {
-//     // Start the conversion by setting the ADSC (ADC Start Conversion) bit
-//     ADCSRA |= (1 << ADSC);
-    
-//     // Wait for the conversion to finish by checking if ADSC is cleared
-//     while (ADCSRA & (1 << ADSC)) {
-//         // Wait here while conversion is in progress
-//     }
-    
-//     // The 10-bit result is stored in ADC (ADC is a 16-bit register, the result is in ADC[9:0])
-//     return ADC;
-// }
+voltage = -150.70169*(measurement)+893.05592
 
-// #include "WireFrame.h"
-// #include "fbo.h"
+attiny85 can operate from 1.8v - 5.5v
 
-// FrameBuffer fbo(18,16);
-
-// const Vertex verts[9] = {
-//   //outline
-//   Vertex(-2.5,-1.5,0),Vertex(2.5,-1.5,0),Vertex(2.5,1.5,0),Vertex(-2.5,1.5,0),
-//   //triangle tip
-//   Vertex(-1,0,0),
-//   //stripes
-//   Vertex(-1.25,-0.25,0),Vertex(2.5,-0.25,0),Vertex(-1.25,0.25,0),Vertex(2.5,0.25,0)
-// };
-
-// const uint8_t edges[8][2] = {
-//   //rect
-//   {0,1},{1,2},{2,3},{3,0},
-//   //triangle
-//   {0,4},{4,3},
-//   //stripes
-//   {5,6},{7,8}
-// };
-
-// WireFrame flag(9,verts,8,edges);
-
-// void initWireFrame(){
-  // flag.scale = 3.0;
-  // flag.xPos = 7;
-  // flag.yPos = 8;
-  // flag.rotate(15,0);
-// }
+*/
 
 //This is from chatGPT
-long readVcc() {
+uint16_t readVcc() {
+
+  //Enable ADC
+  ADCSRA |= 1<<ADEN;
   // Read 1.1V reference against AVcc
   ADMUX = _BV(MUX3) | _BV(MUX2); // Select internal 1.1V (on ATTiny85)
-  delay(2); // Wait for Vref to settle
+  // delay(2); // Wait for Vref to settle
   ADCSRA |= _BV(ADSC); // Start conversion
   while (bit_is_set(ADCSRA, ADSC)); // Wait until done
   uint16_t result = ADC;
-  long vcc = (1100L * 1024L) / result; // Vcc in millivolts
-  return vcc;
+
+  //disable ADC
+  ADCSRA &= ~_BV(ADEN);
+  return result;
 }
 
 void setup() {
-  //turn ADC off
-  // ADCSRA &= ~_BV(ADEN);
 
   /*
-      Initializing I/O 
+      Initializing button
   */
-  //main button
-  DDRB &= ~(1 << PB1); // Set the button pin PB3 as input (main button)
-  PORTB |= (1 << PB1);  //activate pull-up resistor for PB3 (main button connects PB3 to GND)
-
+  DDRB &= ~(1 << PB1); // Set the button pin PB1 as input (main button)
+  PORTB |= (1 << PB1);  //activate pull-up resistor for PB1 (main button connects PB1 to GND)
 
   /*
-      Turning on LED control
+      Turning on LED controls
   */
   DDRB |= ( 1 << PB4 );  //set led pin to output
-  // digitalWrite(LED_PIN,LOW);
+  DDRB |= ( 1 << PB3 );  //set led2 pin to output
 
   /*
       Turning on watchdog timer
@@ -312,8 +259,7 @@ void setup() {
   sei();
   
   initOled();
-  // oled.blink(0);
-  // oled.bitmap2x(8,0,37,2,free_palestine_bmp);
+  digitalWrite(AUX_LED_PIN,HIGH);
 }
 
 void loop() {

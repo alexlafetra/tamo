@@ -10,3 +10,22 @@ let the ATTIny measure batt voltage
 move the case screen hole up (and move the screen down a bit)
     = in general, this should be more accurate 
 have a better spot for the third pin of the batt board so it doesn't poke the battery in the back
+
+
+5.4.25
+thinking that i could get rid of the eyeball thinking sprite to save some space
+also, there's gotta be a good way of sleeping the ATTiny between each animation frame for max power savings
+
+what about instead of holding the button feeding tamo, it brings up a menu where you can:
+feed
+medicine
+clean?
+
+also, to save space, you could write a function that superimposes the talking sprites over the speech bubble sprite
+would go from 17B per speech to 8B per speech ==> x10 ==> 90bytes saved (+code overhead)
+this could also work for the thinking sprites, so +another 30bytes
+
+this could be generalized for sprites that are less than 8 wide
+
+- when voltage drops, tamo will talk about it when spoken to
+- and tamo will be sad, even when you feed him (doesn't get happy after)

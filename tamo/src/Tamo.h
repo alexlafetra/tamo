@@ -46,6 +46,16 @@ enum Mood:uint8_t{
   FREEPALESTINE
 };
 
+enum SPRITE_ID:uint8_t{
+  IDLE_SPRITE,
+  EATING_SPRITE,
+  THINKING_SPRITE,
+  SAD_SPRITE,
+  CRYING_SPRITE,
+  MAD_SPRITE,
+  HAPPY_SPRITE
+};
+
 #define NEEDS_TO_POOP 0
 #define LOW_BATTERY 1
 
@@ -54,10 +64,12 @@ class Tamo{
     Tamo();
     Tamo(Animation a);
     Animation sprite;
-    Mood mood = DEAD;
+    // Mood mood = DEAD;
+    Mood mood = NEUTRAL;
     Thought thought = LOVE;
     int16_t moodTime = 0;
     uint8_t status = 0b00000000;
+    uint8_t identity = PORCINI;//which sprites to chose from
 
     /*
       mentalState and hunger start out high, hunger slowly decreases.
@@ -82,7 +94,6 @@ class Tamo{
     void neutral();
     void dead();
     void birth();
-    void basicEmotion();
     void basicEmotion(Mood moodAfter);
     void quickEmotion();
     void drawHealth();
@@ -90,11 +101,14 @@ class Tamo{
 
     bool getStatusBit(uint8_t which);
     void setStatusBit(uint8_t which, bool state);
-    bool needsToPoop();
+    bool needsToPoop(){return getStatusBit(NEEDS_TO_POOP);}
+    bool lowBattery(){return getStatusBit(LOW_BATTERY);}
+    const unsigned char* const * getSprite(SPRITE_ID);
+
 };
 
 Tamo::Tamo(){
-  sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,idle_sprite,2,MEDIUM,1);
+  sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(IDLE_SPRITE),2,MEDIUM,1);
 }
 Tamo::Tamo(Animation a){
   sprite = a;
@@ -113,8 +127,50 @@ void Tamo::setStatusBit(uint8_t which, bool state){
   }
 }
 
-bool Tamo::needsToPoop(){
-  return getStatusBit(NEEDS_TO_POOP);
+
+const unsigned char* const * Tamo::getSprite(SPRITE_ID whichSprite){
+  //porcini
+  switch(identity){
+    case TAMO:
+      switch(whichSprite){
+        case IDLE_SPRITE:
+          return tamo_idle_sprite;
+        case EATING_SPRITE:
+          return tamo_eating_sprite;
+        case THINKING_SPRITE:
+          return tamo_thinking_sprite;
+        case SAD_SPRITE:
+          return tamo_sad_sprite;
+        case CRYING_SPRITE:
+          return tamo_crying_sprite;
+        case MAD_SPRITE:
+          return tamo_mad_sprite;
+        case HAPPY_SPRITE:
+          return tamo_idle_sprite;
+      }
+    case PORCINI:
+      switch(whichSprite){
+        case IDLE_SPRITE:
+          return porcini_idle_sprite;
+        case EATING_SPRITE:
+          return porcini_eating_sprite;
+        case THINKING_SPRITE:
+          return porcini_thinking_sprite;
+        case SAD_SPRITE:
+          return porcini_sad_sprite;
+        case CRYING_SPRITE:
+          return porcini_crying_sprite;
+        case MAD_SPRITE:
+          return porcini_mad_sprite;
+        case HAPPY_SPRITE:
+          return porcini_idle_sprite;
+      }
+      break;
+    case BUG:
+      break;
+    default:
+      return nullptr;
+  }
 }
 bool Tamo::isFeeling(){
   return (moodTime>0 || !(sprite.isFrameReady() && sprite.hasPlayedAtLeastOnce()));
@@ -178,7 +234,7 @@ void Tamo::feel(){
       sleep();
       return;
     case NEUTRAL:
-      sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,idle_sprite,2,MEDIUM,1);
+      sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(IDLE_SPRITE),2,MEDIUM,1);
       moodTime = 500;
       basicEmotion(RANDOM);
       return;
@@ -190,18 +246,18 @@ void Tamo::feel(){
       return;
     case SAD:
       moodTime = 1000;
-      sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,sad_sprite,2,MEDIUM,1);
+      sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(SAD_SPRITE),2,MEDIUM,1);
       break;
     case SOBBING:
-      sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,crying_sprite,2,FAST,1);
+      sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(CRYING_SPRITE),2,FAST,1);
       moodTime = 1000;
       break;
     case ANGRY:
-      sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,mad_sprite,2,VVFAST,1);
+      sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(MAD_SPRITE),2,VVFAST,1);
       moodTime = 300;
       break;
     case HAPPY:
-      sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,happy_sprite,2,FAST,1);
+      sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(HAPPY_SPRITE),2,FAST,1);
       moodTime = 300;
       break;
     case EATING:
@@ -214,7 +270,7 @@ void Tamo::feel(){
       mood = RANDOM;
       return;
   }
-  basicEmotion();
+  basicEmotion(NEUTRAL);
 }
 
 void Tamo::quickEmotion(){
@@ -249,9 +305,7 @@ void Tamo::basicEmotion(Mood moodAfter){
   hardwareSleepCheck();
   mood = moodAfter;
 }
-void Tamo::basicEmotion(){
-  basicEmotion(NEUTRAL);
-}
+
 void Tamo::eat(){
   bool justBit = false;
   uint8_t bite = 0;
@@ -273,7 +327,8 @@ void Tamo::eat(){
       if(food.currentFrame == 3){
         food.nextFrame();
         food.showCurrentFrame();
-        delay(200);
+        lastTime = millis();
+        while(millis() - lastTime < 200){}
         break;
       }
       else{
@@ -298,20 +353,22 @@ void Tamo::eat(){
   }
   //then, tamo eats
   moodTime = 200;
-  sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,eating_sprite,2,VFAST,1);
-  quickEmotion();
-  //then, tamo feels happy
-  moodTime = 100;
-  sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,happy_sprite,2,FAST,1);
+  sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(EATING_SPRITE),2,VFAST,1);
   quickEmotion();
   //then, tamo needs to poop!
   setStatusBit(NEEDS_TO_POOP,true);
-  mood = NEUTRAL;
+
+  //then, tamo feels happy
+  // moodTime = 100;
+  // sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(HAPPY_SPRITE),2,FAST,1);
+  // quickEmotion();
+
+  mood = lowBattery()?SAD:HAPPY;
   lastTime = millis();
 }
 
 void Tamo::neutral(){
-  sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,idle_sprite,2,MEDIUM,1);
+  sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(IDLE_SPRITE),2,MEDIUM,1);
   moodTime = 500;
   mood = RANDOM;
   lastTime = millis();
@@ -332,7 +389,7 @@ void Tamo::birth(){
   mentalState = MAX_MENTAL;
   hunger = MAX_HUNGER;
   sprite = Animation(SPRITESTARTX+32,SPRITESTARTY,16,16,egg_sprite,4,SLOW,1);
-  clearScreen();
+  oled.fill(0);
   lastTime = millis();
   while(true){
     readButtons();
@@ -342,7 +399,8 @@ void Tamo::birth(){
       if(sprite.currentFrame == 2){
         sprite.nextFrame();
         sprite.showCurrentFrame();
-        delay(200);
+        //wait for 200ms
+        while(millis() - lastTime < 200){}
         break;
       }
       else{
@@ -425,7 +483,7 @@ void Tamo::talk(){
 }
 
 void Tamo::think(){
-  sprite = Animation(SPRITESTARTX-15,SPRITESTARTY,16,16,thinking_sprite,2,FAST,1);
+  sprite = Animation(SPRITESTARTX-15,SPRITESTARTY,16,16,getSprite(THINKING_SPRITE),2,FAST,1);
   Animation actionSprite;
   Idea idea = static_cast<Idea>(pseudoRandom(0,3));
   switch(idea){
@@ -456,7 +514,6 @@ void Tamo::think(){
 }
 
 void Tamo::poop(){
-  // sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,poopAnim,7,VVFAST,1);
   sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,poopAnim,2,MEDIUM,1);
   while(true){
     readButtons();
@@ -468,7 +525,7 @@ void Tamo::poop(){
     sprite.update();
   }
   setStatusBit(NEEDS_TO_POOP,false);
-  mood = NEUTRAL;
+  mood = HAPPY;
 }
 //sleep mode
 void Tamo::sleep(){

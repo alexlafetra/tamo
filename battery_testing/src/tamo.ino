@@ -219,10 +219,10 @@ void testADC(){
   for(uint8_t i = 0; i<length; i++){
     displayVal[i] = 0;
   }
-  uint8_t numberOf1s = quantVal * float(length)/float(255);
-  for(uint8_t i = 0; i<numberOf1s; i++){
-    displayVal[i] = 255;
-  }
+  // uint8_t numberOf1s = quantVal * float(length)/float(255);
+  // for(uint8_t i = 0; i<numberOf1s; i++){
+  //   displayVal[i] = 255;
+  // }
   // oled.renderFBO2x(16,0,length,0,displayVal);
 }
 
@@ -270,14 +270,16 @@ Basically, according to gpt, analogread always compares the pin value to VCC (me
 but you CAN measure the internal voltages using the ADC, which basically let's you measure VCC backwards.
 */
 uint16_t chatGPTReadVoltage(){
+  ADCSRA |= 1<<ADEN;                          // Enable the ADC
   // Read 1.1V reference against AVcc
   ADMUX = _BV(MUX3) | _BV(MUX2); // Select internal 1.1V (on ATTiny85)
-  // delay(2); // Wait for Vref to settle
+  delay(2); // Wait for Vref to settle
   ADCSRA |= _BV(ADSC); // Start conversion
   while (bit_is_set(ADCSRA, ADSC)); // Wait until done
   uint16_t result = ADC;
 
-  long vcc = (1100L * 1024L) / result; // Vcc in millivolts
+  //turn ADC off
+  ADCSRA &= ~_BV(ADEN);
   return result;
 }
 
@@ -303,3 +305,15 @@ void loop() {
   // digitalWrite(LED_PIN,(millis()/200)%2);
   // tamo.feel();
 }
+
+/*
+Calibration notes:
+@5V it's ~212
+@3.9V it's ~260
+@3.73 it's ~295
+@3.3V it's ~358
+@1.57 it's ~703
+
+voltage = -150.70169*(measurement)+893.05592
+
+*/
