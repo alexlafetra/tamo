@@ -39,7 +39,7 @@ class Animation{
     const unsigned char ** frames = nullptr;
 
     Animation(){};
-    Animation(int16_t x1, int16_t y1, uint16_t w, uint16_t h, const unsigned char* const buffer[], uint16_t frameCount, uint32_t frameRate, uint16_t c){
+    Animation(int16_t x1, int16_t y1, uint16_t w, uint16_t h, const unsigned char* const buffer[], uint16_t frameCount, uint32_t frameRate){
       currentFrame = 0;
       numberOfFrames = frameCount;
       msPerFrame = frameRate;
@@ -59,7 +59,7 @@ class Animation{
       height = h;
       loopCount = 0;
     }
-    Animation(int16_t x1, int16_t y1, uint16_t w, uint16_t h, const unsigned char* buffer[], uint16_t frameCount, uint32_t frameRate, uint16_t c){
+    Animation(int16_t x1, int16_t y1, uint16_t w, uint16_t h, const unsigned char* buffer[], uint16_t frameCount, uint32_t frameRate){
       currentFrame = 0;
       numberOfFrames = frameCount;
       msPerFrame = frameRate;
@@ -172,3 +172,47 @@ void Animation::update(){
   }
   showCurrentFrame();
 }
+
+/*
+full speech bubble is 12x11
+small icons are 7x7
+so they need to be offset by (5,4)
+*/
+class TalkingAnimation:public Animation{
+  public:
+  TalkingAnimation(){}
+  TalkingAnimation(int16_t x1, int16_t y1, uint16_t w, uint16_t h, const unsigned char* const buffer[], uint16_t frameCount, uint32_t frameRate){
+    currentFrame = 0;
+    numberOfFrames = frameCount;
+    msPerFrame = frameRate;
+    timeLastFramePlayed = millis();
+
+    //allocate mem for pointers to bitmaps
+    frames = new const unsigned char *[frameCount];
+    //copy in pointers
+    for(uint16_t i = 0; i<frameCount; i++){
+      //need to access the bitmap data like this since the arrays of pointers to the bitmaps are also stored as PROGMEM
+      //see: https://stackoverflow.com/questions/63447172/issues-with-pointers-and-progmem
+      frames[i] = pgm_read_ptr(buffer+i);
+    }
+    xCoord = x1;
+    yCoord = y1/8;
+    width = w;
+    height = h;
+    loopCount = 0;
+  }
+  void showCurrentFrame(){
+    if(currentFrame)
+      oled.overlayBitmap2x(xCoord,yCoord,xCoord+width,yCoord+height/16,frames[0],3,1,7,7,frames[currentFrame]);
+    //if it's the first frame, just send it normally (it'll always be the empty talking sprite)
+    else
+      Animation::showCurrentFrame();
+  }
+  void update(){
+    if(Animation::isFrameReady()){
+      Animation::nextFrame();
+      timeLastFramePlayed = millis();
+    }
+    showCurrentFrame();
+  }
+};

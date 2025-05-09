@@ -6,6 +6,9 @@ Clock > Internal 8Mhz (i think this is accidentally swapped w 1mhz in arduino id
 Processor > Attiny85
 Programmer > Arduino as ISP
 
+
+notes: measuring 0.2mA during sleep
+
 */
 
 //https://github.com/Lorandil/ATTiny85-optimization-guide?tab=readme-ov-file
@@ -21,6 +24,7 @@ Programmer > Arduino as ISP
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
 // #include <avr/wdt.h>//to keep track of time
+#include <EEPROM.h>
 
 #define W 64
 #define H 32
@@ -30,15 +34,17 @@ Programmer > Arduino as ISP
 #define AUX_LED_PIN 3 //secondary LED
 
 //time (ms) before tamo sleeps
-#define TIME_BEFORE_SLEEP 60000
+// #define TIME_BEFORE_SLEEP 60000
+#define TIME_BEFORE_SLEEP 6000
+
 #define LONG_PRESS_TIME 500;
 #define DOUBLE_CLICK_TIME 100;
 #define MAX_HUNGER 4320 // takes 12hr = 720min = 4320s to run out
 #define MAX_MENTAL 8640 //takes 24hr to fully deplete
 
 #define TAMO 0
-#define BUG 1
-#define PORCINI 3
+#define PORCINI 1
+#define BUG 2
 
 using namespace std;
 
@@ -78,24 +84,33 @@ void clearEdges(uint8_t distanceL, uint8_t distanceR){
   oled.fillLength(0,distanceL);
 
   //right side
-  oled.setCursor(48,0);
+  oled.setCursor(64-distanceR,0);
   oled.fillLength(0,64-distanceR);
-  oled.setCursor(48,1);
+  oled.setCursor(64-distanceR,1);
   oled.fillLength(0,64-distanceR);
 }
 
 void clearEdges(){
-  //left side
-  oled.setCursor(0,0);
-  oled.fillLength(0,20);
-  oled.setCursor(0,1);
-  oled.fillLength(0,20);
+  clearEdges(20,20);
+}
 
-  //right side
-  oled.setCursor(48,0);
-  oled.fillLength(0,20);
-  oled.setCursor(48,1);
-  oled.fillLength(0,20);
+void updateBreathLED(){
+  uint16_t value = (millis()/40)%128;
+  if(value > 64){
+    value = 128 - value;
+  }
+  if( value < 16){
+    digitalWrite(LED_PIN,LOW);
+  }
+  else{
+    value = (value)*2;
+    analogWrite(LED_PIN,value);
+  }
+}
+
+void talkingLED(){
+  digitalWrite(LED_PIN,((millis()/200)%2)?HIGH:LOW);
+
 }
 
 //reading inputs
@@ -117,7 +132,7 @@ void readButtons(){
       timeOfLastButtonPress = millis();
     }
     //turn on the LED
-    digitalWrite(LED_PIN,HIGH);
+    digitalWrite(AUX_LED_PIN,HIGH);
     //set the button flag
     BUTTON = true;
     //check to see if it's been held
@@ -128,7 +143,7 @@ void readButtons(){
   //if the button is released
   else{
     //turn off the LED
-    digitalWrite(LED_PIN,LOW);
+    digitalWrite(AUX_LED_PIN,LOW);
     //if the button *was* held, then you just released it
     if(BUTTON){
       //if it was held for a while, it's a long press
@@ -163,6 +178,9 @@ void hardwareSleep(){
   //turn off OLED, LED
   oled.off();
   digitalWrite(LED_PIN,LOW);
+  digitalWrite(AUX_LED_PIN,LOW);
+
+  // TCCR1 = 0; //reset timer 1 control register
 
   // //https://bigdanzblog.wordpress.com/2014/08/10/attiny85-wake-from-sleep-on-pin-state-change-code-example/
   GIMSK |= _BV(PCIE);                     // Enable Pin Change Interrupts
@@ -176,17 +194,19 @@ void hardwareSleep(){
 //Interrupt callback to wake Attiny back up
 ISR(PCINT0_vect){
   sleep_disable();                       // first thing after waking from sleep: disable sleep...
-  oled.fill(0);
   PCMSK &= ~_BV(PCINT1);                  // Turn off PB1 interrupt
+  oled.fill(0);//clear screen of noise
   oled.on();//turn screen back on
   lastTime = millis();
 }
 
 
-// Timer0 overflow interrupt, this triggers every 10 seconds!
-// ISR(WDT_vect) {
-//   tamo.body();//tamo gets hungrier
-// }
+// Watchdog timer interrupt
+ISR(WDT_vect) {
+  tamo.body();//tamo gets hungrier
+  // AUX_LED_STATE = !AUX_LED_STATE;
+  // digitalWrite(AUX_LED_PIN,AUX_LED_STATE?HIGH:LOW);
+}
 
 void initOled(){
   //start i2c communication w little oled
@@ -237,6 +257,9 @@ uint16_t readVcc() {
 
 void setup() {
 
+  //disabling ADC (it's enabled when VCC is being measured)
+  ADCSRA &= ~_BV(ADEN);
+
   /*
       Initializing button
   */
@@ -246,20 +269,20 @@ void setup() {
   /*
       Turning on LED controls
   */
-  DDRB |= ( 1 << PB4 );  //set led pin to output
   DDRB |= ( 1 << PB3 );  //set led2 pin to output
+  DDRB |= ( 1 << PB4 );  //set led pin to output
 
   /*
       Turning on watchdog timer
   */
-  // WDTCR = (1 << WDCE) | (1 << WDE); // Enable changes to WDT
-  // WDTCR = (1 << WDP3) | (1 << WDP0) | (1 << WDIE); // Set prescaler to 1s and enable interrupt
+  WDTCR = (1 << WDCE) | (1 << WDE); // Enable changes to WDT
+  WDTCR = (1 << WDP3) | (1 << WDP0) | (1 << WDIE); // Set prescaler to 1s and enable interrupt
 
   // Enable global interrupts
   sei();
   
+  //turn on/set up the screen
   initOled();
-  digitalWrite(AUX_LED_PIN,HIGH);
 }
 
 void loop() {
