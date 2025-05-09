@@ -37,7 +37,6 @@ enum Mood:uint8_t{
   ANGRY,
   SAD,
   SOBBING,
-  THINKING,
   TALKING,
   EATING,
   POOPING,
@@ -49,7 +48,6 @@ enum Mood:uint8_t{
 enum SPRITE_ID:uint8_t{
   IDLE_SPRITE,
   EATING_SPRITE,
-  THINKING_SPRITE,
   SAD_SPRITE,
   CRYING_SPRITE,
   MAD_SPRITE,
@@ -60,9 +58,9 @@ const Thought happyThoughts[5] = {LOVE,FACE,MUSIC,MONEY,DOG};
 const Thought neutralThoughts[6] = {FACE,MUSIC,MONEY,DOG,REVENGE,DEATH};
 const Thought sadThoughts[5] = {HEARTBREAK,DEATH,REVENGE,MONEY,DOG};
 
-const Mood goodMoods[3] = {HAPPY,THINKING,TALKING};
-const Mood neutralMoods[5] = {NEUTRAL,HAPPY,SAD,THINKING,TALKING};
-const Mood badMoods[5] = {SAD,SOBBING,ANGRY,THINKING,TALKING};
+const Mood goodMoods[3] = {HAPPY,TALKING};
+const Mood neutralMoods[5] = {NEUTRAL,HAPPY,SAD,TALKING};
+const Mood badMoods[5] = {SAD,SOBBING,ANGRY,TALKING};
 
 #define GOOD_STATE 0
 #define OKAY_STATE 1
@@ -88,7 +86,7 @@ class Tamo{
     Thought thought = LOVE;
     int16_t moodTime = 0;
     uint8_t status = 0b00000000;
-    uint8_t identity = PORCINI;//which sprites to chose from
+    uint8_t identity = BUG;//which sprites to chose from
 
     /*
       health decreases every few seconds. Food increases it
@@ -104,14 +102,14 @@ class Tamo{
     void feel();
 
     void basicEmotion(Mood moodAfter);
-    // void sleep();
     void talk(Thought t);
-    void think();
     void poop();
     void eat();
     void dead();
     void birth();
     void freePalestine();
+
+    void baby();
 
     bool getStatusBit(uint8_t which);
     void setStatusBit(uint8_t which, bool state);
@@ -146,55 +144,28 @@ void Tamo::setStatusBit(uint8_t which, bool state){
   }
 }
 
-
 const unsigned char* const * Tamo::getSprite(SPRITE_ID whichSprite){
-  //porcini
+  const unsigned char* const ** spritesheet = nullptr;
   switch(identity){
     case TAMO:
-      switch(whichSprite){
-        case IDLE_SPRITE:
-          return tamo_idle_sprite;
-        case EATING_SPRITE:
-          return tamo_eating_sprite;
-        case THINKING_SPRITE:
-          return tamo_thinking_sprite;
-        case SAD_SPRITE:
-          return tamo_sad_sprite;
-        case CRYING_SPRITE:
-          return tamo_crying_sprite;
-        case MAD_SPRITE:
-          return tamo_mad_sprite;
-        case HAPPY_SPRITE:
-          return tamo_happy_sprite;
-      }
+      spritesheet = tamo_spritesheet;
+      break;
     case PORCINI:
-      switch(whichSprite){
-        case IDLE_SPRITE:
-          return porcini_idle_sprite;
-        case EATING_SPRITE:
-          return porcini_eating_sprite;
-        case THINKING_SPRITE:
-          return porcini_thinking_sprite;
-        case SAD_SPRITE:
-          return porcini_sad_sprite;
-        case CRYING_SPRITE:
-          return porcini_crying_sprite;
-        case MAD_SPRITE:
-          return porcini_mad_sprite;
-        case HAPPY_SPRITE:
-          return porcini_happy_sprite;
-      }
-    default:
-      return nullptr;
+      spritesheet = porcini_spritesheet;
+      break;
+    case BUG:
+      spritesheet = bug_spritesheet;
+      break;
   }
+  return spritesheet[whichSprite];
 }
 
 bool Tamo::isFeeling(){
   return (moodTime>0 || !(sprite.isFrameReady() && sprite.hasPlayedAtLeastOnce()));
 }
 void Tamo::body(){
-  if(health)
-    health--;
+  if(health>80)
+    health-=80;
   // //one write every 10 updates, then change the address every 200
   // //change address if it's been more than 200 updates
   // if(updatesSinceLastWrite >= 200){
@@ -212,6 +183,16 @@ void Tamo::body(){
   //   EEPROM.put(healthAddress,health);
   // }
   // updatesSinceLastWrite++;
+}
+
+#define GROW_UP_NUMBER 3
+
+void Tamo::baby(){
+  //needs 
+  uint8_t foodCount = 0;
+  while(foodCount < GROW_UP_NUMBER){
+
+  }
 }
 
 void Tamo::freePalestine(){
@@ -236,9 +217,6 @@ void Tamo::feel(){
       return;
     case TALKING:
       talk(thought);
-      return;
-    case THINKING:
-      think();
       return;
     case POOPING:
       poop();
@@ -417,48 +395,52 @@ void Tamo::dead(){
     sprite.update();
   }
   //get a new identity
-  identity = pseudoRandom(0,2);
+  identity = pseudoRandom(0,3);
   //write it to the eeprom
   EEPROM.put(IDENTITY_ADDRESS,identity);
   mood = BIRTH;
 }
 void Tamo::talk(Thought t){
-  sprite.xCoord=SPRITESTARTX-12;
-  TalkingAnimation talkingSprite;
+  sprite.xCoord = SPRITESTARTX-12;
+  const unsigned char* const * animationBuffer = nullptr;
+  uint8_t frameCount = 2;
   switch(t){
     case LOVE:
-      talkingSprite = TalkingAnimation(SPRITESTARTX+20,SPRITESTARTY,12,16,talking_love,2,MEDIUM);
+      animationBuffer = talking_love;
       break;
     case FOOD:
-      talkingSprite = TalkingAnimation(SPRITESTARTX+20,SPRITESTARTY,12,16,talking_hunger,2,MEDIUM);
+      animationBuffer = talking_hunger;
       break;
     case DEATH:
-      talkingSprite = TalkingAnimation(SPRITESTARTX+20,SPRITESTARTY,12,16,talking_death,2,MEDIUM);
+      animationBuffer = talking_death;
       break;
     case HEARTBREAK:
-      talkingSprite = TalkingAnimation(SPRITESTARTX+20,SPRITESTARTY,12,16,talking_heartbreak,3,MEDIUM);
+      animationBuffer = talking_heartbreak;
+      frameCount = 3;
       break;
     case REVENGE:
-      talkingSprite = TalkingAnimation(SPRITESTARTX+20,SPRITESTARTY,12,16,talking_revenge,2,MEDIUM);
+      animationBuffer = talking_revenge;
       break;
     case FACE:
-      talkingSprite = TalkingAnimation(SPRITESTARTX+20,SPRITESTARTY,12,16,talking_me,3,MEDIUM);
+      animationBuffer = talking_me;
+      frameCount = 3;
       break;
     case MUSIC:
-      talkingSprite = TalkingAnimation(SPRITESTARTX+20,SPRITESTARTY,12,16,talking_music,2,MEDIUM);
+      animationBuffer = talking_music;
       break;
     case MONEY:
-      talkingSprite = TalkingAnimation(SPRITESTARTX+20,SPRITESTARTY,12,16,talking_cash,2,MEDIUM);
+      animationBuffer = talking_cash;
       break;
     case DOG:
-      talkingSprite = TalkingAnimation(SPRITESTARTX+20,SPRITESTARTY,12,16,talking_dog,2,MEDIUM);
+      animationBuffer = talking_dog;
       break;
     case LOWBATTERY:
-      talkingSprite = TalkingAnimation(SPRITESTARTX+20,SPRITESTARTY,12,16,talking_low_battery,2,MEDIUM);
+      animationBuffer = talking_low_battery;
       break;
     default:
       return;
   }
+  TalkingAnimation talkingSprite(SPRITESTARTX+20,SPRITESTARTY,12,16,animationBuffer,frameCount,MEDIUM);
   while(talkingSprite.loopCount<2){
     sprite.update();
     talkingSprite.update();
@@ -466,37 +448,6 @@ void Tamo::talk(Thought t){
   }
   mood = RANDOM_NO_TALK;
   clearEdges();
-}
-
-void Tamo::think(){
-  sprite = Animation(SPRITESTARTX-15,SPRITESTARTY,16,16,getSprite(THINKING_SPRITE),2,FAST);
-  Animation actionSprite;
-  Idea idea = static_cast<Idea>(pseudoRandom(0,3));
-  switch(idea){
-    case GUN:
-      actionSprite = Animation(SPRITESTARTX+17,SPRITESTARTY,13,16,dreamAnim_gun,3,MEDIUM);
-      break;
-    case BIRD:
-      actionSprite = Animation(SPRITESTARTX+17,SPRITESTARTY,13,16,dreamAnim_bird,3,MEDIUM);
-      break;
-    case HEART:
-      actionSprite = Animation(SPRITESTARTX+17,SPRITESTARTY,13,16,dreamAnim_love,3,MEDIUM);
-      break;
-  }
-  moodTime = 500;
-  actionSprite.loopCount = 0;
-  while(!actionSprite.hasPlayedAtLeastOnce() && moodTime){
-    moodTime--;
-    readButtons();
-    if(BUTTON && itsbeen(200)){
-      lastTime = millis();
-      break;
-    }
-    sprite.update();
-    actionSprite.update();
-  }
-  clearEdges();
-  mood = NEUTRAL;
 }
 
 void Tamo::poop(){
