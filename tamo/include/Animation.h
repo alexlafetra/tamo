@@ -51,7 +51,7 @@ class Animation{
       for(uint16_t i = 0; i<frameCount; i++){
         //need to access the bitmap data like this since the arrays of pointers to the bitmaps are also stored as PROGMEM
         //see: https://stackoverflow.com/questions/63447172/issues-with-pointers-and-progmem
-        frames[i] = pgm_read_ptr(buffer+i);
+        frames[i] = pgm_read_pointer(buffer+i);
       }
       xCoord = x1;
       yCoord = y1/8;
@@ -71,7 +71,7 @@ class Animation{
       for(uint16_t i = 0; i<frameCount; i++){
         //need to access the bitmap data like this since the arrays of pointers to the bitmaps are also stored as PROGMEM
         //see: https://stackoverflow.com/questions/63447172/issues-with-pointers-and-progmem
-        frames[i] = pgm_read_ptr(buffer+i);
+        frames[i] = pgm_read_pointer(buffer+i);
       }
       xCoord = x1;
       yCoord = y1/8;
@@ -81,7 +81,7 @@ class Animation{
     }
     //destructor, bc we dynamically allocate mem for the frame data
     ~Animation(){
-      //deallocate mem
+      //deallocate the bitmap array
       delete [] frames;
     }
     //copy constructor, to make a deep copy bc we dynamically allocate mem for frame data
@@ -193,7 +193,7 @@ class TalkingAnimation:public Animation{
     for(uint16_t i = 0; i<frameCount; i++){
       //need to access the bitmap data like this since the arrays of pointers to the bitmaps are also stored as PROGMEM
       //see: https://stackoverflow.com/questions/63447172/issues-with-pointers-and-progmem
-      frames[i] = pgm_read_ptr(buffer+i);
+      frames[i] = pgm_read_pointer(buffer+i);
     }
     xCoord = x1;
     yCoord = y1/8;

@@ -26,9 +26,38 @@ class FrameBuffer{
 
         fill(0x00);
     }
-    // ~FrameBuffer(){
-    //     delete [] buffer;
-    // }
+    ~FrameBuffer(){
+        delete [] buffer;
+    }
+    //copy constructor, to make a deep copy bc we dynamically allocate mem for frame data
+    FrameBuffer(FrameBuffer& f){
+        width = f.width;
+        height = f.height;
+        //if there's an old buffer, free its mem
+        if(buffer)
+            delete [] buffer;
+        bufferSize = f.bufferSize;
+        buffer = new uint8_t [bufferSize];
+        for(uint8_t i = 0; i<bufferSize; i++){
+            buffer[i] = f.buffer[i];
+        }
+    }
+    //overloaded assignment operator, w help from: https://www.learncpp.com/cpp-tutorial/overloading-the-assignment-operator/
+    FrameBuffer& operator= (const FrameBuffer& f){
+        //check for self assignment!
+        if(this == &f)
+            return *this;
+            
+        width = f.width;
+        height = f.height;
+        if(buffer)
+            delete [] buffer;
+        bufferSize = f.bufferSize;
+        buffer = new uint8_t [bufferSize];
+        for(uint8_t i = 0; i<bufferSize; i++){
+            buffer[i] = f.buffer[i];
+        }
+    }  
     void fill(uint8_t c){
         for(uint8_t i = 0; i<bufferSize; i++){
             buffer[i] = c;

@@ -26,25 +26,24 @@ notes: measuring 0.2mA during sleep
 // #include <avr/wdt.h>//to keep track of time
 #include <EEPROM.h>
 
+#define RESET_EEPROM true
+
+//Got this from:https://community.arduboy.com/t/progmem-functions-pgm-read-float-and-pgm-read-ptr/5771
+//which avoids a c++ sensitivity to implicit typecasting
+template<typename T> T * pgm_read_pointer(T * const * pointer)
+{
+	return reinterpret_cast<T *>(pgm_read_ptr(pointer));
+}
+
 #define W 64
 #define H 32
 
 #define BUTTON_PIN 1
-#define LED_PIN 4 //primary LED
-#define AUX_LED_PIN 3 //secondary LED
-
-//time (ms) before tamo sleeps
-// #define TIME_BEFORE_SLEEP 60000
-#define TIME_BEFORE_SLEEP 6000
+#define LED_PIN 3 //primary LED (blue)
+#define AUX_LED_PIN 4 //secondary LED
 
 #define LONG_PRESS_TIME 500;
 #define DOUBLE_CLICK_TIME 100;
-#define MAX_HUNGER 4320 // takes 12hr = 720min = 4320s to run out
-#define MAX_MENTAL 8640 //takes 24hr to fully deplete
-
-#define TAMO 0
-#define PORCINI 1
-#define BUG 2
 
 using namespace std;
 
@@ -65,148 +64,17 @@ void hardwareSleep();
 void clearEdges();
 void clearEdges(uint8_t distanceL, uint8_t distanceR);
 
+
+int rndSeed = 0;
+uint8_t pseudoRandom(uint8_t min, uint8_t max){
+  return (millis()+rndSeed++)%(max-min)+min;
+}
+
 #include "sprites.h"
 #include "Animation.h"
-#include "Tamo.h"
+#include "Tamo.cpp"
 Tamo tamo;
 
-/*
-  Clears area to the right and left of main sprite
-  so you don't need to do a full screen clear when switching
-  between different sprites
-*/
-
-void clearEdges(uint8_t distanceL, uint8_t distanceR){
-  //left side
-  oled.setCursor(0,0);
-  oled.fillLength(0,distanceL);
-  oled.setCursor(0,1);
-  oled.fillLength(0,distanceL);
-
-  //right side
-  oled.setCursor(64-distanceR,0);
-  oled.fillLength(0,64-distanceR);
-  oled.setCursor(64-distanceR,1);
-  oled.fillLength(0,64-distanceR);
-}
-
-void clearEdges(){
-  clearEdges(20,20);
-}
-
-void updateBreathLED(){
-  uint16_t value = (millis()/40)%128;
-  if(value > 64){
-    value = 128 - value;
-  }
-  if( value < 16){
-    digitalWrite(LED_PIN,LOW);
-  }
-  else{
-    value = (value)*2;
-    analogWrite(LED_PIN,value);
-  }
-}
-
-void talkingLED(){
-  digitalWrite(LED_PIN,((millis()/200)%2)?HIGH:LOW);
-
-}
-
-//reading inputs
-void readButtons(){
-  bool val = !digitalRead(BUTTON_PIN);
-  //if the button is pressed
-  if(val){
-    //if the button wasn't previously pressed, then it's a fresh press
-    if(!BUTTON){
-      if(millis()-timeOfLastButtonPress < 100){
-        DOUBLE_CLICK = true;
-        LONG_PRESS = false;
-        SINGLE_CLICK = false;
-      }
-      else{
-        DOUBLE_CLICK = false;
-        SINGLE_CLICK = false;
-      }
-      timeOfLastButtonPress = millis();
-    }
-    //turn on the LED
-    digitalWrite(AUX_LED_PIN,HIGH);
-    //set the button flag
-    BUTTON = true;
-    //check to see if it's been held
-    if((millis() - timeOfLastButtonPress) > (500) ){
-      LONG_PRESS = true;
-    }
-  }
-  //if the button is released
-  else{
-    //turn off the LED
-    digitalWrite(AUX_LED_PIN,LOW);
-    //if the button *was* held, then you just released it
-    if(BUTTON){
-      //if it was held for a while, it's a long press
-      if((millis() - timeOfLastButtonPress) > (500) ){
-        LONG_PRESS = true;
-      }
-      //if it wasn't, then it's a single click
-      else{
-        SINGLE_CLICK = true;
-      }
-    }
-    //if the button wasn't pressed down before, then don't do anything
-    else{
-      SINGLE_CLICK = false;
-      LONG_PRESS = false;
-    }
-    BUTTON = false;
-  }
-}
-
-uint8_t pseudoRandom(uint8_t min, uint8_t max){
-  return millis()%(max-min)+min;
-}
-
-void hardwareSleepCheck(){
-  if(itsbeen(TIME_BEFORE_SLEEP)){
-    hardwareSleep();
-  }
-}
-
-void hardwareSleep(){
-  //turn off OLED, LED
-  oled.off();
-  digitalWrite(LED_PIN,LOW);
-  digitalWrite(AUX_LED_PIN,LOW);
-
-  // TCCR1 = 0; //reset timer 1 control register
-
-  // //https://bigdanzblog.wordpress.com/2014/08/10/attiny85-wake-from-sleep-on-pin-state-change-code-example/
-  GIMSK |= _BV(PCIE);                     // Enable Pin Change Interrupts
-  PCMSK |= _BV(PCINT1);                   // Use PB1 as interrupt pin
-
-  set_sleep_mode(SLEEP_MODE_PWR_DOWN);   // sleep mode is set here
-  sleep_enable();                          // enables the sleep bit in the mcucr register so sleep is possible  
-  sleep_cpu();                            // sleep (idk what the diff is)
-}
-
-//Interrupt callback to wake Attiny back up
-ISR(PCINT0_vect){
-  sleep_disable();                       // first thing after waking from sleep: disable sleep...
-  PCMSK &= ~_BV(PCINT1);                  // Turn off PB1 interrupt
-  oled.fill(0);//clear screen of noise
-  oled.on();//turn screen back on
-  lastTime = millis();
-}
-
-
-// Watchdog timer interrupt
-ISR(WDT_vect) {
-  tamo.body();//tamo gets hungrier
-  // AUX_LED_STATE = !AUX_LED_STATE;
-  // digitalWrite(AUX_LED_PIN,AUX_LED_STATE?HIGH:LOW);
-}
 
 void initOled(){
   //start i2c communication w little oled
@@ -255,6 +123,148 @@ uint16_t readVcc() {
   return result;
 }
 
+/*
+  Clears area to the right and left of main sprite
+  so you don't need to do a full screen clear when switching
+  between different sprites
+*/
+
+void clearEdges(uint8_t distanceL, uint8_t distanceR){
+  //left side
+  oled.setCursor(0,0);
+  oled.fillLength(0,distanceL);
+  oled.setCursor(0,1);
+  oled.fillLength(0,distanceL);
+
+  //right side
+  oled.setCursor(64-distanceR,0);
+  oled.fillLength(0,64-distanceR);
+  oled.setCursor(64-distanceR,1);
+  oled.fillLength(0,64-distanceR);
+}
+
+void clearEdges(){
+  clearEdges(20,20);
+}
+
+void updateBreathLED(){
+  uint16_t value = (millis()/40)%128;
+  if(value > 64){
+    value = 128 - value;
+  }
+  if( value < 16){
+    digitalWrite(LED_PIN,LOW);
+  }
+  else{
+    value = (value)*2;
+    analogWrite(LED_PIN,value);
+  }
+}
+
+void talkingLED(){
+  digitalWrite(LED_PIN,((millis()/200)%2)?HIGH:LOW);
+}
+
+//reading inputs
+void readButtons(){
+  bool val = !digitalRead(BUTTON_PIN);
+  //if the button is pressed
+  if(val){
+    //if the button wasn't previously pressed, then it's a fresh press
+    if(!BUTTON){
+      if(millis()-timeOfLastButtonPress < 100){
+        // DOUBLE_CLICK = true;
+        LONG_PRESS = false;
+        SINGLE_CLICK = false;
+      }
+      else{
+        DOUBLE_CLICK = false;
+        SINGLE_CLICK = false;
+      }
+      timeOfLastButtonPress = millis();
+    }
+    //turn on the LED
+    // digitalWrite(AUX_LED_PIN,HIGH);
+    //set the button flag
+    BUTTON = true;
+    //check to see if it's been held
+    if((millis() - timeOfLastButtonPress) > (500) ){
+      LONG_PRESS = true;
+    }
+  }
+  //if the button is released
+  else{
+    //turn off the LED
+    // digitalWrite(AUX_LED_PIN,LOW);
+    //if the button *was* held, then you just released it
+    if(BUTTON){
+      //if it was held for a while, it's a long press
+      if((millis() - timeOfLastButtonPress) > (500) ){
+        LONG_PRESS = true;
+      }
+      //if it wasn't, then it's a single click
+      else{
+        SINGLE_CLICK = true;
+      }
+    }
+    //if the button wasn't pressed down before, then don't do anything
+    else{
+      SINGLE_CLICK = false;
+      LONG_PRESS = false;
+    }
+    BUTTON = false;
+  }
+}
+
+void hardwareSleepCheck(){
+  if(itsbeen(TIME_BEFORE_SLEEP)){
+    hardwareSleep();
+  }
+}
+
+void hardwareSleep(){
+  tamo.setStatusBit(IS_ASLEEP,true);
+  //turn off OLED, LED
+  // oled.clear();
+  oled.off();
+  digitalWrite(LED_PIN,LOW);
+  digitalWrite(AUX_LED_PIN,LOW);
+
+  // TCCR1 = 0; //reset timer 1 control register
+
+  // //https://bigdanzblog.wordpress.com/2014/08/10/attiny85-wake-from-sleep-on-pin-state-change-code-example/
+  GIMSK |= _BV(PCIE);                     // Enable Pin Change Interrupts
+  PCMSK |= _BV(PCINT1);                   // Use PB1 as interrupt pin
+
+  //set tamo into sleep mode
+  //when the WDT interrupt finishes it goes to this line and tamo can go back to sleep
+  while(tamo.isAsleep()){
+    //this sleep mode only leaves the WDT running (millis() won't update)
+    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+    //allows the CPU to go to sleep
+    sleep_enable();
+    //put the attiny to sleep
+    sleep_cpu();
+  }
+
+  sleep_disable();                       // first thing after waking from sleep: disable sleep...
+  PCMSK &= ~_BV(PCINT1);                  // Turn off PB1 interrupt
+  oled.on();//turn screen back on
+  // oled.clear();//clear screen of noise
+  lastTime = millis();
+}
+
+//Interrupt callback to wake Attiny back up
+ISR(PCINT0_vect){
+  tamo.setStatusBit(IS_ASLEEP,false);
+}
+
+
+// Watchdog timer interrupt to run tamo's health fn
+ISR(WDT_vect) {
+  tamo.body();
+}
+
 void setup() {
 
   //disabling ADC (it's enabled when VCC is being measured)
@@ -280,11 +290,21 @@ void setup() {
 
   // Enable global interrupts
   sei();
+
+  #if RESET_EEPROM
+  EEPROM.put(255,IDENTITY_ADDRESS);
+  #endif
   
   //turn on/set up the screen
   initOled();
+
+  //run the birth interaction
+  tamo.birth();
+  //grab new emotion depending on health & batt state
+  tamo.vibeCheck();
 }
 
 void loop() {
-  tamo.feel();
+  tamo.live();
+  // tamo.cycleThruMoods();
 }

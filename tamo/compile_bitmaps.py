@@ -1,70 +1,125 @@
-Import("env")
 import os
 import sys
 import struct
+import math
 
 # largely taken from:
 # https://github.com/sparkfun/BMPtoArray/blob/master/bmp2array.py
 
 # file the bitmaps will be printed to
-output_file = "include/bitmaps.cpp"
+output_file = "include/bitmaps.h"
 
 # folder the bitmaps are stored in
 bmp_directory = "bitmaps"
-directory = os.fsencode(bmp_directory)
+# directory = os.fsencode(bmp_directory)
 
-# iterate over each file in that folder and check if it's a bitmap
-for file in os.listdir(directory):
-    filename = os.fsdecode(file)
-    print(filename)
+# okay here's what was going wrong!
+# each row/column is its own string of bytes. The bytes for that row don't
+# 'wrap' around and contain bits for the next row, they just contain zeroes if they run over the end
+# this is actually...less space efficient? but do it so that each row/column uses specific bytes
+
+# in the current output, every other byte should be offset by w to match image2cpp
+# okay, got it. The way image2cpp works is it does a pass L-->R, taking one-byte deep (8px) vertical slices. Then it does another pass, going another layer deep. Annoying.
+
+# not using a flipped array here
+def pixelArrayToByteArray(pixelArray,w,h):
+
+    # array storing the packed bits
+    bArray = []
+
+    # if height isn't a multiple of 8, pad out bottom of array
+    if h%8 :
+        # how many blank arrays to add
+        padHeight = 8-h%8
+
+        # for each row needed, add in a blank row
+        for i in range(0,padHeight,1):
+            for j in range(0,w,1):
+                pixelArray.append(0x00)
+    
+    # chunks of 8
+    # each 'bite' is a pass, where you grab the top 8 bytes from the array at each column
+    for bite in range(0,math.ceil(h/8),1):
+        # move over each column
+        for x in range(0,w,1):
+            newByte = 0x00
+            # dive down into each column
+            for i in range(0,8,1):
+                newByte |= pixelArray[i*w+x+bite*w*8]<<i
+            bArray.append(newByte)
+
+    return bArray
+
+def compileBitmap(file,filename):
+    # print(filename)
     # if it is a bitmap, decode it into bytes
-    if filename.endswith(".bmp"):
+    if file.endswith(".bmp"):
+
         # get the file bytes
-        inputfile = open(bmp_directory+"/"+filename,"rb")
+        inputfile = open(file,"rb")
         contents = bytearray(inputfile.read())
         inputfile.close()
 
-        # get the image size
-        data = [contents[2],contents[3],contents[4],contents[5]]
-        filesize = struct.unpack("I",bytearray(data))
-        print("filesize:"+str(filesize[0]))
+        # start of pixel data
+        pixelArrayOffset = int.from_bytes(contents[10:13], byteorder = 'little', signed = False)
+        
+        # height is a signed integer
+        imageHeight = abs(int.from_bytes(contents[22:23], byteorder = 'little', signed = True))
+        imageWidth = int.from_bytes(contents[18:21], byteorder = 'little', signed = False)
+        # bitDepth = int.from_bytes(contents[28:30], byteorder = 'little', signed = False)
 
-        #Get the header offset amount
-        data = [contents[10], contents[11], contents[12], contents[13]]
-        offset = struct.unpack("I", bytearray(data))
+        # 4 bytes per pixel
+        pixelRowSize = math.ceil(4*imageWidth)
+        pixelArraySize = pixelRowSize * imageHeight
 
-        #Make a string to hold the output of our script
-        arraySize = int((filesize[0] - offset[0]) / 2)
-        print(arraySize)
+        # turn this into 1 byte per pixel
+        pixelArray = []
+        for pixel in range(0,pixelArraySize,4):
+            pixelArray.append(contents[pixelArrayOffset+pixel] & 0x01)
 
-        # get the image dimensions
-        width = contents[18] | (contents[19]<<8)
-        height = int(arraySize/width/2)
-        print("width:"+str(width))
-        print("height:"+str(height))
+        cByteData = pixelArrayToByteArray(pixelArray,imageWidth,imageHeight)
 
-        outputString = "//"+filename[0:-4]+": "+str(width)+"x"+str(height)+'\r'
-        outputString += "const unsigned char " + filename[0:-4] + "[" + str(int(arraySize/height)) + "] PROGMEM = {" + '\r'
+        # add in variable title
+        outputString = "//"+filename[0:-4]+": "+str(imageWidth)+"x"+str(imageHeight)+'\r'
+        outputString += "const unsigned char " + filename[0:-4] + "[" + str(len(cByteData)) + "] PROGMEM = {\n\t"
 
-        #Start coverting spots to values
-        #Start at the offset and go to the end of the file
-        for i in range(offset[0], filesize[0]-15, 16):
-            color = 0
-            print(contents[i])
-            for j in range(0,16):
-                if(contents[i+j] == 255):
-                    color |= 1<<j
-
-            #Add this value to the string
-            outputString += hex(color) + ", "
-            
+        # formatting bytes
+        for byte in range(0,len(cByteData),1):
+            outputString += str(hex(cByteData[byte]))+", "
+            if (byte%16 == 15) & (byte != (len(cByteData)-1)):
+                outputString += "\n\t"
+        
         #Once we've reached the end of our input string, pull the last two
         #characters off (the last comma and space) since we don't need
         #them. Top it off with a closing bracket and a semicolon.
         outputString = outputString[:-2]
-        outputString += "};"
+        outputString += "\n};\n"
 
         #Write the output string to our output file
-        outfile = open(output_file,"w")
+        outfile = open(output_file,"a")
         outfile.write(outputString)
         outfile.close()
+
+def compileBitmaps(directory):
+    # iterate over each file in that folder and check if it's a bitmap
+    for file in os.listdir(directory):
+        if os.path.isdir(directory+"/"+os.fsdecode(file)):
+
+            # write a header for this new directory
+            outfile = open(output_file,"a")
+            outfile.write("\n//------------------------------------\n/* "+os.fsdecode(file)+" */\n//------------------------------------\n\n")
+            outfile.close()
+
+            # run fn recursively for the new file
+            directoryPath = directory+"/"+os.fsdecode(file)
+            compileBitmaps(directoryPath)
+        else:
+            compileBitmap(directory+'/'+file,file)
+    
+
+#Write a header, and erase previous contents
+outfile = open(output_file,"w")
+outfile.write("/* BITMAPS\ncompiled with:\npython3 compile_bitmaps.py\n*/\n\n")
+outfile.close()
+
+compileBitmaps(bmp_directory)
