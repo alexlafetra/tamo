@@ -115,7 +115,7 @@ class Tamo{
     void vibeCheck();
     //runs the current emotion
     void feel();
-    void cycleThruMoods();
+    void debugCheckMoodSprites();
 
     void setMoodSprite(Mood);
 
@@ -181,28 +181,11 @@ const unsigned char* const * Tamo::getSprite(SPRITE_ID whichSprite){
 }
 
 bool Tamo::isFeeling(){
-  return (moodTime>0 || !(sprite.isFrameReady() && sprite.hasPlayedAtLeastOnce()));
+  return (moodTime>0 || !(sprite.isNextFrameReady() && sprite.hasPlayedAtLeastOnce()));
 }
 void Tamo::body(){
   if(health>80)
     health-=1000;
-  // //one write every 10 updates, then change the address every 200
-  // //change address if it's been more than 200 updates
-  // if(updatesSinceLastWrite >= 200){
-  //   healthAddress++;
-  //   //wrap around protection (0th byte is identity, and the 1st and 2nd are the health address. So the minimum is 3)
-  //   if(healthAddress == 510){
-  //     healthAddress = 3;
-  //   }
-  //   updatesSinceLastWrite = 0;
-  //   EEPROM.put(0,healthAddress);
-  //   EEPROM.put(healthAddress,health);
-  // }
-  // //normal update
-  // else if(!(updatesSinceLastWrite%10) && updatesSinceLastWrite){
-  //   EEPROM.put(healthAddress,health);
-  // }
-  // updatesSinceLastWrite++;
 }
 
 void Tamo::feel(){
@@ -252,22 +235,23 @@ void Tamo::feel(){
   basicEmotion();
 }
 
-void Tamo::cycleThruMoods(){
-  uint8_t current = 0;
-  const Mood moods[] = {NEUTRAL,SAD,SOBBING,ANGRY,HAPPY};
-  while(true){
-    // for(uint16_t i = 0; i<16535; i++){
-    //   setMoodSprite(moods[i%5]);
-    //   readButtons();
-    // }
-    hardwareSleepCheck();
-    mood = moods[current];
-    // setMoodSprite(mood);
-    feel();
-    current=(current+1)%5;
-    // idle();
-    // mood = NEUTRAL;
-    // feel();
+// cycle thru each identity and each emotion
+void Tamo::debugCheckMoodSprites(){
+  const SPRITE_ID sprites[] = {IDLE_SPRITE,EATING_SPRITE,SAD_SPRITE,CRYING_SPRITE,MAD_SPRITE,HAPPY_SPRITE};
+  const uint8_t identities[] = {TAMO,PORCINI,BUG,VISHAY};
+
+  for(uint8_t currentIdentity = 0; currentIdentity<4; currentIdentity++){
+    identity = identities[currentIdentity];
+    for(uint8_t currentSprite = 0; currentSprite<5; currentSprite++){
+      sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(sprites[currentSprite]),2,VFAST);
+      while(true){
+        readButtons();
+        if(SINGLE_CLICK && itsbeen(200)){
+          break;
+        }
+        sprite.update();
+      }
+    }
   }
 }
 
@@ -368,10 +352,10 @@ void Tamo::eat(){
 void Tamo::birth(){
   //check to see if the identity has already been set
   EEPROM.get(IDENTITY_ADDRESS,identity);
-  //if it's not -1, identity was already set! so don't get reborn;
-  // if(identity != 255){
-  //   return;
-  // }
+  //if it's not 255, identity was already set! so don't get reborn;
+  if(identity != 255){
+    return;
+  }
 
   uint8_t hit = 0;
   sprite = Animation(SPRITESTARTX+32,SPRITESTARTY,16,16,egg_sprite,4,SLOW);
@@ -379,7 +363,7 @@ void Tamo::birth(){
   lastTime = millis();
   while(true){
     readButtons();
-    if(BUTTON && itsbeen(100)){
+    if(SINGLE_CLICK && itsbeen(100)){
       lastTime = millis();
       hit = 5;
       if(sprite.currentFrame == 2){
@@ -417,7 +401,7 @@ void Tamo::dead(){
   while(true){
     readButtons();
     hardwareSleepCheck();
-    if(BUTTON && itsbeen(200)){
+    if(SINGLE_CLICK && itsbeen(200)){
       lastTime = millis();
       break;
     }
@@ -512,7 +496,7 @@ void Tamo::poop(){
   lastTime = millis();
   while(true){
     readButtons();
-    if(BUTTON && itsbeen(400)){
+    if(SINGLE_CLICK && itsbeen(400)){
       lastTime = millis();
       break;
     }

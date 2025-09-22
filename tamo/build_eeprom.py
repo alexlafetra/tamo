@@ -1,4 +1,3 @@
-Import("env")
 import os
 
 def generate_eep_file(source, target, env):
@@ -9,5 +8,5 @@ def generate_eep_file(source, target, env):
     print(f"[INFO] Generating EEPROM: {cmd}")
     env.Execute(cmd)
 
-env.AddPreAction("upload", generate_eep_file)
+# env.AddPreAction("upload", generate_eep_file)
 # env.AddPostAction("upload", upload_eeprom)

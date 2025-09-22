@@ -23,14 +23,14 @@ class Animation{
     uint32_t msPerFrame = 0;
 
     //checks to see if it's been enough time to jump to the next frame
-    bool isFrameReady();
+    bool isNextFrameReady();
 
     //draws current frame to the screen
     void showCurrentFrame();
 
     void nextFrame();
 
-    //combines isFrameReady() and showCurrentFrame() and nextFrame()
+    //combines isNextFrameReady() and showCurrentFrame() and nextFrame()
     void update();
 
     bool hasPlayedAtLeastOnce();
@@ -136,11 +136,12 @@ class Animation{
       return *this;
     }
 };
+
 bool Animation::hasPlayedAtLeastOnce(){
   return loopCount;
 }
 //returns TRUE if it's been enough time for the next frame to be shown
-bool Animation::isFrameReady(){
+bool Animation::isNextFrameReady(){
   if(millis()-timeLastFramePlayed>=msPerFrame){
     return true;
   }
@@ -150,11 +151,9 @@ bool Animation::isFrameReady(){
 }
 void Animation::showCurrentFrame(){
   #ifdef FULLSIZE
-  // oled.bitmap2x(xCoord,yCoord/8,xCoord+width,yCoord/8+height/8,frames[currentFrame]);
-  oled.bitmap2x(xCoord,yCoord,xCoord+width,yCoord+height/16,frames[currentFrame]);
+    oled.bitmap2x(xCoord,yCoord,xCoord+width,yCoord+height/16,frames[currentFrame]);
   #else
-  // oled.bitmap(xCoord,yCoord/8,xCoord+width,yCoord/8+height/8,frames[currentFrame]);
-  oled.bitmap(xCoord,yCoord,xCoord+width,yCoord+height/16,frames[currentFrame]);
+    oled.bitmap(xCoord,yCoord,xCoord+width,yCoord+height/16,frames[currentFrame]);
   #endif
 }
 
@@ -166,7 +165,7 @@ void Animation::nextFrame(){
   }
 }
 void Animation::update(){
-  if(isFrameReady()){
+  if(isNextFrameReady()){
     nextFrame();
     timeLastFramePlayed = millis();
   }
@@ -178,6 +177,7 @@ full speech bubble is 12x11
 small icons are 7x7
 so they need to be offset by (5,4)
 */
+
 class TalkingAnimation:public Animation{
   public:
   TalkingAnimation(){}
@@ -209,7 +209,7 @@ class TalkingAnimation:public Animation{
       Animation::showCurrentFrame();
   }
   void update(){
-    if(Animation::isFrameReady()){
+    if(Animation::isNextFrameReady()){
       Animation::nextFrame();
       timeLastFramePlayed = millis();
     }

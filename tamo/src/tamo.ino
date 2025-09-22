@@ -35,25 +35,9 @@ template<typename T> T * pgm_read_pointer(T * const * pointer)
 	return reinterpret_cast<T *>(pgm_read_ptr(pointer));
 }
 
-#define W 64
-#define H 32
-
-#define BUTTON_PIN 1
-#define LED_PIN 3 //primary LED (blue)
-#define AUX_LED_PIN 4 //secondary LED
-
-#define LONG_PRESS_TIME 500;
-#define DOUBLE_CLICK_TIME 100;
-
 using namespace std;
 
-bool BUTTON = false;
-bool LONG_PRESS = false;
-bool DOUBLE_CLICK = false;
-bool SINGLE_CLICK = false;
-
 uint32_t lastTime = 0;
-uint32_t timeOfLastButtonPress = 0;
 
 bool itsbeen(uint32_t time){
   return((millis()-lastTime)>time);  
@@ -63,158 +47,21 @@ void readButtons();
 void hardwareSleep();
 void clearEdges();
 void clearEdges(uint8_t distanceL, uint8_t distanceR);
+uint16_t readVcc();
+void hardwareSleepCheck();
+
+// int rndSeed = 0;
+// uint8_t pseudoRandom(uint8_t min, uint8_t max){
+//   return (millis()+rndSeed++)%(max-min)+min;
+// }
 
 
-int rndSeed = 0;
-uint8_t pseudoRandom(uint8_t min, uint8_t max){
-  return (millis()+rndSeed++)%(max-min)+min;
-}
-
-#include "sprites.h"
+#include "hardware.cpp"
+#include "spritesheet.h"
 #include "Animation.h"
 #include "Tamo.cpp"
 Tamo tamo;
 
-
-void initOled(){
-  //start i2c communication w little oled
-  oled.begin(72, 40, sizeof(tiny4koled_init_72x40br), tiny4koled_init_72x40br);
-  // ssd1306_send_command2(0xD6, 0x01);
-  oled.enableZoomIn();//Need this so the sprites aren't all weird
-  oled.setRotation(2);//flip display upside-down
-  oled.on();
-  oled.clear();
-}
-
-//lights up screen and LED until batt dies
-void batteryStressTest(){
-  oled.fill(0xFF);
-  digitalWrite(LED_PIN,HIGH);
-}
-
-/*
-Calibration notes:
-@5V it's ~212
-@3.9V it's ~260
-@3.73 it's ~295
-@3.3V it's ~358
-@1.57 it's ~703
-
-voltage = -150.70169*(measurement)+893.05592
-
-attiny85 can operate from 1.8v - 5.5v
-
-*/
-
-//This is from chatGPT
-uint16_t readVcc() {
-
-  //Enable ADC
-  ADCSRA |= 1<<ADEN;
-  // Read 1.1V reference against AVcc
-  ADMUX = _BV(MUX3) | _BV(MUX2); // Select internal 1.1V (on ATTiny85)
-  // delay(2); // Wait for Vref to settle
-  ADCSRA |= _BV(ADSC); // Start conversion
-  while (bit_is_set(ADCSRA, ADSC)); // Wait until done
-  uint16_t result = ADC;
-
-  //disable ADC
-  ADCSRA &= ~_BV(ADEN);
-  return result;
-}
-
-/*
-  Clears area to the right and left of main sprite
-  so you don't need to do a full screen clear when switching
-  between different sprites
-*/
-
-void clearEdges(uint8_t distanceL, uint8_t distanceR){
-  //left side
-  oled.setCursor(0,0);
-  oled.fillLength(0,distanceL);
-  oled.setCursor(0,1);
-  oled.fillLength(0,distanceL);
-
-  //right side
-  oled.setCursor(64-distanceR,0);
-  oled.fillLength(0,64-distanceR);
-  oled.setCursor(64-distanceR,1);
-  oled.fillLength(0,64-distanceR);
-}
-
-void clearEdges(){
-  clearEdges(20,20);
-}
-
-void updateBreathLED(){
-  uint16_t value = (millis()/40)%128;
-  if(value > 64){
-    value = 128 - value;
-  }
-  if( value < 16){
-    digitalWrite(LED_PIN,LOW);
-  }
-  else{
-    value = (value)*2;
-    analogWrite(LED_PIN,value);
-  }
-}
-
-void talkingLED(){
-  digitalWrite(LED_PIN,((millis()/200)%2)?HIGH:LOW);
-}
-
-//reading inputs
-void readButtons(){
-  bool val = !digitalRead(BUTTON_PIN);
-  //if the button is pressed
-  if(val){
-    //if the button wasn't previously pressed, then it's a fresh press
-    if(!BUTTON){
-      if(millis()-timeOfLastButtonPress < 100){
-        // DOUBLE_CLICK = true;
-        LONG_PRESS = false;
-        SINGLE_CLICK = false;
-      }
-      else{
-        DOUBLE_CLICK = false;
-        SINGLE_CLICK = false;
-      }
-      timeOfLastButtonPress = millis();
-    }
-    //turn on the LED
-    // digitalWrite(AUX_LED_PIN,HIGH);
-    //set the button flag
-    BUTTON = true;
-    //check to see if it's been held
-    if((millis() - timeOfLastButtonPress) > (500) ){
-      LONG_PRESS = true;
-    }
-  }
-  //if the button is released
-  else{
-    //turn off the LED
-    // digitalWrite(AUX_LED_PIN,LOW);
-    //if the button *was* held, then you just released it
-    if(BUTTON){
-      //if it was held for a while, it's a long press
-      if((millis() - timeOfLastButtonPress) > (500) ){
-        LONG_PRESS = true;
-      }
-      //if it wasn't, then it's a single click
-      else{
-        SINGLE_CLICK = true;
-      }
-    }
-    //if the button wasn't pressed down before, then don't do anything
-    else{
-      SINGLE_CLICK = false;
-      LONG_PRESS = false;
-    }
-    BUTTON = false;
-  }
-}
 
 void hardwareSleepCheck(){
   if(itsbeen(TIME_BEFORE_SLEEP)){
@@ -259,12 +106,45 @@ ISR(PCINT0_vect){
   tamo.setStatusBit(IS_ASLEEP,false);
 }
 
-
 // Watchdog timer interrupt to run tamo's health fn
 ISR(WDT_vect) {
   tamo.body();
 }
 
+
+void initOled(){
+  //start i2c communication w little oled
+  oled.begin(72, 40, sizeof(tiny4koled_init_72x40br), tiny4koled_init_72x40br);
+  // ssd1306_send_command2(0xD6, 0x01);
+  oled.enableZoomIn();//Need this so the sprites aren't all weird
+  oled.setRotation(2);//flip display upside-down
+  oled.on();
+  oled.clear();
+}
+
+/*
+  Clears area to the right and left of main sprite
+  so you don't need to do a full screen clear when switching
+  between different sprites
+*/
+
+void clearEdges(uint8_t distanceL, uint8_t distanceR){
+  //left side
+  oled.setCursor(0,0);
+  oled.fillLength(0,distanceL);
+  oled.setCursor(0,1);
+  oled.fillLength(0,distanceL);
+
+  //right side
+  oled.setCursor(64-distanceR,0);
+  oled.fillLength(0,64-distanceR);
+  oled.setCursor(64-distanceR,1);
+  oled.fillLength(0,64-distanceR);
+}
+
+void clearEdges(){
+  clearEdges(20,20);
+}
 void setup() {
 
   //disabling ADC (it's enabled when VCC is being measured)
@@ -305,6 +185,6 @@ void setup() {
 }
 
 void loop() {
+  // tamo.debugCheckMoodSprites();
   tamo.live();
-  // tamo.cycleThruMoods();
 }

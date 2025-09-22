@@ -100,6 +100,8 @@ def compileBitmap(file,filename):
         outfile.write(outputString)
         outfile.close()
 
+        print('compiled '+str(filename))
+
 def compileBitmaps(directory):
     # iterate over each file in that folder and check if it's a bitmap
     for file in os.listdir(directory):
@@ -116,6 +118,8 @@ def compileBitmaps(directory):
         else:
             compileBitmap(directory+'/'+file,file)
     
+
+print("Compiling bitmaps in the \'bitmaps\' directory to byte arrays...")
 
 #Write a header, and erase previous contents
 outfile = open(output_file,"w")
