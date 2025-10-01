@@ -50,15 +50,6 @@ void clearEdges(uint8_t distanceL, uint8_t distanceR);
 uint16_t readVcc();
 void hardwareSleepCheck();
 
-// int rndSeed = 0;
-// uint8_t pseudoRandom(uint8_t min, uint8_t max){
-//   return (millis()+rndSeed++)%(max-min)+min;
-// }
-
-
-#include "hardware.cpp"
-#include "spritesheet.h"
-#include "Animation.h"
 #include "Tamo.cpp"
 Tamo tamo;
 
@@ -70,9 +61,9 @@ void hardwareSleepCheck(){
 }
 
 void hardwareSleep(){
-  tamo.setStatusBit(IS_ASLEEP,true);
+  tamo.setStatusBit(IS_ASLEEP_BIT,true);
   //turn off OLED, LED
-  // oled.clear();
+
   oled.off();
   digitalWrite(LED_PIN,LOW);
   digitalWrite(AUX_LED_PIN,LOW);
@@ -97,13 +88,12 @@ void hardwareSleep(){
   sleep_disable();                       // first thing after waking from sleep: disable sleep...
   PCMSK &= ~_BV(PCINT1);                  // Turn off PB1 interrupt
   oled.on();//turn screen back on
-  // oled.clear();//clear screen of noise
   lastTime = millis();
 }
 
 //Interrupt callback to wake Attiny back up
 ISR(PCINT0_vect){
-  tamo.setStatusBit(IS_ASLEEP,false);
+  tamo.setStatusBit(IS_ASLEEP_BIT,false);
 }
 
 // Watchdog timer interrupt to run tamo's health fn
@@ -116,7 +106,9 @@ void initOled(){
   //start i2c communication w little oled
   oled.begin(72, 40, sizeof(tiny4koled_init_72x40br), tiny4koled_init_72x40br);
   // ssd1306_send_command2(0xD6, 0x01);
+  #ifdef FULLSIZE
   oled.enableZoomIn();//Need this so the sprites aren't all weird
+  #endif
   oled.setRotation(2);//flip display upside-down
   oled.on();
   oled.clear();
@@ -162,6 +154,14 @@ void setup() {
   DDRB |= ( 1 << PB3 );  //set led2 pin to output
   DDRB |= ( 1 << PB4 );  //set led pin to output
 
+  //You need to manually setup PB4 as an analog output
+  // Set Timer1 to PWM mode (10-bit phase correct)
+  TCCR1 = _BV(PWM1A) | _BV(PWM1B) | _BV(COM1A1) | _BV(COM1B1) | _BV(CS10);
+  
+  // Set duty cycles (0-1023)
+  // OCR1A = 512;  // PB3
+  // OCR1B = 128;  // PB4
+
   /*
       Turning on watchdog timer
   */
@@ -178,13 +178,15 @@ void setup() {
   //turn on/set up the screen
   initOled();
 
+
   //run the birth interaction
-  tamo.birth();
+  // tamo.birth();
   //grab new emotion depending on health & batt state
-  tamo.vibeCheck();
+  // tamo.vibeCheck();
 }
 
 void loop() {
   // tamo.debugCheckMoodSprites();
-  tamo.live();
+  // tamo.live();
+  tamo.batteryCheck();
 }

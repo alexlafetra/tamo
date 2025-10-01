@@ -1,16 +1,19 @@
+#include "Arduino.h"
+#include "hardware.cpp"
+#include "spritesheet.h"
+#include "Animation.h"
+#include "debug/numbers.cpp"
+
 //time (ms) before tamo sleeps
 // #define TIME_BEFORE_SLEEP 60000
 #define TIME_BEFORE_SLEEP 6000
 
-#define MAX_HUNGER 4320 // takes 12hr = 720min = 4320s to run out
-#define MAX_MENTAL 8640 //takes 24hr to fully deplete
-
+// Creature names
 #define TAMO 0
 #define PORCINI 1
 #define BUG 2
 #define VISHAY 3
 
-// #define SPRITESTARTX 16
 #define SPRITESTARTX 20
 #define SPRITESTARTY 0
 
@@ -32,7 +35,8 @@ enum Thought:uint8_t{
   MUSIC,
   MONEY,
   DOG,
-  LOWBATTERY
+  LOWBATTERY,
+  CHARGING
 };
 
 enum Idea:uint8_t{
@@ -80,9 +84,10 @@ const Mood badMoods[3] = {SAD,SOBBING,ANGRY};
 
 #define FOOD_HEALTH_RECOVERY 1800//equivalent to 3hr worth of health
 
-#define NEEDS_TO_POOP 0
-#define LOW_BATTERY 1
-#define IS_ASLEEP 2 
+#define NEEDS_TO_POOP_BIT 0
+#define IS_ASLEEP_BIT 1
+#define LOW_BATTERY_BIT 2
+#define CHARGING_BIT 3
 
 #define HEALTH_ADDRESS_ADDRESS 1
 #define IDENTITY_ADDRESS 0
@@ -130,9 +135,10 @@ class Tamo{
     void lowBattEmotion();
     bool getStatusBit(uint8_t which);
     void setStatusBit(uint8_t which, bool state);
-    bool needsToPoop(){return getStatusBit(NEEDS_TO_POOP);}
-    bool isAsleep(){return getStatusBit(IS_ASLEEP);}
-    bool lowBattery(){return getStatusBit(LOW_BATTERY);}
+    bool needsToPoop(){return getStatusBit(NEEDS_TO_POOP_BIT);}
+    bool isAsleep(){return getStatusBit(IS_ASLEEP_BIT);}
+    bool lowBattery(){return getStatusBit(LOW_BATTERY_BIT);}
+    bool charging(){return getStatusBit(CHARGING_BIT);}
     const unsigned char* const * getSprite(SPRITE_ID);
     void batteryCheck();
 
@@ -140,13 +146,6 @@ class Tamo{
 
 Tamo::Tamo(){
   sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(IDLE_SPRITE),2,MEDIUM);
-  //get identity
-  // EEPROM.get(IDENTITY_ADDRESS,identity);
-  //check and see if tamo is alive
-  // EEPROM.get(HEALTH_ADDRESS_ADDRESS,healthAddress);
-  // EEPROM.get(healthAddress,health);
-  // if(!health)
-  //   mood = DEAD;
 }
 
 bool Tamo::getStatusBit(uint8_t which){
@@ -186,6 +185,8 @@ bool Tamo::isFeeling(){
 void Tamo::body(){
   if(health>80)
     health-=1000;
+  else
+    health = 0;
 }
 
 void Tamo::feel(){
@@ -288,6 +289,7 @@ void Tamo::basicEmotion(){
     }
     //update and show the current sprite
     sprite.update();
+    batteryCheck();
   }
 }
 
@@ -338,7 +340,7 @@ void Tamo::eat(){
     health = 65535;
   }
   //tamo needs to poop!
-  setStatusBit(NEEDS_TO_POOP,true);
+  setStatusBit(NEEDS_TO_POOP_BIT,true);
   //then, tamo eats
   moodTime = 200;
   sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(EATING_SPRITE),2,VFAST);
@@ -452,9 +454,13 @@ void Tamo::talk(Thought t){
     case LOWBATTERY:
       animationBuffer = talking_low_battery;
       break;
+    case CHARGING:
+      animationBuffer = talking_charging;
+      break;
     default:
       return;
   }
+
   TalkingAnimation talkingSprite(SPRITESTARTX+20,SPRITESTARTY,12,16,animationBuffer,frameCount,MEDIUM);
   setMoodSprite(mood); //get the actual mood sprite
   sprite.xCoord = SPRITESTARTX-12;//move sprite to the left
@@ -503,7 +509,7 @@ void Tamo::poop(){
     hardwareSleepCheck();
     sprite.update();
   }
-  setStatusBit(NEEDS_TO_POOP,false);
+  setStatusBit(NEEDS_TO_POOP_BIT,false);
   mood = RANDOM;
 }
 
@@ -532,9 +538,17 @@ attiny85 can operate from 1.8v - 5.5v
 
 */
 
+//VCC reading gets LOWER with higher voltage bc you're comparing it to the internal 1.1v
+//249-240 when plugged into usb-c
+//240 - 242 when plugged into 5v
+//shuts off at ~454 (guessing it's around 2.7v)
 void Tamo::batteryCheck(){
   uint16_t vcc = readVcc();
-  setStatusBit(LOW_BATTERY,vcc > 640);
+  setStatusBit(LOW_BATTERY_BIT,vcc > 400);
+  setStatusBit(CHARGING_BIT,vcc < 260);//assume tamo is plugged in, if vcc is this high
+  printNumberString(String(vcc));
+  digitalWrite(AUX_LED_PIN,HIGH);
+  digitalWrite(LED_PIN,HIGH);
 }
 
 //health starts at 65535 and goes down every 9s by 1 (drops to 0 in 6.8 days)
@@ -544,6 +558,11 @@ void Tamo::batteryCheck(){
 void Tamo::vibeCheck(){
   //check batt voltage
   batteryCheck();
+
+  if(health == 0){
+    mood = DEAD;
+    return;
+  }
 
   uint8_t currentState = OKAY_STATE;
   if(health > GOOD_HEALTH_THRESHOLD){
@@ -578,6 +597,10 @@ void Tamo::vibeCheck(){
       thought = sadThoughts[millis()%5];
       mood = badMoods[millis()%3]; // sad, crying, angry, talking
       break;
+  }
+
+  if(charging()){
+    thought = CHARGING;
   }
   
   //if you need to poop, there's a 1/10 chance you'll poop

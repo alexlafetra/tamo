@@ -7,6 +7,3 @@ def generate_eep_file(source, target, env):
     cmd = f'avr-objcopy -I binary -O ihex {bin_file} {eep_file}'
     print(f"[INFO] Generating EEPROM: {cmd}")
     env.Execute(cmd)
-
-# env.AddPreAction("upload", generate_eep_file)
-# env.AddPostAction("upload", upload_eeprom)

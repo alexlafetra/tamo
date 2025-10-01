@@ -1,3 +1,5 @@
+#include "wireframe/WireFrame.h"
+
 #ifndef _swap_int16_t
 #define _swap_int16_t(a, b)                                                    \
   {                                                                            \

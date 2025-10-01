@@ -46,17 +46,17 @@ uint16_t readVcc() {
 }
 
 
-void updateBreathLED(){
+void updateBreathLED(uint8_t LED){
   uint16_t value = (millis()/40)%128;
   if(value > 64){
     value = 128 - value;
   }
   if( value < 16){
-    digitalWrite(LED_PIN,LOW);
+    digitalWrite(LED,LOW);
   }
   else{
     value = (value)*2;
-    analogWrite(LED_PIN,value);
+    analogWrite(LED,value);
   }
 }
 
@@ -83,7 +83,7 @@ void readButtons(){
       timeOfLastButtonPress = millis();
     }
     //turn on the LED
-    // digitalWrite(AUX_LED_PIN,HIGH);
+    digitalWrite(AUX_LED_PIN,HIGH);
     //set the button flag
     BUTTON = true;
     //check to see if it's been held
@@ -94,7 +94,7 @@ void readButtons(){
   //if the button is released
   else{
     //turn off the LED
-    // digitalWrite(AUX_LED_PIN,LOW);
+    digitalWrite(AUX_LED_PIN,LOW);
     //if the button *was* held, then you just released it
     if(BUTTON){
       //if it was held for a while, it's a long press

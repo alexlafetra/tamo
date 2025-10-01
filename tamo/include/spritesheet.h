@@ -188,6 +188,10 @@ const unsigned char* const talking_low_battery[2] PROGMEM = {
 	thought_bubble_sprite,
 	thinking_low_battery_sprite
 };
+const unsigned char* const talking_charging[2] PROGMEM = {
+	thought_bubble_sprite,
+	thinking_charging_sprite
+};
 const unsigned char* const talking_love[2] PROGMEM = {
 	thought_bubble_sprite,
 	thinking_love_sprite
