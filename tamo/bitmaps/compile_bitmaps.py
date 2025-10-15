@@ -1,6 +1,4 @@
 import os
-import sys
-import struct
 import math
 
 # largely taken from:
@@ -100,7 +98,7 @@ def compileBitmap(file,filename):
         outfile.write(outputString)
         outfile.close()
 
-        print('compiled '+str(filename))
+        # print('compiled '+str(filename))
 
 def compileBitmaps(directory):
     # iterate over each file in that folder and check if it's a bitmap
@@ -114,12 +112,14 @@ def compileBitmaps(directory):
 
             # run fn recursively for the new file
             directoryPath = directory+"/"+os.fsdecode(file)
+            print(f"Compiling {directoryPath}")
+
             compileBitmaps(directoryPath)
         else:
             compileBitmap(directory+'/'+file,file)
     
 
-print("Compiling bitmaps in the \'bitmaps\' directory to byte arrays...")
+print("Compiling bitmap images inside \'/bitmaps\' to byte arrays...")
 
 #Write a header, and erase previous contents
 outfile = open(output_file,"w")
@@ -127,3 +127,5 @@ outfile.write("/* BITMAPS\ncompiled with:\npython3 compile_bitmaps.py\n*/\n\n")
 outfile.close()
 
 compileBitmaps(bmp_directory)
+
+print(f"Done!\nBitmaps written to include/bitmaps.h")

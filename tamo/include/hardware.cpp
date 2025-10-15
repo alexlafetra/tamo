@@ -113,5 +113,6 @@ void readButtons(){
     }
     BUTTON = false;
   }
+  digitalWrite(LED_PIN,LONG_PRESS);
 }
 

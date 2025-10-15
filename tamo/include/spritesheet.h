@@ -33,10 +33,6 @@ const unsigned char* const vishay_sad_sprite[2] PROGMEM = {
 	vishay_sprite_sad_1,
 	vishay_sprite_sad_2
 };
-const unsigned char* const vishay_crying_sprite[2] PROGMEM = {
-	vishay_sprite_crying_1,
-	vishay_sprite_crying_2
-};
 const unsigned char* const vishay_mad_sprite[2] PROGMEM = {
 	vishay_sprite_mad_1,
 	vishay_sprite_mad_2
@@ -50,7 +46,6 @@ const unsigned char* const * vishay_spritesheet[6] = {
 	vishay_idle_sprite,
 	vishay_eating_sprite,
 	vishay_sad_sprite,
-	vishay_crying_sprite,
 	vishay_mad_sprite,
 	vishay_happy_sprite
 };
@@ -72,10 +67,6 @@ const unsigned char* const tamo_sad_sprite[2] PROGMEM = {
 	tamo_sprite_sad_1,
 	tamo_sprite_sad_2
 };
-const unsigned char* const tamo_crying_sprite[2] PROGMEM = {
-	tamo_sprite_crying_1,
-	tamo_sprite_crying_2
-};
 const unsigned char* const tamo_mad_sprite[2] PROGMEM = {
 	tamo_sprite_mad_1,
 	tamo_sprite_mad_2
@@ -89,7 +80,6 @@ const unsigned char* const * tamo_spritesheet[6] = {
 	tamo_idle_sprite,
 	tamo_eating_sprite,
 	tamo_sad_sprite,
-	tamo_crying_sprite,
 	tamo_mad_sprite,
 	tamo_happy_sprite
 };
@@ -111,10 +101,6 @@ const unsigned char* const bug_sad_sprite[2] PROGMEM = {
 	bug_sprite_sad_1,
 	bug_sprite_sad_2
 };
-const unsigned char* const bug_crying_sprite[2] PROGMEM = {
-	bug_sprite_crying_1,
-	bug_sprite_crying_2
-};
 const unsigned char* const bug_mad_sprite[2] PROGMEM = {
 	bug_sprite_mad_1,
 	bug_sprite_mad_2
@@ -128,7 +114,6 @@ const unsigned char* const * bug_spritesheet[6] = {
 	bug_idle_sprite,
 	bug_eating_sprite,
 	bug_sad_sprite,
-	bug_crying_sprite,
 	bug_mad_sprite,
 	bug_happy_sprite
 };
@@ -149,10 +134,6 @@ const unsigned char* const porcini_sad_sprite[2] PROGMEM = {
 	porcini_sprite_sad_1,
 	porcini_sprite_sad_2
 };
-const unsigned char* const porcini_crying_sprite[2] PROGMEM = {
-	porcini_sprite_crying_1,
-	porcini_sprite_crying_2
-};
 const unsigned char* const porcini_mad_sprite[2] PROGMEM = {
 	porcini_sprite_mad_1,
 	porcini_sprite_mad_2
@@ -166,7 +147,6 @@ const unsigned char* const * porcini_spritesheet[6] = {
 	porcini_idle_sprite,
 	porcini_eating_sprite,
 	porcini_sad_sprite,
-	porcini_crying_sprite,
 	porcini_mad_sprite,
 	porcini_happy_sprite
 };
@@ -196,36 +176,49 @@ const unsigned char* const talking_love[2] PROGMEM = {
 	thought_bubble_sprite,
 	thinking_love_sprite
 };
-  const unsigned char* const talking_death[2] PROGMEM = {
+const unsigned char* const talking_death[2] PROGMEM = {
 	thought_bubble_sprite,
 	thinking_skull_sprite
-  };
-  const unsigned char* const talking_hunger[2] PROGMEM = {
+};
+const unsigned char* const talking_hunger[2] PROGMEM = {
 	thought_bubble_sprite,
 	thinking_pacman_sprite
-  };
-  const unsigned char* const talking_revenge[2] PROGMEM = {
+};
+const unsigned char* const talking_revenge[2] PROGMEM = {
 	thought_bubble_sprite,
 	thinking_gun_sprite
-  };
-  const unsigned char* const talking_me[3] PROGMEM = {
-	  thought_bubble_sprite,
-	  thinking_talking_sprite_1,
-	  thinking_talking_sprite_2
-  };
-  const unsigned char* const talking_music[2] PROGMEM = {
-	  thought_bubble_sprite,
-	  thinking_music_sprite
-  };
-  const unsigned char* const talking_cash[2] PROGMEM = {
-	  thought_bubble_sprite,
-	  thinking_cash_sprite
-  };
-  const unsigned char* const talking_dog[2] PROGMEM = {
-	  thought_bubble_sprite,
-	  thinking_dog_sprite
-  };
-
+};
+const unsigned char* const talking_me[3] PROGMEM = {
+	thought_bubble_sprite,
+	thinking_talking_sprite_1,
+	thinking_talking_sprite_2
+};
+const unsigned char* const talking_music[2] PROGMEM = {
+	thought_bubble_sprite,
+	thinking_music_sprite
+};
+const unsigned char* const talking_cash[2] PROGMEM = {
+	thought_bubble_sprite,
+	thinking_cash_sprite
+};
+const unsigned char* const talking_dog[2] PROGMEM = {
+	thought_bubble_sprite,
+	thinking_dog_sprite
+};
+const unsigned char* const talking_sad[3] PROGMEM = {
+	thought_bubble_sprite,
+	thinking_sad_sprite_1,
+	thinking_sad_sprite_2
+};
+const unsigned char* const talking_neutral[2] PROGMEM = {
+	thought_bubble_sprite,
+	thinking_neutral_sprite,
+};
+const unsigned char* const talking_happy[3] PROGMEM = {
+	thought_bubble_sprite,
+	thinking_happy_sprite_1,
+	thinking_happy_sprite_2
+};
 /*
 ----------------------------------
 

@@ -1,19 +1,6 @@
-/*
-
-Tools > Board > attiny > 85
-Port > (Arduino USB port)
-Clock > Internal 8Mhz (i think this is accidentally swapped w 1mhz in arduino ide since it's slower)
-Processor > Attiny85
-Programmer > Arduino as ISP
-
-
-notes: measuring 0.2mA during sleep
-
-*/
 
 //https://github.com/Lorandil/ATTiny85-optimization-guide?tab=readme-ov-file
 
-//If you need to debug the baby screen, use the 64x32 test sketch!
 #define TINY4KOLED_NO_PRINT
 #define FULLSIZE//enable zoom in, 2x bitmaps
 
@@ -25,8 +12,6 @@ notes: measuring 0.2mA during sleep
 #include <avr/interrupt.h>
 // #include <avr/wdt.h>//to keep track of time
 #include <EEPROM.h>
-
-#define RESET_EEPROM true
 
 //Got this from:https://community.arduboy.com/t/progmem-functions-pgm-read-float-and-pgm-read-ptr/5771
 //which avoids a c++ sensitivity to implicit typecasting
@@ -62,8 +47,8 @@ void hardwareSleepCheck(){
 
 void hardwareSleep(){
   tamo.setStatusBit(IS_ASLEEP_BIT,true);
-  //turn off OLED, LED
 
+  //turn off OLED, LEDs
   oled.off();
   digitalWrite(LED_PIN,LOW);
   digitalWrite(AUX_LED_PIN,LOW);
@@ -171,22 +156,21 @@ void setup() {
   // Enable global interrupts
   sei();
 
-  #if RESET_EEPROM
-  EEPROM.put(255,IDENTITY_ADDRESS);
-  #endif
+  // #if RESET_EEPROM
+  // EEPROM.put(IDENTITY_ADDRESS,NO_IDENTITY);
+  // #endif
   
   //turn on/set up the screen
   initOled();
 
 
   //run the birth interaction
-  // tamo.birth();
+  tamo.birth();
   //grab new emotion depending on health & batt state
-  // tamo.vibeCheck();
+  tamo.vibeCheck();
 }
 
 void loop() {
   // tamo.debugCheckMoodSprites();
-  // tamo.live();
-  tamo.batteryCheck();
+  tamo.live();
 }
