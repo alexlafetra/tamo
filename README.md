@@ -14,13 +14,13 @@ By default, the PlatformIO project is configured to use an [Arduino board as the
 
 ![Image of the ISP Port on the Tamo PCB](assets/ISP_Pinout.PNG)
 
-*~layout of the ISP pins on the main board~*
+*layout of the ISP pins on the main board*
 
 The programming pins of the ATTiny85 are broken out to a 2.54mm header on the side of the board. You can solder headers into this port, or just leave these unsoldered and gently press and hold the programming pins into the holes of the header while programming.
 
 ![Image of an example ISP Programmer](assets/Arduino_ISP_Example.jpeg)
 
-*~The Arduino ISP Programmer I use, with the ISP pins broken out to a 2.54mm 6-pin header~*
+*The Arduino ISP Programmer I use, with the ISP pins broken out to a 2.54mm 6-pin header*
 
 ![Image of an example ISP Programmer connected to the Tamo PCB](assets/ISP_programming_example.jpeg)
 
@@ -57,7 +57,7 @@ If you're assembling Tamo from scratch, you'll need:
 
 |Component|Quantity|Footprint|Link|
 |---------|:------:|---------|----|
-| **~Main Board PCBA~** |  |          |
+| **Main Board PCBA** |  |          |
 |BSS83P MOSFET|1|SOT-23|||
 |MCP73831T-2ACI/OT Charge Controller|1|SOT-23-5|||
 |USB-C Connector|1|6P SMD |||
@@ -70,7 +70,7 @@ If you're assembling Tamo from scratch, you'll need:
 |4.7K Ohm Resistor|1|SMD 0402||
 |470 Ohm Resistor|2|SMD 0402||
 |10uF Capacitor|2|SMD 0402||
-| **~Hand Assembled Components~** |  |          ||
+| **Hand Assembled Components** |  |          ||
 |Push Switch|1|6mm SMD||
 |Push Switch Button Cap|1|
 |LED|2 (different colors!)|3mm THT|||
