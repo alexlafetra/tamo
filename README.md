@@ -12,13 +12,13 @@ The source code for Tamo is built using the [PlatformIO extension for VSCode](ht
 
 By default, the PlatformIO project is configured to use an [Arduino board as the ISP programmer](https://docs.arduino.cc/built-in-examples/arduino-isp/ArduinoISP/) (more info [here](https://www.instructables.com/Turn-Your-Arduino-Into-an-ISP/) too), but any ISP programmer can work as long as the programming pins can be attached to 2.54mm pinheaders (or, soldered directly onto the Tamo PCB).
 
-![Image of the ISP Port on the Tamo PCB](assets/ISP_Pinout.PNG)
+![Image of the ISP Port on the Tamo PCB](assets/ISP_Pinout.png)
 
 *layout of the ISP pins on the main board*
 
 The programming pins of the ATTiny85 are broken out to a 2.54mm header on the side of the board. You can solder headers into this port, or just leave these unsoldered and gently press and hold the programming pins into the holes of the header while programming.
 
-![Image of an example ISP Programmer](assets/Arduino_ISP_Example.jpeg)
+![Image of an example ISP Programmer](assets/Arduino_ISP_example.jpeg)
 
 *The Arduino ISP Programmer I use, with the ISP pins broken out to a 2.54mm 6-pin header*
 
