@@ -70,6 +70,7 @@ class SSD1306Device {
 		void renderFBO2x(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1,  uint8_t bitmap[]);
 		void bitmap2x(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t bitmap[]);
 		void bitmap_from_spritesheet2x(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint16_t offset);
+		void bitmap_from_spritesheet(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint16_t offset);
 		void overlay_bitmap_from_spritesheet2x(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint16_t bitmapA_offset, uint8_t offsetX, uint8_t offsetY, uint8_t widthB, uint8_t heightB, uint16_t bitmapB_offset);
 		void overlayBitmap2x(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t bitmapA[], uint8_t offsetX, uint8_t offsetY, uint8_t widthB, uint8_t heightB, const uint8_t bitmapB[]);
 		void startData(void);
@@ -627,6 +628,20 @@ void SSD1306Device::bitmap_from_spritesheet2x(uint8_t x0, uint8_t y0, uint8_t x1
 		ssd1306_send_data_start();
 		for (uint8_t i = 0; i < (x1-x0); i++) {
 			ssd1306_send_data_byte(pgm_read_byte(&spritesheet[j+offset]));
+			ssd1306_send_data_byte(pgm_read_byte(&spritesheet[j+offset]));
+			j++;
+		}
+		ssd1306_send_stop();
+	}
+	setCursor(0, 0);
+}
+
+void SSD1306Device::bitmap_from_spritesheet(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint16_t offset) {
+	uint16_t j = 0;
+ 	for (uint8_t y = y0; y <= y1; y++) {
+		setCursor(x0,y);
+		ssd1306_send_data_start();
+		for (uint8_t i = 0; i < (x1-x0); i++) {
 			ssd1306_send_data_byte(pgm_read_byte(&spritesheet[j+offset]));
 			j++;
 		}

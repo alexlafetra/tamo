@@ -2,18 +2,12 @@
 //https://github.com/Lorandil/ATTiny85-optimization-guide?tab=readme-ov-file
 
 #include <TinyWireM.h>
-#include "spritesheet.h"
-#include "display.cpp"
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
 #include <EEPROM.h>
 
-//Got this from:https://community.arduboy.com/t/progmem-functions-pgm-read-float-and-pgm-read-ptr/5771
-//which avoids a c++ sensitivity to implicit typecasting
-template<typename T> T * pgm_read_pointer(T * const * pointer)
-{
-	return reinterpret_cast<T *>(pgm_read_ptr(pointer));
-}
+#include "sprites.h"
+#include "display.cpp"
 
 using namespace std;
 
@@ -39,6 +33,7 @@ void readButtons();
 uint16_t readVcc();
 #include "hardware.cpp"
 #include "Tamo.cpp"
+
 Tamo tamo;
 
 void hardwareSleep(){
@@ -46,8 +41,8 @@ void hardwareSleep(){
 
   //turn off OLED, LEDs
   oled.off();
-  digitalWrite(LED_PIN,LOW);
-  digitalWrite(AUX_LED_PIN,LOW);
+  PORTB &= ~(1<<BOTTOM_LED_PIN);
+  PORTB &= ~(1<<TOP_LED_PIN);
 
   // //https://bigdanzblog.wordpress.com/2014/08/10/attiny85-wake-from-sleep-on-pin-state-change-code-example/
   GIMSK |= _BV(PCIE);                     // Enable Pin Change Interrupts
@@ -121,6 +116,5 @@ void setup() {
 }
 
 void loop() {
-  // tamo.debugCheckMoodSprites();
   tamo.live();
 }

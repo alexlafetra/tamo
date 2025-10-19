@@ -18,7 +18,8 @@ class Animation{
     uint8_t numberOfFrames = 0;
 
     //stores time the last frame played
-    uint32_t timeLastFramePlayed = 0;
+    uint32_t timeLastFramePlayed = millis();
+
     //stores milliseconds per frame (framerate)
     uint32_t msPerFrame = 0;
 
@@ -40,19 +41,14 @@ class Animation{
 
     Animation(){};
     Animation(int16_t x1, int16_t y1, uint16_t w, uint16_t h, const uint16_t* buffer, uint16_t frameCount, uint32_t frameRate){
-      currentFrame = 0;
       numberOfFrames = frameCount;
       msPerFrame = frameRate;
-      timeLastFramePlayed = millis();
-
       //store pointer to the sprite offsets (this pointer is an array of offsets)
       frames = buffer;
-
       xCoord = x1;
       yCoord = y1/8;
       width = w;
       height = h;
-      loopCount = 0;
     }
 };
 

@@ -1,6 +1,6 @@
 #define BUTTON_PIN 1
-#define LED_PIN 3 //primary LED (blue)
-#define AUX_LED_PIN 4 //secondary LED
+#define TOP_LED_PIN PB3 //primary LED (blue)
+#define BOTTOM_LED_PIN PB4 //secondary LED
 
 #define LONG_PRESS_TIME 500;
 #define DOUBLE_CLICK_TIME 100;
@@ -46,27 +46,27 @@ uint16_t readVcc() {
 }
 
 
-void updateBreathLED(uint8_t LED){
-  uint16_t value = (millis()/40)%128;
-  if(value > 64){
-    value = 128 - value;
-  }
-  if( value < 16){
-    digitalWrite(LED,LOW);
-  }
-  else{
-    value = (value)*2;
-    analogWrite(LED,value);
-  }
-}
+// void updateBreathLED(uint8_t LED){
+//   uint16_t value = (millis()/40)%128;
+//   if(value > 64){
+//     value = 128 - value;
+//   }
+//   if( value < 16){
+//     digitalWrite(LED,LOW);
+//   }
+//   else{
+//     value = (value)*2;
+//     analogWrite(LED,value);
+//   }
+// }
 
-void talkingLED(){
-  digitalWrite(LED_PIN,((millis()/200)%2)?HIGH:LOW);
-}
+// void talkingLED(){
+//   digitalWrite(TOP_LED_PIN,((millis()/200)%2)?HIGH:LOW);
+// }
 
 //reading inputs
 void readButtons(){
-  bool val = !digitalRead(BUTTON_PIN);
+  uint8_t val = !(PINB & (1<<PB1));//check the value from the PB1 register
   //if the button is pressed
   if(val){
     //if the button wasn't previously pressed, then it's a fresh press
@@ -83,7 +83,7 @@ void readButtons(){
       timeOfLastButtonPress = millis();
     }
     //turn on the LED
-    digitalWrite(AUX_LED_PIN,HIGH);
+    PORTB |= (1<<BOTTOM_LED_PIN);
     //set the button flag
     BUTTON = true;
     //check to see if it's been held
@@ -94,7 +94,7 @@ void readButtons(){
   //if the button is released
   else{
     //turn off the LED
-    digitalWrite(AUX_LED_PIN,LOW);
+    PORTB &= ~(1<<BOTTOM_LED_PIN);
     //if the button *was* held, then you just released it
     if(BUTTON){
       //if it was held for a while, it's a long press
@@ -113,7 +113,6 @@ void readButtons(){
     }
     BUTTON = false;
   }
-  digitalWrite(LED_PIN,LONG_PRESS);
 }
 
 
