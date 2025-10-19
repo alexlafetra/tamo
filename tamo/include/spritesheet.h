@@ -1,12 +1,3 @@
-//Need to use drawmode = vertical in image2cpp
-//these are the bitmap graphics shared between all creatures!
-
-// #include "creatures/porcini.h"
-// #include "creatures/tamo.h"
-// #include "creatures/bug.h"
-// #include "creatures/vishay.h"
-
-
 #include "bitmaps.h"
 
 /*
@@ -18,36 +9,36 @@
 */
 
 /*
-		Vishay
+		Boto
 */
 
-const unsigned char* const vishay_idle_sprite[2] PROGMEM = {
-	vishay_sprite_idle_1,
-	vishay_sprite_idle_2
+const unsigned char* const boto_idle_sprite[2] PROGMEM = {
+	boto_sprite_idle_1,
+	boto_sprite_idle_2
 };
-const unsigned char* const vishay_eating_sprite[2] PROGMEM = {
-	vishay_sprite_eating_1,
-	vishay_sprite_eating_2,
+const unsigned char* const boto_eating_sprite[2] PROGMEM = {
+	boto_sprite_eating_1,
+	boto_sprite_eating_2,
 };
-const unsigned char* const vishay_sad_sprite[2] PROGMEM = {
-	vishay_sprite_sad_1,
-	vishay_sprite_sad_2
+const unsigned char* const boto_sad_sprite[2] PROGMEM = {
+	boto_sprite_sad_1,
+	boto_sprite_sad_2
 };
-const unsigned char* const vishay_mad_sprite[2] PROGMEM = {
-	vishay_sprite_mad_1,
-	vishay_sprite_mad_2
+const unsigned char* const boto_mad_sprite[2] PROGMEM = {
+	boto_sprite_mad_1,
+	boto_sprite_mad_2
 };
-const unsigned char* const vishay_happy_sprite[2] PROGMEM = {
-	vishay_sprite_happy_1,
-	vishay_sprite_happy_2
+const unsigned char* const boto_happy_sprite[2] PROGMEM = {
+	boto_sprite_happy_1,
+	boto_sprite_happy_2
 };
 
-const unsigned char* const * vishay_spritesheet[6] = {
-	vishay_idle_sprite,
-	vishay_eating_sprite,
-	vishay_sad_sprite,
-	vishay_mad_sprite,
-	vishay_happy_sprite
+const unsigned char* const * boto_spritesheet[6] = {
+	boto_idle_sprite,
+	boto_eating_sprite,
+	boto_sad_sprite,
+	boto_mad_sprite,
+	boto_happy_sprite
 };
 
 /*
@@ -188,11 +179,6 @@ const unsigned char* const talking_revenge[2] PROGMEM = {
 	thought_bubble_sprite,
 	thinking_gun_sprite
 };
-const unsigned char* const talking_me[3] PROGMEM = {
-	thought_bubble_sprite,
-	thinking_talking_sprite_1,
-	thinking_talking_sprite_2
-};
 const unsigned char* const talking_music[2] PROGMEM = {
 	thought_bubble_sprite,
 	thinking_music_sprite
@@ -229,7 +215,7 @@ const unsigned char* const talking_happy[3] PROGMEM = {
 
 const unsigned char* const poopAnim[2] PROGMEM = {
 	poop_sprite_1,
-	poop_sprite_4
+	poop_sprite_2
 };
 
 /*

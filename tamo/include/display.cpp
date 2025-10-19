@@ -139,6 +139,30 @@ class SSD1306Device {
 
 		void enableChargePump(uint8_t voltage = SSD1306_VOLTAGE_7_5);
 		void disableChargePump(void);
+
+		// Custom
+
+		/*
+		Clears area to the right and left of main sprite
+		so you don't need to do a full screen clear when switching
+		between different sprites
+		*/
+
+		void clearEdges(uint8_t L, uint8_t R){
+			setCursor(0,0);
+			fillLength(0,L);
+			setCursor(0,1);
+			fillLength(0,L);
+
+			//right side
+			setCursor(64-R,0);
+			fillLength(0,64-R);
+			setCursor(64-R,1);
+			fillLength(0,64-R);
+		}
+		void clearEdges(){
+			clearEdges(20,20);
+		}
 };
 
 // ----------------------------------------------------------------------------
@@ -579,14 +603,11 @@ void SSD1306Device::renderFBO2x(uint8_t x0, uint8_t y0, uint8_t w, uint8_t h,  u
 
 //this one i wrote...it's p janky
 void SSD1306Device::bitmap2x(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t bitmap[]) {
-	int8_t width = x1-x0;
-	if(width<=0)
-		return;
 	uint16_t j = 0;
  	for (uint8_t y = y0; y <= y1; y++) {
 		setCursor(x0,y);
 		ssd1306_send_data_start();
-		for (uint8_t i = 0; i < width; i++) {
+		for (uint8_t i = 0; i < (x1-x0); i++) {
 			ssd1306_send_data_byte(pgm_read_byte(&bitmap[j]));
 			//sending it twice bc for some reason it's 1/2 width when fullsize is enabled!
 			ssd1306_send_data_byte(pgm_read_byte(&bitmap[j]));

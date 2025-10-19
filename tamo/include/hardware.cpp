@@ -28,7 +28,7 @@ attiny85 can operate from 1.8v - 5.5v
 
 */
 
-//This is from chatGPT
+//This is partially from chatGPT :+)
 uint16_t readVcc() {
 
   //Enable ADC
@@ -115,4 +115,16 @@ void readButtons(){
   }
   digitalWrite(LED_PIN,LONG_PRESS);
 }
+
+
+void initOled(){
+  //start i2c communication w little oled
+  oled.begin(72, 40, sizeof(tiny4koled_init_72x40br), tiny4koled_init_72x40br);
+  //zoom the oled in
+  oled.enableZoomIn();//Need this so the sprites aren't all weird
+  oled.setRotation(2);//flip display upside-down
+  oled.on();
+  oled.clear();
+}
+
 

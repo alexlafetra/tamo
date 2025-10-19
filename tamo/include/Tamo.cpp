@@ -1,12 +1,7 @@
 #include "Arduino.h"
-#include "hardware.cpp"
 #include "spritesheet.h"
 #include "Animation.h"
 #include "debug/numbers.cpp"
-
-//time (ms) before tamo sleeps
-// #define TIME_BEFORE_SLEEP 60000
-#define TIME_BEFORE_SLEEP 6000
 
 #define SPRITESTARTX 20
 #define SPRITESTARTY 0
@@ -25,7 +20,6 @@ enum Thought:uint8_t{
   DEATH, //skull
   REVENGE, //gun
   FOOD, //pacman? don't like this one
-  FACE, //talking face
   MUSIC, //music note
   MONEY, //$$$
   DOG, //dog face
@@ -63,13 +57,9 @@ enum SPRITE_ID:uint8_t{
   HAPPY_SPRITE
 };
 
-const Thought happyThoughts[6] = {HAPPYTHOUGHTS,LOVE,FACE,MUSIC,MONEY,DOG};
-const Thought neutralThoughts[7] = {NEUTRALTHOUGHTS,FACE,MUSIC,MONEY,DOG,REVENGE,DEATH};
+const Thought happyThoughts[5] = {HAPPYTHOUGHTS,LOVE,MUSIC,MONEY,DOG};
+const Thought neutralThoughts[6] = {NEUTRALTHOUGHTS,MUSIC,MONEY,DOG,REVENGE,DEATH};
 const Thought sadThoughts[6] = {SADTHOUGHTS,HEARTBREAK,DEATH,REVENGE,MONEY,DOG};
-
-const Mood goodMoods[1] = {HAPPY};
-const Mood neutralMoods[1] = {NEUTRAL};
-const Mood badMoods[2] = {SAD,ANGRY};
 
 #define GOOD_STATE 0
 #define OKAY_STATE 1
@@ -90,7 +80,7 @@ const Mood badMoods[2] = {SAD,ANGRY};
 #define TAMO 0
 #define PORCINI 1
 #define BUG 2
-#define VISHAY 3
+#define BOTO 3
 
 class Tamo{
   public:
@@ -141,7 +131,6 @@ class Tamo{
     bool charging(){return getStatusBit(CHARGING_BIT);}
     const unsigned char* const * getSprite(SPRITE_ID);
     void batteryCheck();
-
 };
 
 Tamo::Tamo(){
@@ -162,21 +151,18 @@ void Tamo::setStatusBit(uint8_t which, bool state){
 }
 
 const unsigned char* const * Tamo::getSprite(SPRITE_ID whichSprite){
-  const unsigned char* const ** spritesheet = nullptr;
   switch(identity){
     case TAMO:
-      spritesheet = tamo_spritesheet;
-      break;
+      return tamo_spritesheet[whichSprite];
     case PORCINI:
-      spritesheet = porcini_spritesheet;
-      break;
+      return porcini_spritesheet[whichSprite];
     case BUG:
-      spritesheet = bug_spritesheet;
-      break;
-    case VISHAY:
-      spritesheet = vishay_spritesheet;
+      return bug_spritesheet[whichSprite];
+    case BOTO:
+      return boto_spritesheet[whichSprite];
+    default:
+      return tamo_spritesheet[whichSprite];
   }
-  return spritesheet[whichSprite];
 }
 
 bool Tamo::isFeeling(){
@@ -210,30 +196,27 @@ void Tamo::feel(){
       birth();
       return;
     case SAD:
-      setMoodSprite(mood);
       moodTime = 1000;
       break;
     case ANGRY:
-      setMoodSprite(mood);
       moodTime = 300;
       break;
     case HAPPY:
-      setMoodSprite(mood);
       moodTime = 300;
       break;
     case NEUTRAL:
     default:
-      setMoodSprite(mood);
       moodTime = 500;
       break;   
   }
+  setMoodSprite(mood);
   basicEmotion();
 }
 
 // cycle thru each identity and each emotion
 void Tamo::debugCheckMoodSprites(){
   const SPRITE_ID sprites[] = {IDLE_SPRITE,EATING_SPRITE,SAD_SPRITE,MAD_SPRITE,HAPPY_SPRITE};
-  const uint8_t identities[] = {TAMO,PORCINI,BUG,VISHAY};
+  const uint8_t identities[] = {TAMO,PORCINI,BUG,BOTO};
 
   for(uint8_t currentIdentity = 0; currentIdentity<4; currentIdentity++){
     identity = identities[currentIdentity];
@@ -289,17 +272,9 @@ void Tamo::basicEmotion(){
 }
 
 void Tamo::eat(){
-  //if not hungry enough, tamo gets mad
-  if(hunger < 255){
-    sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(MAD_SPRITE),2,VFAST);
-    while(!itsbeen(500)){
-      sprite.update();
-    }
-    return;
-  }
 
   bool justBit = false;
-  uint8_t bite = 0;
+  uint8_t bite;
   sprite = Animation(SPRITESTARTX,0,16,16,food_animation,5,FAST);
   lastTime = millis();
   while(true){
@@ -311,7 +286,7 @@ void Tamo::eat(){
       lastTime = millis();
       bite = 5;
       if(!justBit){
-        clearEdges(SPRITESTARTX+5,0);
+        oled.clearEdges(SPRITESTARTX+5,0);
       }
       justBit = true;
       if(sprite.currentFrame == 3){
@@ -328,7 +303,7 @@ void Tamo::eat(){
     else{
       bite = 0;
       if(justBit){
-        clearEdges(SPRITESTARTX,12);
+        oled.clearEdges(SPRITESTARTX,12);
       }
       justBit = false;
     }
@@ -339,18 +314,26 @@ void Tamo::eat(){
 
   //then, tamo eats
   sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(EATING_SPRITE),2,VFAST);
-  while(!itsbeen(500)){
+  while(sprite.loopCount < 4){
     sprite.update();
   }
 
-  //recover health
-  health = (health<(65535-FOOD_HEALTH_RECOVERY))?(health+FOOD_HEALTH_RECOVERY):65535;
-
-  //reset hunger counter
-  hunger = 0;
-
-  //tamo needs to poop!
-  setStatusBit(NEEDS_TO_POOP_BIT,true);
+  //if not hungry enough, tamo gets mad
+  if(hunger < 255){
+    sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(MAD_SPRITE),2,VFAST);
+  }
+  else{
+    sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(HAPPY_SPRITE),2,VFAST);
+    //recover health
+    health = (health<(65535-FOOD_HEALTH_RECOVERY))?(health+FOOD_HEALTH_RECOVERY):65535;
+    //reset hunger counter
+    hunger = 0;
+    //tamo needs to poop!
+    setStatusBit(NEEDS_TO_POOP_BIT,true);
+  }
+  while(sprite.loopCount < 4){
+    sprite.update();
+  }
 
   lastTime = millis();
 }
@@ -363,7 +346,7 @@ void Tamo::birth(){
     return;
   }
 
-  uint8_t hit = 0;
+  uint8_t hit;
   sprite = Animation(SPRITESTARTX+32,SPRITESTARTY,16,16,egg_sprite,4,SLOW);
   oled.fill(0);
   lastTime = millis();
@@ -417,7 +400,7 @@ void Tamo::dead(){
   mood = BIRTH;
 }
 void Tamo::talk(Thought t){
-  const unsigned char* const * animationBuffer = nullptr;
+  const unsigned char* const * animationBuffer;
   uint8_t frameCount = 2;
   switch(t){
     case LOVE:
@@ -435,10 +418,6 @@ void Tamo::talk(Thought t){
       break;
     case REVENGE:
       animationBuffer = talking_revenge;
-      break;
-    case FACE:
-      animationBuffer = talking_me;
-      frameCount = 3;
       break;
     case MUSIC:
       animationBuffer = talking_music;
@@ -458,25 +437,28 @@ void Tamo::talk(Thought t){
     case SADTHOUGHTS:
       animationBuffer = talking_sad;
       frameCount = 3;
+      break;
     case NEUTRALTHOUGHTS:
       animationBuffer = talking_neutral;
+      break;
     case HAPPYTHOUGHTS:
       animationBuffer = talking_happy;
       frameCount = 3;
+      break;
     default:
-      return;
+      break;
   }
 
-  TalkingAnimation talkingSprite(SPRITESTARTX+20,SPRITESTARTY,12,16,animationBuffer,frameCount,MEDIUM);
+  TalkingAnimation talkingSprite(SPRITESTARTX+20,SPRITESTARTY,12,16,animationBuffer,frameCount,sprite.msPerFrame);
   setMoodSprite(mood); //get the actual mood sprite
   sprite.xCoord = SPRITESTARTX-12;//move sprite to the left
 
-  //talk for 2 cycle counts
-  while(talkingSprite.loopCount<2){
+  //talk for 2 cycle counts, and 
+  while((talkingSprite.loopCount<4)){
     sprite.update();
     talkingSprite.update();
   }
-  clearEdges();//clear screen edges
+  oled.clearEdges();//clear screen edges
   sprite.xCoord = SPRITESTARTX;//move sprite back
 }
 
@@ -507,13 +489,15 @@ void Tamo::poop(){
     readButtons();
     if(SINGLE_CLICK && itsbeen(400)){
       lastTime = millis();
+      oled.bitmap2x(SPRITESTARTX,SPRITESTARTY,SPRITESTARTX+16,SPRITESTARTY+1,egg_sprite[3]);
+      while(millis() - lastTime < 400){}
       break;
     }
     hardwareSleepCheck();
     sprite.update();
   }
+
   setStatusBit(NEEDS_TO_POOP_BIT,false);
-  mood = RANDOM;
 }
 
 void Tamo::live(){
@@ -585,39 +569,36 @@ void Tamo::vibeCheck(){
 
   //always talk abt low batt if the batt is low
   if(lowBattery()){
-    currentState = BAD_STATE;
     thought = LOWBATTERY;
     mood = SAD;
     return;
   }
 
   //get your thought/mood based on your state
-  switch(currentState){
-    case GOOD_STATE:
-      thought = happyThoughts[millis()%6];
-      mood = HAPPY;//always happy
-      break;
-    case OKAY_STATE:
-      thought = neutralThoughts[millis()%7];
-      mood = NEUTRAL;
-      break;
-    case BAD_STATE:
-      //if hungry, tamo thinks about food
-      if(hunger == 255)
-        thought = FOOD;
-      else
-        thought = sadThoughts[millis()%6];
-      mood = badMoods[millis()%2]; // sad, angry, talking
-      break;
+  if(currentState == GOOD_STATE){
+    thought = happyThoughts[millis()%5];
+    mood = HAPPY;//always happy
   }
+  else if(currentState == OKAY_STATE){
+    thought = neutralThoughts[millis()%6];
+    mood = NEUTRAL;
+  }
+  else{
+    thought = sadThoughts[millis()%6];
+    mood = (millis()%2)?SAD:ANGRY; // sad, angry
+  }
+  
+  //if hungry, tamo thinks about food
+  if(hunger == 255)
+    thought = FOOD;
 
   if(charging()){
     thought = CHARGING;
   }
   
-  //if you need to poop, there's a 1/10 chance you'll poop
+  //if you need to poop, there's a 1/3 chance you'll poop
   if(needsToPoop()){
-    if((millis()%10) == 9)
+    if(!(millis()%3))
       mood = POOPING;
   }
 }

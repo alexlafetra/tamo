@@ -1,7 +1,7 @@
 import os
 import math
 
-# largely taken from:
+# Code help from:
 # https://github.com/sparkfun/BMPtoArray/blob/master/bmp2array.py
 
 # file the bitmaps will be printed to
@@ -9,14 +9,7 @@ output_file = "include/bitmaps.h"
 
 # folder the bitmaps are stored in
 bmp_directory = "bitmaps"
-# directory = os.fsencode(bmp_directory)
 
-# okay here's what was going wrong!
-# each row/column is its own string of bytes. The bytes for that row don't
-# 'wrap' around and contain bits for the next row, they just contain zeroes if they run over the end
-# this is actually...less space efficient? but do it so that each row/column uses specific bytes
-
-# in the current output, every other byte should be offset by w to match image2cpp
 # okay, got it. The way image2cpp works is it does a pass L-->R, taking one-byte deep (8px) vertical slices. Then it does another pass, going another layer deep. Annoying.
 
 # not using a flipped array here
@@ -49,7 +42,7 @@ def pixelArrayToByteArray(pixelArray,w,h):
     return bArray
 
 def compileBitmap(file,filename):
-    # print(filename)
+
     # if it is a bitmap, decode it into bytes
     if file.endswith(".bmp"):
 
@@ -98,8 +91,6 @@ def compileBitmap(file,filename):
         outfile.write(outputString)
         outfile.close()
 
-        # print('compiled '+str(filename))
-
 def compileBitmaps(directory):
     # iterate over each file in that folder and check if it's a bitmap
     for file in os.listdir(directory):
@@ -112,14 +103,14 @@ def compileBitmaps(directory):
 
             # run fn recursively for the new file
             directoryPath = directory+"/"+os.fsdecode(file)
-            print(f"Compiling {directoryPath}")
+            # green font
+            print(f"\033[34mCompiling {directoryPath}\033[0m")
 
             compileBitmaps(directoryPath)
         else:
             compileBitmap(directory+'/'+file,file)
     
-
-print("Compiling bitmap images inside \'/bitmaps\' to byte arrays...")
+print("\033[33mCompiling bitmap images inside \'/bitmaps\' to byte arrays...\033[0m")
 
 #Write a header, and erase previous contents
 outfile = open(output_file,"w")
@@ -128,4 +119,4 @@ outfile.close()
 
 compileBitmaps(bmp_directory)
 
-print(f"Done!\nBitmaps written to include/bitmaps.h")
+print("\033[32mDone! Bitmaps written to include/bitmaps.h\033[0m")

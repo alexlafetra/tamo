@@ -85,7 +85,7 @@ class Animation{
       delete [] frames;
     }
     //copy constructor, to make a deep copy bc we dynamically allocate mem for frame data
-    Animation(Animation& a){
+    Animation(const Animation& a){
 
       //allocate a new array and copy over ptrs
       frames = new const unsigned char *[a.numberOfFrames];
@@ -150,11 +150,11 @@ bool Animation::isNextFrameReady(){
   }
 }
 void Animation::showCurrentFrame(){
-  #ifdef FULLSIZE
+  // #ifdef FULLSIZE
     oled.bitmap2x(xCoord,yCoord,xCoord+width,yCoord+height/16,frames[currentFrame]);
-  #else
-    oled.bitmap(xCoord,yCoord,xCoord+width,yCoord+height/16,frames[currentFrame]);
-  #endif
+  // #else
+    // oled.bitmap(xCoord,yCoord,xCoord+width,yCoord+height/16,frames[currentFrame]);
+  // #endif
 }
 
 void Animation::nextFrame(){
