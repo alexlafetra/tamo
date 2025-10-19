@@ -36,104 +36,23 @@ class Animation{
     bool hasPlayedAtLeastOnce();
 
     //ptr to the frame data
-    const unsigned char ** frames = nullptr;
+    const uint16_t * frames;
 
     Animation(){};
-    Animation(int16_t x1, int16_t y1, uint16_t w, uint16_t h, const unsigned char* const buffer[], uint16_t frameCount, uint32_t frameRate){
+    Animation(int16_t x1, int16_t y1, uint16_t w, uint16_t h, const uint16_t* buffer, uint16_t frameCount, uint32_t frameRate){
       currentFrame = 0;
       numberOfFrames = frameCount;
       msPerFrame = frameRate;
       timeLastFramePlayed = millis();
 
-      //allocate mem for pointers to bitmaps
-      frames = new const unsigned char *[frameCount];
-      //copy in pointers
-      for(uint16_t i = 0; i<frameCount; i++){
-        //need to access the bitmap data like this since the arrays of pointers to the bitmaps are also stored as PROGMEM
-        //see: https://stackoverflow.com/questions/63447172/issues-with-pointers-and-progmem
-        frames[i] = pgm_read_pointer(buffer+i);
-      }
+      //store pointer to the sprite offsets (this pointer is an array of offsets)
+      frames = buffer;
+
       xCoord = x1;
       yCoord = y1/8;
       width = w;
       height = h;
       loopCount = 0;
-    }
-    Animation(int16_t x1, int16_t y1, uint16_t w, uint16_t h, const unsigned char* buffer[], uint16_t frameCount, uint32_t frameRate){
-      currentFrame = 0;
-      numberOfFrames = frameCount;
-      msPerFrame = frameRate;
-      timeLastFramePlayed = millis();
-
-      //allocate mem for pointers to bitmaps
-      frames = new const unsigned char *[frameCount];
-      //copy in pointers
-      for(uint16_t i = 0; i<frameCount; i++){
-        //need to access the bitmap data like this since the arrays of pointers to the bitmaps are also stored as PROGMEM
-        //see: https://stackoverflow.com/questions/63447172/issues-with-pointers-and-progmem
-        frames[i] = pgm_read_pointer(buffer+i);
-      }
-      xCoord = x1;
-      yCoord = y1/8;
-      width = w;
-      height = h;
-      loopCount = 0;
-    }
-    //destructor, bc we dynamically allocate mem for the frame data
-    ~Animation(){
-      //deallocate the bitmap array
-      delete [] frames;
-    }
-    //copy constructor, to make a deep copy bc we dynamically allocate mem for frame data
-    Animation(const Animation& a){
-
-      //allocate a new array and copy over ptrs
-      frames = new const unsigned char *[a.numberOfFrames];
-      for(uint16_t i = 0; i<a.numberOfFrames; i++){
-        frames[i] = a.frames[i];
-      }
-
-      //copy over members
-      currentFrame = a.currentFrame;
-      numberOfFrames = a.numberOfFrames;
-      msPerFrame = a.msPerFrame;
-      timeLastFramePlayed = a.timeLastFramePlayed;
-      xCoord = a.xCoord;
-      yCoord = a.yCoord;
-      width = a.width;
-      height = a.height;
-      loopCount = a.loopCount;
-    }
-    //overloaded assignment operator, w help from: https://www.learncpp.com/cpp-tutorial/overloading-the-assignment-operator/
-    Animation& operator= (const Animation&a){
-
-      //check for self assignment!
-      if(this == &a)
-        return *this;
-      
-      //delete old frame data
-      if(frames)
-        delete [] frames;
-      frames = nullptr;
-      
-      //create new frame array and copy in old values
-      frames = new const unsigned char *[a.numberOfFrames];
-      for(uint16_t i = 0; i<a.numberOfFrames; i++){
-        frames[i] = a.frames[i];
-      }
-
-      //copy over members
-      currentFrame = a.currentFrame;
-      numberOfFrames = a.numberOfFrames;
-      msPerFrame = a.msPerFrame;
-      timeLastFramePlayed = a.timeLastFramePlayed;
-      xCoord = a.xCoord;
-      yCoord = a.yCoord;
-      width = a.width;
-      height = a.height;
-      loopCount = a.loopCount;
-
-      return *this;
     }
 };
 
@@ -150,11 +69,7 @@ bool Animation::isNextFrameReady(){
   }
 }
 void Animation::showCurrentFrame(){
-  // #ifdef FULLSIZE
-    oled.bitmap2x(xCoord,yCoord,xCoord+width,yCoord+height/16,frames[currentFrame]);
-  // #else
-    // oled.bitmap(xCoord,yCoord,xCoord+width,yCoord+height/16,frames[currentFrame]);
-  // #endif
+  oled.bitmap_from_spritesheet2x(xCoord,yCoord,xCoord+width,yCoord+height/16,pgm_read_word(&frames[currentFrame]));
 }
 
 void Animation::nextFrame(){
@@ -181,20 +96,14 @@ so they need to be offset by (5,4)
 class TalkingAnimation:public Animation{
   public:
   TalkingAnimation(){}
-  TalkingAnimation(int16_t x1, int16_t y1, uint16_t w, uint16_t h, const unsigned char* const buffer[], uint16_t frameCount, uint32_t frameRate){
+  TalkingAnimation(int16_t x1, int16_t y1, uint16_t w, uint16_t h, const uint16_t* buffer, uint16_t frameCount, uint32_t frameRate){
     currentFrame = 0;
     numberOfFrames = frameCount;
     msPerFrame = frameRate;
     timeLastFramePlayed = millis();
 
     //allocate mem for pointers to bitmaps
-    frames = new const unsigned char *[frameCount];
-    //copy in pointers
-    for(uint16_t i = 0; i<frameCount; i++){
-      //need to access the bitmap data like this since the arrays of pointers to the bitmaps are also stored as PROGMEM
-      //see: https://stackoverflow.com/questions/63447172/issues-with-pointers-and-progmem
-      frames[i] = pgm_read_pointer(buffer+i);
-    }
+    frames = buffer;
     xCoord = x1;
     yCoord = y1/8;
     width = w;
@@ -203,7 +112,7 @@ class TalkingAnimation:public Animation{
   }
   void showCurrentFrame(){
     if(currentFrame)
-      oled.overlayBitmap2x(xCoord,yCoord,xCoord+width,yCoord+height/16,frames[0],3,1,7,7,frames[currentFrame]);
+      oled.overlay_bitmap_from_spritesheet2x(xCoord,yCoord,xCoord+width,yCoord+height/16,pgm_read_word(&frames[0]),3,1,7,7,pgm_read_word(&frames[currentFrame]));
     //if it's the first frame, just send it normally (it'll always be the empty talking sprite)
     else
       Animation::showCurrentFrame();

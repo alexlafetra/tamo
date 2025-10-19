@@ -69,6 +69,8 @@ class SSD1306Device {
 		void renderFBO(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1,  uint8_t bitmap[]);
 		void renderFBO2x(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1,  uint8_t bitmap[]);
 		void bitmap2x(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t bitmap[]);
+		void bitmap_from_spritesheet2x(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint16_t offset);
+		void overlay_bitmap_from_spritesheet2x(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint16_t bitmapA_offset, uint8_t offsetX, uint8_t offsetY, uint8_t widthB, uint8_t heightB, uint16_t bitmapB_offset);
 		void overlayBitmap2x(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t bitmapA[], uint8_t offsetX, uint8_t offsetY, uint8_t widthB, uint8_t heightB, const uint8_t bitmapB[]);
 		void startData(void);
 		void sendData(const uint8_t data);
@@ -618,6 +620,47 @@ void SSD1306Device::bitmap2x(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, con
 	setCursor(0, 0);
 }
 
+void SSD1306Device::bitmap_from_spritesheet2x(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint16_t offset) {
+	uint16_t j = 0;
+ 	for (uint8_t y = y0; y <= y1; y++) {
+		setCursor(x0,y);
+		ssd1306_send_data_start();
+		for (uint8_t i = 0; i < (x1-x0); i++) {
+			ssd1306_send_data_byte(pgm_read_byte(&spritesheet[j+offset]));
+			ssd1306_send_data_byte(pgm_read_byte(&spritesheet[j+offset]));
+			j++;
+		}
+		ssd1306_send_stop();
+	}
+	setCursor(0, 0);
+}
+
+void SSD1306Device::overlay_bitmap_from_spritesheet2x(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint16_t bitmapA_offset, uint8_t offsetX, uint8_t offsetY, uint8_t widthB, uint8_t heightB, uint16_t bitmapB_offset){
+
+	uint8_t j = 0;
+	uint8_t jB = 0;
+
+ 	for (uint8_t y = y0; y <= y1; y++) {
+		setCursor(x0,y);
+		ssd1306_send_data_start();
+		for (uint8_t i = 0; i < (x1-x0); i++) {
+			uint8_t byteA = pgm_read_byte(&spritesheet[j+bitmapA_offset]);
+			if(i>=offsetX && i<(offsetX+widthB) && y>=(offsetY/8) && y<((heightB+offsetY)/8)){
+				uint8_t byteB = pgm_read_byte(&spritesheet[jB+bitmapB_offset]);
+				jB++;
+				byteB = byteB<<offsetY;//shift the sprite down
+				byteA |= byteB;
+			} 
+			//sending it twice bc for some reason it's 1/2 width when fullsize is enabled!
+			ssd1306_send_data_byte(byteA);
+			ssd1306_send_data_byte(byteA);
+			j++;
+		}
+		ssd1306_send_stop();
+	}
+	setCursor(0, 0);
+}
+
 void SSD1306Device::overlayBitmap2x(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t bitmapA[], uint8_t offsetX, uint8_t offsetY, uint8_t widthB, uint8_t heightB, const uint8_t bitmapB[]){
 	// int8_t width = x1-x0;
 	// if(width<=0)
@@ -625,8 +668,6 @@ void SSD1306Device::overlayBitmap2x(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t 
 	uint8_t j = 0;
 	uint8_t jB = 0;
 
-	// uint8_t pagesNeededToRenderB = ((heightB+offsetY)/8);
-	// uint8_t pageStartB = offsetY/8;
  	for (uint8_t y = y0; y <= y1; y++) {
 		setCursor(x0,y);
 		ssd1306_send_data_start();

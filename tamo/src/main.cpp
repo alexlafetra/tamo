@@ -2,6 +2,7 @@
 //https://github.com/Lorandil/ATTiny85-optimization-guide?tab=readme-ov-file
 
 #include <TinyWireM.h>
+#include "spritesheet.h"
 #include "display.cpp"
 #include <avr/sleep.h>
 #include <avr/interrupt.h>

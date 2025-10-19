@@ -12,28 +12,30 @@
 		Boto
 */
 
-const unsigned char* const boto_idle_sprite[2] PROGMEM = {
+//a constant ptr to a uint16
+
+const uint16_t boto_idle_sprite[2] PROGMEM = {
 	boto_sprite_idle_1,
 	boto_sprite_idle_2
 };
-const unsigned char* const boto_eating_sprite[2] PROGMEM = {
+const uint16_t boto_eating_sprite[2] PROGMEM = {
 	boto_sprite_eating_1,
-	boto_sprite_eating_2,
+	boto_sprite_eating_2
 };
-const unsigned char* const boto_sad_sprite[2] PROGMEM = {
+const uint16_t boto_sad_sprite[2] PROGMEM = {
 	boto_sprite_sad_1,
 	boto_sprite_sad_2
 };
-const unsigned char* const boto_mad_sprite[2] PROGMEM = {
+const uint16_t boto_mad_sprite[2] PROGMEM = {
 	boto_sprite_mad_1,
 	boto_sprite_mad_2
 };
-const unsigned char* const boto_happy_sprite[2] PROGMEM = {
+const uint16_t boto_happy_sprite[2] PROGMEM = {
 	boto_sprite_happy_1,
 	boto_sprite_happy_2
 };
 
-const unsigned char* const * boto_spritesheet[6] = {
+const uint16_t * boto_spritesheet[6] = {
 	boto_idle_sprite,
 	boto_eating_sprite,
 	boto_sad_sprite,
@@ -46,28 +48,28 @@ const unsigned char* const * boto_spritesheet[6] = {
 */
 
 
-const unsigned char* const tamo_idle_sprite[2] PROGMEM = {
+const uint16_t tamo_idle_sprite[2] PROGMEM = {
 	tamo_sprite_idle_1,
 	tamo_sprite_idle_2
 };
-const unsigned char* const tamo_eating_sprite[2] PROGMEM = {
+const uint16_t tamo_eating_sprite[2] PROGMEM = {
 	tamo_sprite_eating_1,
 	tamo_sprite_eating_2,
 };
-const unsigned char* const tamo_sad_sprite[2] PROGMEM = {
+const uint16_t tamo_sad_sprite[2] PROGMEM = {
 	tamo_sprite_sad_1,
 	tamo_sprite_sad_2
 };
-const unsigned char* const tamo_mad_sprite[2] PROGMEM = {
+const uint16_t tamo_mad_sprite[2] PROGMEM = {
 	tamo_sprite_mad_1,
 	tamo_sprite_mad_2
 };
-const unsigned char* const tamo_happy_sprite[2] PROGMEM = {
+const uint16_t tamo_happy_sprite[2] PROGMEM = {
 	tamo_sprite_happy_1,
 	tamo_sprite_happy_2
 };
 
-const unsigned char* const * tamo_spritesheet[6] = {
+const uint16_t * tamo_spritesheet[6] = {
 	tamo_idle_sprite,
 	tamo_eating_sprite,
 	tamo_sad_sprite,
@@ -80,28 +82,28 @@ const unsigned char* const * tamo_spritesheet[6] = {
 */
 
 
-const unsigned char* const bug_idle_sprite[2] PROGMEM = {
+const uint16_t bug_idle_sprite[2] PROGMEM = {
 	bug_sprite_idle_1,
 	bug_sprite_idle_2
 };
-const unsigned char* const bug_eating_sprite[2] PROGMEM = {
+const uint16_t bug_eating_sprite[2] PROGMEM = {
 	bug_sprite_eating_1,
 	bug_sprite_eating_2,
 };
-const unsigned char* const bug_sad_sprite[2] PROGMEM = {
+const uint16_t bug_sad_sprite[2] PROGMEM = {
 	bug_sprite_sad_1,
 	bug_sprite_sad_2
 };
-const unsigned char* const bug_mad_sprite[2] PROGMEM = {
+const uint16_t bug_mad_sprite[2] PROGMEM = {
 	bug_sprite_mad_1,
 	bug_sprite_mad_2
 };
-const unsigned char* const bug_happy_sprite[2] PROGMEM = {
+const uint16_t bug_happy_sprite[2] PROGMEM = {
 	bug_sprite_happy_1,
 	bug_sprite_happy_2
 };
 
-const unsigned char* const * bug_spritesheet[6] = {
+const uint16_t * bug_spritesheet[6] = {
 	bug_idle_sprite,
 	bug_eating_sprite,
 	bug_sad_sprite,
@@ -113,28 +115,28 @@ const unsigned char* const * bug_spritesheet[6] = {
 		Porcini
 */
 
-const unsigned char* const porcini_idle_sprite[2] PROGMEM = {
+const uint16_t porcini_idle_sprite[2] PROGMEM = {
 	porcini_sprite_idle_1,
 	porcini_sprite_idle_2
 };
-const unsigned char* const porcini_eating_sprite[2] PROGMEM = {
+const uint16_t porcini_eating_sprite[2] PROGMEM = {
 	porcini_sprite_eating_1,
 	porcini_sprite_eating_2,
 };
-const unsigned char* const porcini_sad_sprite[2] PROGMEM = {
+const uint16_t porcini_sad_sprite[2] PROGMEM = {
 	porcini_sprite_sad_1,
 	porcini_sprite_sad_2
 };
-const unsigned char* const porcini_mad_sprite[2] PROGMEM = {
+const uint16_t porcini_mad_sprite[2] PROGMEM = {
 	porcini_sprite_mad_1,
 	porcini_sprite_mad_2
 };
-const unsigned char* const porcini_happy_sprite[2] PROGMEM = {
+const uint16_t porcini_happy_sprite[2] PROGMEM = {
 	porcini_sprite_happy_1,
 	porcini_sprite_happy_2
 };
 
-const unsigned char* const * porcini_spritesheet[6] = {
+const uint16_t * porcini_spritesheet[6] = {
 	porcini_idle_sprite,
 	porcini_eating_sprite,
 	porcini_sad_sprite,
@@ -150,60 +152,60 @@ const unsigned char* const * porcini_spritesheet[6] = {
 ----------------------------------
 */
 
-const unsigned char* const talking_heartbreak[3] PROGMEM = {
+const uint16_t talking_heartbreak[3] PROGMEM = {
 	thought_bubble_sprite,
 	thinking_love_sprite,
 	thinking_heartbreak_sprite
 };
-const unsigned char* const talking_low_battery[2] PROGMEM = {
+const uint16_t talking_low_battery[2] PROGMEM = {
 	thought_bubble_sprite,
 	thinking_low_battery_sprite
 };
-const unsigned char* const talking_charging[2] PROGMEM = {
+const uint16_t talking_charging[2] PROGMEM = {
 	thought_bubble_sprite,
 	thinking_charging_sprite
 };
-const unsigned char* const talking_love[2] PROGMEM = {
+const uint16_t talking_love[2] PROGMEM = {
 	thought_bubble_sprite,
 	thinking_love_sprite
 };
-const unsigned char* const talking_death[2] PROGMEM = {
+const uint16_t talking_death[2] PROGMEM = {
 	thought_bubble_sprite,
 	thinking_skull_sprite
 };
-const unsigned char* const talking_hunger[2] PROGMEM = {
+const uint16_t talking_hunger[3] PROGMEM = {
 	thought_bubble_sprite,
-	thinking_pacman_sprite
+	thinking_happy_sprite_1,
+	thinking_eating_sprite_2
 };
-const unsigned char* const talking_revenge[2] PROGMEM = {
+const uint16_t talking_revenge[2] PROGMEM = {
 	thought_bubble_sprite,
 	thinking_gun_sprite
 };
-const unsigned char* const talking_music[2] PROGMEM = {
+const uint16_t talking_music[2] PROGMEM = {
 	thought_bubble_sprite,
 	thinking_music_sprite
 };
-const unsigned char* const talking_cash[2] PROGMEM = {
+const uint16_t talking_cash[2] PROGMEM = {
 	thought_bubble_sprite,
 	thinking_cash_sprite
 };
-const unsigned char* const talking_dog[2] PROGMEM = {
+const uint16_t talking_dog[2] PROGMEM = {
 	thought_bubble_sprite,
 	thinking_dog_sprite
 };
-const unsigned char* const talking_sad[3] PROGMEM = {
+const uint16_t talking_sad[3] PROGMEM = {
 	thought_bubble_sprite,
 	thinking_sad_sprite_1,
 	thinking_sad_sprite_2
 };
-const unsigned char* const talking_neutral[2] PROGMEM = {
+const uint16_t talking_neutral[2] PROGMEM = {
 	thought_bubble_sprite,
 	thinking_neutral_sprite,
 };
-const unsigned char* const talking_happy[3] PROGMEM = {
+const uint16_t talking_happy[2] PROGMEM = {
 	thought_bubble_sprite,
-	thinking_happy_sprite_1,
-	thinking_happy_sprite_2
+	thinking_happy_sprite_1
 };
 /*
 ----------------------------------
@@ -213,7 +215,7 @@ const unsigned char* const talking_happy[3] PROGMEM = {
 ----------------------------------
 */
 
-const unsigned char* const poopAnim[2] PROGMEM = {
+const uint16_t poopAnim[2] PROGMEM = {
 	poop_sprite_1,
 	poop_sprite_2
 };
@@ -226,7 +228,7 @@ const unsigned char* const poopAnim[2] PROGMEM = {
 ----------------------------------
 */
 
-const unsigned char* const death_sprite[2] PROGMEM = {
+const uint16_t death_sprite[2] PROGMEM = {
 	dead_sprite_1,
 	dead_sprite_2
 };
@@ -238,14 +240,14 @@ const unsigned char* const death_sprite[2] PROGMEM = {
 
 ----------------------------------
 */
-const unsigned char* const egg_sprite[4] PROGMEM = {
+const uint16_t egg_sprite[4] PROGMEM = {
 	egg_sprite_1,
 	egg_sprite_2,
 	egg_sprite_3,
 	egg_sprite_4
 };
 
-const unsigned char* const food_animation[5] PROGMEM = {
+const uint16_t food_animation[5] PROGMEM = {
 	food_sprite_1,
 	food_sprite_2,
 	food_sprite_3,

@@ -1,7 +1,6 @@
 #include "Arduino.h"
-#include "spritesheet.h"
 #include "Animation.h"
-#include "debug/numbers.cpp"
+// #include "debug/numbers.cpp"
 
 #define SPRITESTARTX 20
 #define SPRITESTARTY 0
@@ -129,7 +128,7 @@ class Tamo{
     bool isAsleep(){return getStatusBit(IS_ASLEEP_BIT);}
     bool lowBattery(){return getStatusBit(LOW_BATTERY_BIT);}
     bool charging(){return getStatusBit(CHARGING_BIT);}
-    const unsigned char* const * getSprite(SPRITE_ID);
+    const uint16_t *  getSprite(SPRITE_ID);
     void batteryCheck();
 };
 
@@ -150,7 +149,7 @@ void Tamo::setStatusBit(uint8_t which, bool state){
   }
 }
 
-const unsigned char* const * Tamo::getSprite(SPRITE_ID whichSprite){
+const uint16_t * Tamo::getSprite(SPRITE_ID whichSprite){
   switch(identity){
     case TAMO:
       return tamo_spritesheet[whichSprite];
@@ -400,7 +399,7 @@ void Tamo::dead(){
   mood = BIRTH;
 }
 void Tamo::talk(Thought t){
-  const unsigned char* const * animationBuffer;
+  const uint16_t * animationBuffer;
   uint8_t frameCount = 2;
   switch(t){
     case LOVE:
@@ -408,6 +407,7 @@ void Tamo::talk(Thought t){
       break;
     case FOOD:
       animationBuffer = talking_hunger;
+      frameCount = 3;
       break;
     case DEATH:
       animationBuffer = talking_death;
@@ -443,7 +443,6 @@ void Tamo::talk(Thought t){
       break;
     case HAPPYTHOUGHTS:
       animationBuffer = talking_happy;
-      frameCount = 3;
       break;
     default:
       break;
@@ -489,7 +488,7 @@ void Tamo::poop(){
     readButtons();
     if(SINGLE_CLICK && itsbeen(400)){
       lastTime = millis();
-      oled.bitmap2x(SPRITESTARTX,SPRITESTARTY,SPRITESTARTX+16,SPRITESTARTY+1,egg_sprite[3]);
+      oled.bitmap_from_spritesheet2x(SPRITESTARTX,SPRITESTARTY,SPRITESTARTX+16,SPRITESTARTY+1,egg_sprite[3]);
       while(millis() - lastTime < 400){}
       break;
     }
