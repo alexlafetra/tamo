@@ -49,6 +49,7 @@
                 "ARDUINO_AVR_ATTINYX5",
                 "NEOPIXELPORT=PORTB",
                 "CLOCK_SOURCE=6",
+                "NDEBUG",
                 "F_CPU=8000000L",
                 "ARDUINO_ARCH_AVR",
                 "ARDUINO=10808",

@@ -49,7 +49,7 @@ class Animation{
       yCoord = y1/8;
       width = w;
       height = h;
-    }
+    } __attribute__((noinline));
 };
 
 bool Animation::hasPlayedAtLeastOnce(){
@@ -105,7 +105,7 @@ class TalkingAnimation:public Animation{
     width = w;
     height = h;
     loopCount = 0;
-  }
+  } __attribute__((noinline));
   void showCurrentFrame(){
     if(currentFrame)
       oled.overlay_bitmap_from_spritesheet2x(xCoord,yCoord,xCoord+width,yCoord+height/16,pgm_read_word(&frames[0]),3,1,7,7,pgm_read_word(&frames[currentFrame]));
