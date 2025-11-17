@@ -116,5 +116,7 @@ void setup() {
 }
 
 void loop() {
+  // tamo.game();
   tamo.live();
+  // tamo.debugCheckMoodSprites();
 }

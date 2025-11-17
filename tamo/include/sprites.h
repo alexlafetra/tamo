@@ -37,10 +37,10 @@ const uint16_t boto_happy_sprite[2] PROGMEM = {
 
 const uint16_t * boto_spritesheet[6] = {
 	boto_idle_sprite,
-	boto_eating_sprite,
 	boto_sad_sprite,
 	boto_mad_sprite,
-	boto_happy_sprite
+	boto_happy_sprite,
+	boto_eating_sprite
 };
 
 /*
@@ -71,10 +71,10 @@ const uint16_t tamo_happy_sprite[2] PROGMEM = {
 
 const uint16_t * tamo_spritesheet[6] = {
 	tamo_idle_sprite,
-	tamo_eating_sprite,
 	tamo_sad_sprite,
 	tamo_mad_sprite,
-	tamo_happy_sprite
+	tamo_happy_sprite,
+	tamo_eating_sprite
 };
 
 /*
@@ -105,10 +105,10 @@ const uint16_t bug_happy_sprite[2] PROGMEM = {
 
 const uint16_t * bug_spritesheet[6] = {
 	bug_idle_sprite,
-	bug_eating_sprite,
 	bug_sad_sprite,
 	bug_mad_sprite,
-	bug_happy_sprite
+	bug_happy_sprite,
+	bug_eating_sprite
 };
 
 /*
@@ -138,10 +138,10 @@ const uint16_t porcini_happy_sprite[2] PROGMEM = {
 
 const uint16_t * porcini_spritesheet[6] = {
 	porcini_idle_sprite,
-	porcini_eating_sprite,
 	porcini_sad_sprite,
 	porcini_mad_sprite,
-	porcini_happy_sprite
+	porcini_happy_sprite,
+	porcini_eating_sprite
 };
 
 /*
@@ -247,12 +247,19 @@ const uint16_t egg_sprite[4] PROGMEM = {
 	egg_sprite_4
 };
 
-const uint16_t cookie_animation[5] PROGMEM = {
-	cookie_sprite_1,
-	cookie_sprite_2,
-	cookie_sprite_3,
-	cookie_sprite_4,
-	cookie_sprite_5
+// const uint16_t cookie_animation[5] PROGMEM = {
+// 	cookie_sprite_1,
+// 	cookie_sprite_2,
+// 	cookie_sprite_3,
+// 	cookie_sprite_4,
+// 	cookie_sprite_5
+// };
+const uint16_t whiskey_animation[5] PROGMEM = {
+	whiskey_sprite_1,
+	whiskey_sprite_2,
+	whiskey_sprite_3,
+	whiskey_sprite_4,
+	whiskey_sprite_5
 };
 
 const uint16_t cheese_animation[5] PROGMEM = {

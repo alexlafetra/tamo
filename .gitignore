@@ -4,3 +4,5 @@ spritemaker/
 spritemaker_old/
 .DS_Store
 .theia
+/spritemaker
+/sprite_converter

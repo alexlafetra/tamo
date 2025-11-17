@@ -101,10 +101,12 @@ def compileBitmaps(directory):
         if os.path.isdir(directory+"/"+os.fsdecode(file)):
             # run fn recursively for the new file
             directoryPath = directory+"/"+os.fsdecode(file)
-            # green font
-            print(f"\033[34mCompiling {directoryPath}\033[0m")
-
-            compileBitmaps(directoryPath)
+            if(os.fsdecode(file).startswith('IGNORE')):
+                print(f"\033[34mSkipping {directoryPath}\033[0m")
+            else:
+                # green font
+                print(f"\033[34mCompiling {directoryPath}\033[0m")
+                compileBitmaps(directoryPath)
         else:
             compileBitmap(directory+'/'+file,file)
         

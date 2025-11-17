@@ -28,21 +28,21 @@
 #define THOUGHT_OF_HAPPYTHOUGHTS 11//happy face
 
 // Moods
-#define MOOD_RANDOM 0
-#define MOOD_NEUTRAL 1
-#define MOOD_HAPPY 2
-#define MOOD_ANGRY 3
-#define MOOD_SAD 4
-#define MOOD_POOPING 5
-#define MOOD_DEAD 6
-#define MOOD_BIRTH 7
+#define MOOD_NEUTRAL 0
+#define MOOD_SAD 1
+#define MOOD_ANGRY 2
+#define MOOD_HAPPY 3
+#define MOOD_POOPING 4
+#define MOOD_DEAD 5
+#define MOOD_BIRTH 6
+#define MOOD_RANDOM 7
 
 // Sprite ID's
-#define IDLE_SPRITE 0
-#define EATING_SPRITE 1
-#define SAD_SPRITE 2
-#define MAD_SPRITE 3
-#define HAPPY_SPRITE 4
+#define IDLE_SPRITE MOOD_NEUTRAL
+#define SAD_SPRITE MOOD_SAD
+#define MAD_SPRITE MOOD_ANGRY
+#define HAPPY_SPRITE MOOD_HAPPY
+#define EATING_SPRITE 4
 
 const uint8_t happyThoughts[4] = {THOUGHT_OF_HAPPYTHOUGHTS,THOUGHT_OF_LOVE,THOUGHT_OF_MUSIC,THOUGHT_OF_MONEY};
 const uint8_t neutralThoughts[5] = {THOUGHT_OF_NEUTRALTHOUGHTS,THOUGHT_OF_MUSIC,THOUGHT_OF_MONEY,THOUGHT_OF_REVENGE,THOUGHT_OF_DEATH};
@@ -64,7 +64,7 @@ const uint8_t sadThoughts[5] = {THOUGHT_OF_SADTHOUGHTS,THOUGHT_OF_HEARTBREAK,THO
 #define FOOD_PREFERENCE_ADDRESS 1
 
 // Creature identities
-#define NO_IDENTITY 255
+#define NO_IDENTITY 255u
 #define TAMO 0
 #define PORCINI 1
 #define BUG 2
@@ -106,10 +106,11 @@ class Tamo{
     void feel();
     void debugCheckMoodSprites();
 
+    void game();
+
     void setMoodSprite(uint8_t mood);
 
     void basicEmotion();
-    void wakeUp();
     void idle();
     void talk(uint8_t t);
     void poop();
@@ -174,33 +175,19 @@ void Tamo::body(){
 }
 
 void Tamo::feel(){
-  switch(mood){
-    case MOOD_RANDOM:
-      vibeCheck();
-      return;
-    case MOOD_POOPING:
-      poop();
-      return;
-    case MOOD_DEAD:
-      dead();
-      return;
-    case MOOD_BIRTH:
-      birth();
-      return;
-    case MOOD_SAD:
-      moodTime = 1000;
-      break;
-    case MOOD_ANGRY:
-    case MOOD_HAPPY:
-      moodTime = 300;
-      break;
-    case MOOD_NEUTRAL:
-    default:
-      moodTime = 500;
-      break;   
+  if(mood == MOOD_RANDOM)
+    vibeCheck();
+  else if(mood == MOOD_POOPING)
+    poop();
+  else if(mood == MOOD_DEAD)
+    dead();
+  else if(mood == MOOD_BIRTH)
+    birth();
+  else{
+    moodTime = 500;
+    setMoodSprite(mood);
+    basicEmotion();
   }
-  setMoodSprite(mood);
-  basicEmotion();
 }
 
 // cycle thru each identity and each emotion
@@ -227,10 +214,6 @@ void Tamo::idle(){
   setMoodSprite(MOOD_NEUTRAL);//set to a neutral sprite, even though you're not feeling neutral
   moodTime = 500;
   basicEmotion();
-}
-
-void Tamo::wakeUp(){
-
 }
 
 //don't call this! you need to set sprites to use it, so only call it from feel()
@@ -264,12 +247,13 @@ void Tamo::basicEmotion(){
 
 void Tamo::eat(){
   uint8_t currentFood = millis()%4;
-  const uint16_t * foodAnimations[] = {cheese_animation,cookie_animation,apple_animation,cig_animation};
+  const uint16_t * foodAnimations[] = {cheese_animation,whiskey_animation,apple_animation,cig_animation};
   sprite = Animation(SPRITESTARTX,0,16,16,foodAnimations[currentFood],5,FAST);
 
   lastTime = millis();
   sprite.showCurrentFrame();
-  while(LONG_PRESS){
+  while(!SINGLE_CLICK){
+    hardwareSleepCheck();
     readButtons();
     if(itsbeen(250)){
       // on
@@ -294,11 +278,12 @@ void Tamo::eat(){
 
     if(LONG_PRESS){
       oled.disableZoomIn();
-      oled.fadeOut(128);
-      oled.bitmap_from_spritesheet(0,0,64,4,mexican_flag_sprite);
+      oled.blink(32);
+      oled.bitmap_from_spritesheet(4,0,68,4,mexican_flag_sprite);
       while(!SINGLE_CLICK){ 
         readButtons();
       }
+      oled.disableFadeOutAndBlinking();
       oled.clear();
       oled.enableZoomIn();
       return;
@@ -412,6 +397,10 @@ void Tamo::birth(){
   //write the new identity into eeprom
   EEPROM.write(IDENTITY_ADDRESS,identity);
   lastTime = millis();//to prevent instant-talking
+  //reset health
+  health = 65535;
+  //tamo starts full
+  hunger = 0;
 }
 
 void Tamo::dead(){
@@ -430,6 +419,7 @@ void Tamo::dead(){
     sprite.update();
   }
   mood = MOOD_BIRTH;
+  birth();
 }
 void Tamo::talk(uint8_t t){
   uint8_t frameCount = 2;
@@ -477,7 +467,7 @@ void Tamo::setMoodSprite(uint8_t m){
       sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(SAD_SPRITE),2,MEDIUM);
       return;
     case MOOD_ANGRY:
-      sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(MAD_SPRITE),2,VVFAST);
+      sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(MAD_SPRITE),2,VFAST);
       return;
     case MOOD_HAPPY:
       sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(HAPPY_SPRITE),2,FAST);
@@ -557,11 +547,8 @@ void Tamo::vibeCheck(){
   }
 
   uint8_t currentState = OKAY_STATE;
-  //if very hungry, you're in a bad state
-  if(hunger == 255){
-    currentState = BAD_STATE;
-  }
-  else if(health > GOOD_HEALTH_THRESHOLD){
+
+ if(health > GOOD_HEALTH_THRESHOLD){
     currentState = GOOD_STATE;
   }
   else if(health > BAD_HEALTH_THRESHOLD){
@@ -593,16 +580,62 @@ void Tamo::vibeCheck(){
   }
   
   //if hungry, tamo thinks about food
-  if(hunger == 255)
+  if((hunger == 255))
     thought = THOUGHT_OF_FOOD;
-
-  if(charging()){
+  else if(charging())
     thought = THOUGHT_OF_CHARGING;
-  }
   
   //if you need to poop, there's a 1/3 chance you'll poop
   if(needsToPoop()){
     if(!(millis()%3))
       mood = MOOD_POOPING;
   }
+}
+
+//Small shooter game
+void Tamo::game(){
+  int8_t location = 0;
+  int8_t speed = 1;
+  oled.clear();
+  while(true){
+
+    //erase last target
+    oled.setCursor(location,0);
+		ssd1306_send_data_start();
+    ssd1306_send_data_byte(0);
+    ssd1306_send_stop();
+
+    //update location
+    location+=speed;
+    if(location>64 || location < 0)
+      speed = -speed;
+
+    //draw target
+    oled.setCursor(location,0);
+		ssd1306_send_data_start();
+    ssd1306_send_data_byte(255);
+    ssd1306_send_stop();
+
+    //draw gun
+    oled.setCursor(32,1);
+    ssd1306_send_data_start();
+    ssd1306_send_data_byte(255);
+    ssd1306_send_stop();
+
+    //read inputs
+    readButtons();
+
+    //if it's a hit, break!
+    if(SINGLE_CLICK){
+      if((abs(location - 32) < speed)){
+        mood = MOOD_HAPPY;
+        break;
+      }
+      else{
+        mood = MOOD_ANGRY;
+        break;
+      }
+    }
+  }
+  oled.clear();
 }
