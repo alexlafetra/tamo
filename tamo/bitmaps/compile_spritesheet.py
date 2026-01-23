@@ -17,7 +17,28 @@ definesString = ""
 # string holding the bytes
 dataString = ""
 
-# okay, got it. The way image2cpp works is it does a pass L-->R, taking one-byte deep (8px) vertical slices. Then it does another pass, going another layer deep. Annoying.
+# directory HAS to match something in this list to get compiled
+validSprites = [
+    # food
+    'cig',
+    'apple',
+    'cheese',
+    # creatures
+    'porcini',
+    'boto',
+    'tamo',
+    'bug',
+    # 'baby',
+    # moods
+    'poop',
+    'egg',
+    'dead',
+    'thoughts',
+    # misc
+    # 'custom_screen_image'
+]
+
+# The way image2cpp works is it does a pass L-->R, taking one-byte deep (8px) vertical slices. Then it does another pass, going another layer deep.
 # not using a flipped array here
 def pixelArrayToByteArray(pixelArray,w,h):
 
@@ -96,19 +117,29 @@ def compileBitmap(file,filename):
         dataString+=outputString
 
 def compileBitmaps(directory):
+
+    global validSprites
+
+    hasAlerted = False
+
     # iterate over each file in that folder and check if it's a bitmap
     for file in os.listdir(directory):
-        if os.path.isdir(directory+"/"+os.fsdecode(file)):
+        if file.endswith(".bmp") or file.endswith(".png"):
+            # get the directory (one level up) the file is in, and check if it's in the list
+            parentDir = directory.split('/')[-1]
+            if parentDir in validSprites:
+                if hasAlerted == False:
+                    hasAlerted = True
+                    print(f"\033[34mCompiling {parentDir}\033[0m")
+                compileBitmap(directory+'/'+file,file)
+            elif hasAlerted == False:
+                hasAlerted = True
+                print(f"\033[91mSkipping {parentDir}\033[0m")
+        # if it's a directory
+        elif os.path.isdir(directory+"/"+os.fsdecode(file)):
             # run fn recursively for the new file
             directoryPath = directory+"/"+os.fsdecode(file)
-            if(os.fsdecode(file).startswith('IGNORE')):
-                print(f"\033[34mSkipping {directoryPath}\033[0m")
-            else:
-                # green font
-                print(f"\033[34mCompiling {directoryPath}\033[0m")
-                compileBitmaps(directoryPath)
-        else:
-            compileBitmap(directory+'/'+file,file)
+            compileBitmaps(directoryPath)
         
     
 print("\033[33mCompiling bitmap images inside \'/bitmaps\' to byte arrays...\033[0m")

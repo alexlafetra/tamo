@@ -66,9 +66,9 @@ uint16_t readVcc() {
 
 //reading inputs
 void readButtons(){
-  uint8_t val = !(PINB & (1<<PB1));//check the value from the PB1 register
+  uint8_t val = (PINB & (1<<PB1));//check the value from the PB1 register
   //if the button is pressed
-  if(val){
+  if(!val){
     //if the button wasn't previously pressed, then it's a fresh press
     if(!BUTTON){
       if(millis()-timeOfLastButtonPress < 100){

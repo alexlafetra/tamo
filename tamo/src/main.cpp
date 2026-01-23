@@ -21,7 +21,7 @@ bool itsbeen(uint32_t time){
 
 //time (ms) before tamo sleeps
 // #define TIME_BEFORE_SLEEP 60000
-#define TIME_BEFORE_SLEEP 6000
+#define TIME_BEFORE_SLEEP 12000
 
 void hardwareSleepCheck(){
   if(itsbeen(TIME_BEFORE_SLEEP)){
@@ -35,10 +35,7 @@ uint16_t readVcc();
 #include "Tamo.cpp"
 
 Tamo tamo;
-
-void hardwareSleep(){
-  tamo.setStatusBit(IS_ASLEEP_BIT,true);
-
+void sleep(){
   //turn off OLED, LEDs
   oled.off();
   PORTB &= ~(1<<BOTTOM_LED_PIN);
@@ -47,6 +44,25 @@ void hardwareSleep(){
   // //https://bigdanzblog.wordpress.com/2014/08/10/attiny85-wake-from-sleep-on-pin-state-change-code-example/
   GIMSK |= _BV(PCIE);                     // Enable Pin Change Interrupts
   PCMSK |= _BV(PCINT1);                   // Use PB1 as interrupt pin
+}
+
+void wake(){
+  sleep_disable();                       // first thing after waking from sleep: disable sleep
+  PCMSK &= ~_BV(PCINT1);                  // Turn off PB1 interrupt
+  
+  //reset button states, so wakeup doesn't trigger anything
+  DOUBLE_CLICK = false;
+  SINGLE_CLICK = false;
+  LONG_PRESS = false;
+  lastTime = millis();
+
+  oled.on();//turn screen back on
+}
+
+void hardwareSleep(){
+  tamo.setStatusBit(IS_ASLEEP_BIT,true);
+
+  sleep();
 
   //set tamo into sleep mode
   //when the WDT interrupt finishes it goes to this line and tamo can go back to sleep
@@ -59,10 +75,7 @@ void hardwareSleep(){
     sleep_cpu();
   }
 
-  sleep_disable();                       // first thing after waking from sleep: disable sleep
-  PCMSK &= ~_BV(PCINT1);                  // Turn off PB1 interrupt
-  oled.on();//turn screen back on
-  lastTime = millis();
+  wake();
 }
 
 //Interrupt callback to wake Attiny back up
@@ -107,16 +120,8 @@ void setup() {
   
   //turn on/set up the screen
   initOled();
-
-
-  //run the birth interaction
-  tamo.birth();
-  //grab new emotion depending on health & batt state
-  tamo.vibeCheck();
 }
 
 void loop() {
-  // tamo.game();
   tamo.live();
-  // tamo.debugCheckMoodSprites();
 }
