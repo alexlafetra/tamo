@@ -275,6 +275,14 @@ const uint16_t egg_sprite[4] PROGMEM = {
 // 	whiskey_sprite_5
 // };
 
+const uint16_t penny_animation[5] PROGMEM = {
+	penny_sprite_1,
+	penny_sprite_2,
+	penny_sprite_3,
+	penny_sprite_4,
+	penny_sprite_5
+};
+
 const uint16_t cheese_animation[5] PROGMEM = {
 	cheese_sprite_1,
 	cheese_sprite_2,

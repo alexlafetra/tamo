@@ -19,6 +19,11 @@ bool itsbeen(uint32_t time){
   return((millis()-lastTime)>time);  
 }
 
+//returns a random number from 0 - range, exclusive
+uint8_t randomInt(uint8_t range){
+  return millis()%range;
+}
+
 //time (ms) before tamo sleeps
 // #define TIME_BEFORE_SLEEP 60000
 #define TIME_BEFORE_SLEEP 12000

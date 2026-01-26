@@ -23,6 +23,7 @@ validSprites = [
     'cig',
     'apple',
     'cheese',
+    'penny',
     # creatures
     'porcini',
     'boto',
