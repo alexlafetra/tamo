@@ -144,6 +144,7 @@ class Tamo{
     void dead();
     void birth();
     void baby();
+    void sleep();
     bool getStatusBit(uint8_t which);
     void setStatusBit(uint8_t which, bool state);
     bool needsToPoop(){return getStatusBit(NEEDS_TO_POOP_BIT);}
@@ -173,6 +174,25 @@ void Tamo::setStatusBit(uint8_t which, bool state){
 
 void Tamo::sleepCheck(){
   setStatusBit(IS_ASLEEP_BIT,itsbeen(TIME_BEFORE_SLEEP));
+}
+
+void Tamo::sleep(){
+
+  //set tamo into sleep mode
+  setStatusBit(IS_ASLEEP_BIT,true);
+  sleepHardware();
+
+  //when the WDT interrupt finishes it goes to this line and tamo can go back to sleep
+  while(isAsleep()){
+    //this sleep mode only leaves the WDT running (millis() won't update)
+    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+    //allows the CPU to go to sleep
+    sleep_enable();
+    //put the attiny to sleep
+    sleep_cpu();
+  }
+
+  wakeHardware();
 }
 
 const uint16_t * Tamo::getSprite(uint8_t whichSprite){
@@ -271,17 +291,15 @@ void Tamo::debugCheckMoodSprites(){
 }
 
 void Tamo::baby(){
-  //matters!
-  uint8_t whatYouFedTheBaby[3] = {0,0,0};
-  sprite = Animation(SPRITESTARTX+3,8,10,8,baby_idle_sprite,2,MEDIUM);
-  while(true){
-    readButtons();
-    if(LONG_PRESS && itsbeen(200)){
+  // sprite = Animation(SPRITESTARTX+3,8,10,8,baby_idle_sprite,2,MEDIUM);
+  // while(true){
+  //   readButtons();
+  //   if(LONG_PRESS && itsbeen(200)){
 
-      break;
-    }
-    hardwareSleepCheck();
-  }
+  //     break;
+  //   }
+  //   hardwareSleepCheck();
+  // }
 }
 
 void Tamo::idle(){
@@ -427,116 +445,6 @@ void Tamo::eat(){
   mood = MOOD_NEUTRAL;
 }
 
-/*
-void Tamo::eat(){
-  uint8_t currentFood = millis()%3;
-  const uint16_t * foodAnimations[] = {cheese_animation,apple_animation,cig_animation};
-  sprite = Animation(SPRITESTARTX,0,16,16,foodAnimations[currentFood],5,FAST);
-
-  lastTime = millis();
-  sprite.showCurrentFrame();
-  while(!SINGLE_CLICK){
-    hardwareSleepCheck();
-    readButtons();
-    if(itsbeen(250)){
-      // on
-      PORTB |= (1 << TOP_LED_PIN);
-    }
-    else{
-      // off
-      PORTB &= ~(1<<TOP_LED_PIN);
-    }
-    if(itsbeen(500)){
-      currentFood = (currentFood + 1)%4;
-      sprite = Animation(SPRITESTARTX,0,16,16,foodAnimations[currentFood],5,FAST);
-      sprite.showCurrentFrame();
-      lastTime = millis();
-    }
-  }
-  // off
-  PORTB &= ~(1<<TOP_LED_PIN);
-  uint8_t bite = 0;
-  while(true){
-    readButtons();
-
-    if(LONG_PRESS){
-      oled.disableZoomIn();
-      oled.blink(32);
-      oled.bitmap_from_spritesheet(4,0,68,4,mexican_flag_sprite);
-      while(!SINGLE_CLICK){ 
-        readButtons();
-      }
-      oled.disableFadeOutAndBlinking();
-      oled.clear();
-      oled.enableZoomIn();
-      return;
-    }
-
-    //when user presses a button, tamo takes a bite
-    //and the food sprite jumps
-    if(SINGLE_CLICK){
-      lastTime = millis();
-      //if it's not a cigarette
-      if(currentFood != 3){
-        if(!bite){
-          oled.clearEdges(SPRITESTARTX+5,0);
-        }
-        bite = 5;
-      }
-      if(sprite.currentFrame == 3){
-        sprite.nextFrame();
-        sprite.showCurrentFrame();
-        lastTime = millis();
-        while(millis() - lastTime < 300){}
-        break;
-      }
-      else{
-        sprite.nextFrame();
-      }
-    }
-    else{
-      if(bite){
-        oled.clearEdges(SPRITESTARTX,12);
-      }
-      bite = 0;
-    }
-    sprite.xCoord = SPRITESTARTX+bite;
-    sprite.showCurrentFrame();
-    hardwareSleepCheck();
-  }
-
-  uint8_t foodPreference = EEPROM.read(FOOD_PREFERENCE_ADDRESS);
-  if(foodPreference == NO_FOOD_PREFERENCE){
-    foodPreference = currentFood;
-    EEPROM.write(FOOD_PREFERENCE_ADDRESS,foodPreference);
-  }
-
-  //if it's not the right kind of food, tamo gets mad
-  if(currentFood != foodPreference){
-    sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(MAD_SPRITE),2,VFAST);
-  }
-  //if it is, he eats it
-  else{
-    //tamo eats
-    sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(EATING_SPRITE),2,VFAST);
-    while(sprite.loopCount < 4){
-      sprite.update();
-    }
-    sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(HAPPY_SPRITE),2,VFAST);
-    //recover health
-    health = (health<(65535-FOOD_HEALTH_RECOVERY))?(health+FOOD_HEALTH_RECOVERY):65535;
-    //reset hunger counter
-    hunger = 0;
-    //tamo needs to poop!
-    setStatusBit(NEEDS_TO_POOP_BIT,true);
-  }
-  while(sprite.loopCount < 4){
-    sprite.update();
-  }
-  lastTime = millis();
-}
-
-*/
 void Tamo::waitAndBlink(uint8_t speed){
   //wait for user input
   bool on = false;
@@ -576,7 +484,7 @@ void Tamo::waitAndPlayThruSprite(uint8_t speed,bool bounce){
         sprite.nextFrame();
         sprite.showCurrentFrame();
         lastTime = millis();
-        while(millis() - lastTime < 300){}
+        while(!itsbeen(300)){}
         oled.clearEdges(SPRITESTARTX,12);
         break;
       }
@@ -721,7 +629,7 @@ void Tamo::poop(){
     if(SINGLE_CLICK && itsbeen(400)){
       lastTime = millis();
       oled.bitmap_from_spritesheet2x(SPRITESTARTX,SPRITESTARTY,SPRITESTARTX+16,SPRITESTARTY+1,egg_sprite[3]);
-      while(millis() - lastTime < 400){}
+      while(!itsbeen(400)){}
       setStatusBit(NEEDS_TO_POOP_BIT,false);
       break;
     }
@@ -767,7 +675,7 @@ void Tamo::batteryCheck(){
 void Tamo::feel(){
   // if the sleep bit is set, fall asleep
   if(isAsleep()){
-    hardwareSleep();
+    sleep();
   }
 
   //if the smoke bit is set, smokebreak!

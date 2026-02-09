@@ -148,18 +148,14 @@ const uint16_t * porcini_spritesheet[6] = {
 		Baby
 */
 
-const uint16_t baby_idle_sprite[2] PROGMEM = {
-	porcini_sprite_sad_1,
-	porcini_sprite_sad_2
-};
-const uint16_t baby_sad_sprite[2] PROGMEM = {
-	porcini_sprite_mad_1,
-	porcini_sprite_mad_2
-};
-const uint16_t baby_mad_sprite[2] PROGMEM = {
-	porcini_sprite_happy_1,
-	porcini_sprite_happy_2
-};
+// const uint16_t baby_idle_sprite[2] PROGMEM = {
+// 	porcini_sprite_idle_1,
+// 	porcini_sprite_idle_2
+// };
+// const uint16_t baby_sad_sprite[2] PROGMEM = {
+// 	porcini_sprite_idle_1,
+// 	porcini_sprite_sad_2
+// };
 
 /*
 ----------------------------------

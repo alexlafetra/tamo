@@ -76,11 +76,11 @@ void Animation::nextFrame(){
   }
 }
 void Animation::update(){
+  showCurrentFrame();
   if(isNextFrameReady()){
     nextFrame();
     timeLastFramePlayed = millis();
   }
-  showCurrentFrame();
 }
 
 /*

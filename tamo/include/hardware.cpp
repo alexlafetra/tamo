@@ -8,7 +8,7 @@
 // these prob don't need to be volatile, since readButtons() isn't called from an interrupt
 volatile bool BUTTON = false;
 volatile bool LONG_PRESS = false;
-volatile bool DOUBLE_CLICK = false;
+// volatile bool DOUBLE_CLICK = false;
 volatile bool SINGLE_CLICK = false;
 
 volatile uint32_t timeOfLastButtonPress = 0;
@@ -45,25 +45,6 @@ uint16_t readVcc() {
   return result;
 }
 
-
-// void updateBreathLED(uint8_t LED){
-//   uint16_t value = (millis()/40)%128;
-//   if(value > 64){
-//     value = 128 - value;
-//   }
-//   if( value < 16){
-//     digitalWrite(LED,LOW);
-//   }
-//   else{
-//     value = (value)*2;
-//     analogWrite(LED,value);
-//   }
-// }
-
-// void talkingLED(){
-//   digitalWrite(TOP_LED_PIN,((millis()/200)%2)?HIGH:LOW);
-// }
-
 //reading inputs
 void readButtons(){
   uint8_t val = (PINB & (1<<PB1));//check the value from the PB1 register
@@ -71,15 +52,15 @@ void readButtons(){
   if(!val){
     //if the button wasn't previously pressed, then it's a fresh press
     if(!BUTTON){
-      if(millis()-timeOfLastButtonPress < 100){
-        // DOUBLE_CLICK = true;
-        LONG_PRESS = false;
+      // if(millis()-timeOfLastButtonPress < 100){
+      //   // DOUBLE_CLICK = true;
+      //   LONG_PRESS = false;
+      //   SINGLE_CLICK = false;
+      // }
+      // else{
+        // DOUBLE_CLICK = false;
         SINGLE_CLICK = false;
-      }
-      else{
-        DOUBLE_CLICK = false;
-        SINGLE_CLICK = false;
-      }
+      // }
       timeOfLastButtonPress = millis();
     }
     //turn on the LED
@@ -125,5 +106,34 @@ void initOled(){
   oled.on();
   oled.clear();
 }
+
+
+//time (ms) before tamo sleeps
+// #define TIME_BEFORE_SLEEP 60000
+#define TIME_BEFORE_SLEEP 12000
+
+void sleepHardware(){
+  //turn off OLED, LEDs
+  oled.off();
+  PORTB &= ~(1<<BOTTOM_LED_PIN);
+  PORTB &= ~(1<<TOP_LED_PIN);
+
+  // //https://bigdanzblog.wordpress.com/2014/08/10/attiny85-wake-from-sleep-on-pin-state-change-code-example/
+  GIMSK |= _BV(PCIE);                     // Enable Pin Change Interrupts
+  PCMSK |= _BV(PCINT1);                   // Use PB1 as interrupt pin
+}
+
+void wakeHardware(){
+  sleep_disable();                       // first thing after waking from sleep: disable sleep
+  PCMSK &= ~_BV(PCINT1);                  // Turn off PB1 interrupt
+  
+  //reset button states, so wakeup doesn't trigger anything
+  SINGLE_CLICK = false;
+  LONG_PRESS = false;
+  lastTime = millis();
+
+  oled.on();//turn screen back on
+}
+
 
 
