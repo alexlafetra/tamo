@@ -31,14 +31,14 @@ ISR(PCINT0_vect){
   tamo.setStatusBit(IS_ASLEEP_BIT,false);
 }
 
-// Watchdog timer interrupt to run tamo's health fn
+// Watchdog timer interrupt to run tamo's health/body updating fn
 ISR(WDT_vect) {
   tamo.body();
 }
 
 void setup() {
 
-  //disabling ADC (it's enabled when VCC is being measured)
+  //disabling ADC (it's enabled whenever tamo measures battery VCC, then disabled again)
   ADCSRA &= ~_BV(ADEN);
 
   /*

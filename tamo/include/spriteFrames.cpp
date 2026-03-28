@@ -81,7 +81,6 @@ const uint16_t * tamo_spritesheet[6] = {
 		Bug
 */
 
-
 const uint16_t bug_idle_sprite[2] PROGMEM = {
 	bug_sprite_idle_1,
 	bug_sprite_idle_2
@@ -110,6 +109,36 @@ const uint16_t * bug_spritesheet[6] = {
 	bug_happy_sprite,
 	bug_eating_sprite
 };
+
+// const uint16_t chuga_idle_sprite[2] PROGMEM = {
+// 	chuga_sprite_idle_1,
+// 	chuga_sprite_idle_2
+// };
+// const uint16_t chuga_eating_sprite[2] PROGMEM = {
+// 	chuga_sprite_eating_1,
+// 	chuga_sprite_eating_2,
+// };
+// const uint16_t chuga_sad_sprite[2] PROGMEM = {
+// 	chuga_sprite_sad_1,
+// 	chuga_sprite_sad_2
+// };
+// const uint16_t chuga_mad_sprite[2] PROGMEM = {
+// 	chuga_sprite_mad_1,
+// 	chuga_sprite_mad_2
+// };
+// const uint16_t chuga_happy_sprite[2] PROGMEM = {
+// 	chuga_sprite_happy_1,
+// 	chuga_sprite_happy_2
+// };
+
+// const uint16_t * chuga_spritesheet[6] = {
+// 	chuga_idle_sprite,
+// 	chuga_sad_sprite,
+// 	chuga_mad_sprite,
+// 	chuga_happy_sprite,
+// 	chuga_eating_sprite
+// };
+
 
 /*
 		Porcini

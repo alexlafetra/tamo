@@ -79,7 +79,7 @@ const uint8_t sadThoughts[5] = {THOUGHT_OF_SADTHOUGHTS,THOUGHT_OF_HEARTBREAK,THO
 #define FOOD_PREFERENCE_ADDRESS 1
 
 // Creature identities
-#define NO_IDENTITY 255u
+#define NO_IDENTITY 255
 #define TAMO 0
 #define PORCINI 1
 #define BUG 2
@@ -101,21 +101,20 @@ class Tamo{
     Tamo();
     Animation sprite;
     uint8_t mood = MOOD_BIRTH;
-    // uint8_t mood = MOOD_NEUTRAL;
     uint8_t thought = THOUGHT_OF_LOVE;
     int16_t moodTime = 0;
     uint8_t timeSinceLastCig = 0;
     uint8_t timeSinceLastTalk = 0;
     //status register (volatile so that sleep can be turned off from interrupts)
     volatile uint8_t status = 0b00000000;
-    uint8_t identity = 0;//which sprites to chose from
+    uint8_t identity = NO_IDENTITY;//which sprites to chose from
 
     /*
       health decreases every 8 seconds. Food resets it
     */
     volatile uint16_t health = 65535;//decreases by 6, so it lasts ~24 hrs. When tamo has pooped, decreases by 12
     volatile uint16_t hunger = 0;//increases up to 255, at which point tamo can eat. Every 34min
-    uint16_t healthAddress = 1;
+    // uint16_t healthAddress = 1;//test idea abt writing health to EEPROM, not sure
 
     bool isFeeling();
     void sleepCheck();
@@ -258,15 +257,9 @@ void Tamo::body(){
     if(mood == MOOD_POOPING){
       healthLoss = HEALTH_LOSS*2;
     }
-    int32_t tempHealth = health;
-    tempHealth -= healthLoss;
-    if(tempHealth < 0)
-      tempHealth = 0;
-    health = tempHealth;
-    //if tamo dies, set the death bit
+    health = (health < healthLoss) ? 0:(health - healthLoss);
+    //if tamo dies, set the death bit which is detected in vibecheck()
     setStatusBit(IS_DEAD_BIT,health == 0);
-    if(health == 0)
-      mood = MOOD_DEAD;
   }
 }
 
@@ -309,9 +302,7 @@ void Tamo::idle(){
 }
 
 void Tamo::smokingDamage(){
-  if(health > 1000)
-    health -= 1000;
-  else health = 0;
+  health = (health < 1000) ? 0 : (health - 1000);
 }
 
 //tamo sneaks a cigarette
@@ -443,6 +434,7 @@ void Tamo::eat(){
 
   lastTime = millis();
   mood = MOOD_NEUTRAL;
+  PORTB &= ~(1<<TOP_LED_PIN);
 }
 
 void Tamo::waitAndBlink(uint8_t speed){
@@ -517,9 +509,11 @@ void Tamo::birth(){
     }
     sprite.xCoord = SPRITESTARTX;
     sprite.showCurrentFrame();
+    //wait for button press
     waitAndBlink(200);
     if(isAsleep())
       return;
+    //wait for button press
     waitAndPlayThruSprite(200,true);
     if(isAsleep())
       return;
@@ -527,14 +521,25 @@ void Tamo::birth(){
     identity = randomInt(4);
     //write the new identity into eeprom
     EEPROM.write(IDENTITY_ADDRESS,identity);
+    lastTime = millis();//to prevent instant-talking
+    status = 0b00000000;//clear status bits
+    //reset health
+    health = 65535;
+    //tamo starts full
+    hunger = 0;
+    mood = MOOD_NEUTRAL;
+    // baby();
   }
-  lastTime = millis();//to prevent instant-talking
-  //reset health
-  health = 65535;
-  //tamo starts full
-  hunger = 0;
-  mood = MOOD_NEUTRAL;
-  // baby();
+  //if tamo is waking from a dead batt, or otherwise being depowered
+  else{
+    lastTime = millis();//to prevent instant-talking
+    status = 0b00000000;//clear status bits (replace this with EEPROM stored value?)
+    //reset health
+    health = 65535;
+    //tamo starts full
+    hunger = 0;
+    mood = MOOD_NEUTRAL;
+  }
 }
 
 void Tamo::dead(){
@@ -549,12 +554,12 @@ void Tamo::dead(){
   while(!isAsleep()){
     readButtons();
     sleepCheck();
+    sprite.update();
     if(SINGLE_CLICK && itsbeen(200)){
       lastTime = millis();
       mood = MOOD_BIRTH;
       break;
     }
-    sprite.update();
   }
   SINGLE_CLICK = false;
 }
@@ -667,8 +672,6 @@ void Tamo::batteryCheck(){
   uint16_t vcc = readVcc();
   setStatusBit(LOW_BATTERY_BIT,vcc > 400);
   setStatusBit(IS_CHARGING_BIT,vcc < 260);//assume tamo is plugged in, if vcc is this high
-
-  // printNumberString(String(vcc));
 }
 
 //function selecting which emotion loop to run based on tamo's mood
@@ -712,12 +715,18 @@ void Tamo::vibeCheck(){
 
   //if dead or being born or sleeping or eating, stay dead or being born or sleeping or eating
   //(these are all reset by their routines, and wait for user input)
-  if(mood == MOOD_DEAD || mood == MOOD_BIRTH || isAsleep() || getStatusBit(IS_DEAD_BIT) || mood == MOOD_EATING)
+  if(mood == MOOD_DEAD || mood == MOOD_BIRTH || isAsleep() || mood == MOOD_EATING)
     return;
 
-  if(health == 0 || getStatusBit(IS_DEAD_BIT)){
-    mood = MOOD_DEAD;
-    return;
+  if(getStatusBit(IS_DEAD_BIT)){
+    if(health == 0){
+      mood = MOOD_DEAD;
+      return;
+    }
+    //if, for some reason, health increased from 0 (like a last-minute feeding) then tamo revives
+    else{
+      setStatusBit(IS_DEAD_BIT,false);
+    }
   }
 
   uint8_t currentState = OKAY_STATE;
@@ -739,9 +748,7 @@ void Tamo::vibeCheck(){
 
   //always talk abt low batt if the batt is low
   if(lowBattery()){
-    thought = THOUGHT_OF_LOWBATTERY;
-    mood = MOOD_SAD;
-    return;
+    currentState = BAD_STATE;
   }
 
   //get your thought/mood based on your state
@@ -759,7 +766,9 @@ void Tamo::vibeCheck(){
   }
   
   //if hungry, tamo thinks about food
-  if((hunger == 255))
+  if(lowBattery())
+    thought = THOUGHT_OF_LOWBATTERY;
+  else if((hunger == 255))
     thought = THOUGHT_OF_FOOD;
   else if(isCharging())
     thought = THOUGHT_OF_CHARGING;

@@ -24,17 +24,21 @@ validSprites = [
     'apple',
     'cheese',
     'penny',
+
     # creatures
     'porcini',
     'boto',
     'tamo',
     'bug',
+    # 'chuga',
     # 'baby',
+
     # moods
     'poop',
     'egg',
     'dead',
     'thoughts',
+    
     # misc
     # 'custom_screen_image'
 ]
