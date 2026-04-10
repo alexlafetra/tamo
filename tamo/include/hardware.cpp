@@ -2,13 +2,13 @@
 #define TOP_LED_PIN PB3 //primary LED (blue)
 #define BOTTOM_LED_PIN PB4 //secondary LED
 
-#define LONG_PRESS_TIME 500;
-#define DOUBLE_CLICK_TIME 100;
+#define LONG_PRESS_TIME 500
+#define DOUBLE_CLICK_TIME 100
 
 // these prob don't need to be volatile, since readButtons() isn't called from an interrupt
 volatile bool BUTTON = false;
 volatile bool LONG_PRESS = false;
-// volatile bool DOUBLE_CLICK = false;
+volatile bool DOUBLE_CLICK = false;
 volatile bool SINGLE_CLICK = false;
 
 volatile uint32_t timeOfLastButtonPress = 0;
@@ -52,15 +52,13 @@ void readButtons(){
   if(!val){
     //if the button wasn't previously pressed, then it's a fresh press
     if(!BUTTON){
-      // if(millis()-timeOfLastButtonPress < 100){
-      //   // DOUBLE_CLICK = true;
-      //   LONG_PRESS = false;
-      //   SINGLE_CLICK = false;
-      // }
-      // else{
-        // DOUBLE_CLICK = false;
+      if((millis()-timeOfLastButtonPress) < (DOUBLE_CLICK_TIME)){
+        DOUBLE_CLICK = true;
+      }
+      else{
+        DOUBLE_CLICK = false;
         SINGLE_CLICK = false;
-      // }
+      }
       timeOfLastButtonPress = millis();
     }
     //turn on the LED
@@ -81,16 +79,19 @@ void readButtons(){
       //if it was held for a while, it's a long press
       if((millis() - timeOfLastButtonPress) > (500) ){
         LONG_PRESS = true;
+        DOUBLE_CLICK = false;
       }
       //if it wasn't, then it's a single click
       else{
         SINGLE_CLICK = true;
+        DOUBLE_CLICK = false;
       }
     }
     //if the button wasn't pressed down before, then don't do anything
     else{
       SINGLE_CLICK = false;
       LONG_PRESS = false;
+      DOUBLE_CLICK = false;
     }
     BUTTON = false;
   }

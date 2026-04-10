@@ -350,6 +350,10 @@ void Tamo::basicEmotion(){
       mood = MOOD_EATING;
       return;
     }
+    // if(DOUBLE_CLICK){
+    //   setStatusBit(IS_ASLEEP_BIT,true);
+    //   return;
+    // }
     //talk to tamo!
     if(SINGLE_CLICK && itsbeen(200)){
       //run vibecheck just to get the current thought
@@ -598,9 +602,13 @@ void Tamo::talk(uint8_t t){
   while((talkingSprite.loopCount<2 && !SINGLE_CLICK)){
     sprite.update();
     talkingSprite.update();
-    if(itsbeen(200)){
+    if(itsbeen(100)){
       readButtons();
     }
+    // if(DOUBLE_CLICK){
+    //   setStatusBit(IS_ASLEEP_BIT,true);
+    //   return;
+    // }
   }
   oled.clearEdges();//clear screen edges
   sprite.xCoord = SPRITESTARTX;//move sprite back
