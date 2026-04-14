@@ -43,6 +43,28 @@ validSprites = [
     # 'custom_screen_image'
 ]
 
+# use this one for the Adafruit GFX library
+def pixelArrayToByteArray_horizontal(pixelArray,w,h):
+
+    # array storing the packed bits
+    bArray = []
+    for y in range(0,h,1):
+        for x in range(0,w,8):
+            newByte = 0
+            for i in range(0,8,1):
+                bitVal = 0
+                if((x+i) > w):
+                    bitVal = 0
+                elif (x+i+y*w >= len(pixelArray)):
+                    bitVal = 0
+                else:
+                    bitVal = pixelArray[x+i+y*w]
+                newByte |= bitVal<<(7-i)
+            bArray.append(newByte)
+
+    return bArray
+
+# use this one for the tinyOLED library
 # The way image2cpp works is it does a pass L-->R, taking one-byte deep (8px) vertical slices. Then it does another pass, going another layer deep.
 # not using a flipped array here
 def pixelArrayToByteArray(pixelArray,w,h):

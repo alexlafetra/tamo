@@ -1,7 +1,36 @@
 
 //https://github.com/Lorandil/ATTiny85-optimization-guide?tab=readme-ov-file
 
-#include <TinyWireM.h>
+//pi pico UART bridge for programming:
+//https://github.com/Noltari/pico-uart-bridge
+
+// GPIO16 (Pin 21)	UART0 TX
+// GPIO17 (Pin 22)	UART0 RX
+// GPIO4 (Pin 6)	UART1 TX
+// GPIO5 (Pin 7)	UART1 RX
+
+/*
+notes on pins:
+
+PA7 -- Battery vcc
+
+PB0 -- screen SCL
+PB1 -- screen SDA
+
+PB2 -- UART TX
+PB3 -- UART RX
+
+PA6 -- DAC out / LED A
+PC0 -- LED B
+
+*/
+
+#define BUTTON_PIN PIN_PB3
+#define LED_A PIN_PA6
+#define LED_B PIN_PC0
+#define BATTERY_PIN PIN_PA7
+
+#include <Wire.h>
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
 #include <EEPROM.h>
@@ -21,51 +50,166 @@ uint8_t randomInt(uint8_t range){
 
 #include "spriteFrames.cpp"
 #include "display.cpp"
+#include <Wire.h>
+SSD1306Device oled;
+#include "wireframe/fbo.h"
+
+//this stores the active graphics area! which is half-res of the screen, sprites are drawn 2x
+FrameBuffer fbo(36,24);
+
+
+const Vertex verts[9] = {
+  //outline
+  Vertex(-2.5,-1.5,0),Vertex(2.5,-1.5,0),Vertex(2.5,1.5,0),Vertex(-2.5,1.5,0),
+  //triangle tip
+  Vertex(-1,0,0),
+  //stripes
+  Vertex(-1.25,-0.25,0),Vertex(2.5,-0.25,0),Vertex(-1.25,0.25,0),Vertex(2.5,0.25,0)
+};
+
+const uint8_t edges[8][2] = {
+  //rect
+  {0,1},{1,2},{2,3},{3,0},
+  //triangle
+  {0,4},{4,3},
+  //stripes
+  {5,6},{7,8}
+};
+
+WireFrame flag(9,verts,8,edges);
+
 #include "hardware.cpp"
 #include "Tamo.cpp"
 
 Tamo tamo;
 
 //Interrupt callback to wake Attiny back up
-ISR(PCINT0_vect){
+ISR(PORTB_PORT_vect) {
+  PORTB.INTFLAGS = PIN3_bm; // Clear interrupt flag for PIN 2
   tamo.setStatusBit(IS_ASLEEP_BIT,false);
 }
 
-// Watchdog timer interrupt to run tamo's health/body updating fn
-ISR(WDT_vect) {
+//RTC 'body()' timer interrupt to update tamo's health/state
+//taken from: https://github.com/SpenceKonde/megaTinyCore/blob/master/megaavr/extras/PowerSave.md#unused-pins-and-sleep-modes
+ISR(RTC_PIT_vect)
+{
+  RTC.PITINTFLAGS = RTC_PI_bm;          /* Clear interrupt flag by writing '1' (required) */
   tamo.body();
+}
+
+//initialize RTC
+//also taken from: https://github.com/SpenceKonde/megaTinyCore/blob/master/megaavr/extras/PowerSave.md#unused-pins-and-sleep-modes
+void RTC_init(void)
+{
+  /* Initialize RTC: */
+  while (RTC.STATUS > 0)
+  {
+    ;                                   /* Wait for all register to be synchronized */
+  }
+  RTC.CLKSEL = RTC_CLKSEL_INT32K_gc;    /* 32.768kHz Internal Ultra-Low-Power Oscillator (OSCULP32K) */
+
+  RTC.PITINTCTRL = RTC_PI_bm;           /* PIT Interrupt: enabled */
+
+  RTC.PITCTRLA = RTC_PERIOD_CYC32768_gc; /* 4Hz
+  | RTC_PITEN_bm;                       /* Enable PIT counter: enabled */
+}
+
+//important to do so you save power on sleep()
+void disconnectUnusedPins(){
+  //everything but the button pin and the ADC batt pin should be disabled
+  //led pins don't need to be disabled since they're set to output
+  //so everything except:
+  /*
+    PA7
+    PB0
+    PB1
+    PB2
+    PB3
+    PA6
+    PC0
+  */
+  const uint8_t unused_pins[] = {
+    //updi pin, doesn't need to be disconnected
+    // PIN_PA0,
+    PIN_PA1,
+    PIN_PA2,
+    // PIN_PA_3,
+    PIN_PA4,
+    PIN_PA5,
+    // PIN_PA6,
+    // PIN_PA7,
+    // PIN_PB0,
+    // PIN_PB1,
+    // PIN_PB2,
+    // PIN_PB3,
+    PIN_PB4,
+    PIN_PB5,
+    PIN_PB6,
+    PIN_PB7,
+    // PIN_PC0,
+    PIN_PC1,
+    PIN_PC2,
+    PIN_PC3,
+    PIN_PC4,
+    PIN_PC5
+  };
+  for(uint8_t i = 0; i<sizeof(unused_pins); i++){
+    pinMode(unused_pins[i],OUTPUT);
+  }
 }
 
 void setup() {
 
-  //disabling ADC (it's enabled whenever tamo measures battery VCC, then disabled again)
-  ADCSRA &= ~_BV(ADEN);
-
-  /*
-      Initializing button
-  */
-  DDRB &= ~(1 << PB1); // Set the button pin PB1 as input (main button)
-  PORTB |= (1 << PB1);  //activate pull-up resistor for PB1 (main button connects PB1 to GND)
-
   /*
       Turning on LED controls
   */
-  DDRB |= ( 1 << PB3 );  //set led2 pin to output
-  DDRB |= ( 1 << PB4 );  //set led pin to output
+  pinMode(LED_A,OUTPUT);
+  pinMode(LED_B,OUTPUT);
+  pinMode(BATTERY_PIN,INPUT);
+  /*
+    Initializing button
+  */
+  pinMode(BUTTON_PIN,INPUT_PULLUP);
+
+  //set pin change interrupt on the button pin
+  //from: https://github.com/SpenceKonde/megaTinyCore/blob/master/megaavr/extras/Ref_PinInterrupts.md
+  PORTB.PIN3CTRL|= 0x01; //ISC = 1 trigger both          <--- Change if no PORTB
+
+  //set floating pins to OUTPUT (to save power during sleep)
+  disconnectUnusedPins();
+
+  //disabling ADC (it's enabled whenever tamo measures battery VCC, then disabled again)
+  // ADCSRA &= ~_BV(ADEN);
+
+  //this sleep mode only leaves the RTC running, and it's the one that saves the most energy
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+  //allows the CPU to go to sleep
+  sleep_enable();
 
   /*
       Turning on watchdog timer
   */
-  WDTCR = (1 << WDCE) | (1 << WDE); // Enable changes to WDT
-  WDTCR = (1 << WDP3) | (1 << WDP0) | (1 << WDIE); // Set prescaler to 1s and enable interrupt
+  RTC_init();
 
   // Enable global interrupts
   sei();
   
   //turn on/set up the screen
-  initOled();
+  oled.begin(72, 40);
+
+  //wireframe testing
+  flag.scale = 3.0;
+  flag.xPos = 16;
+  flag.yPos = 8;
+  flag.rotate(15,0);
 }
 
 void loop() {
-  tamo.live();
+
+  // tamo.live();
+  tamo.poop();
+  // flag.rotate(4,1);
+  // fbo.clear();
+  // fbo.renderWireFrame(flag,1);
+  // oled.renderFBO2x(4,0,36,3,fbo.buffer);
 }

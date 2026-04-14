@@ -7,15 +7,15 @@
  * Based on ssd1306xled, re-written and extended by Stephen Denne
  * from 2017-04-25 at https://github.com/datacute/Tiny4kOLED
  *
- * This file adds support for the I2C implementation from https://github.com/adafruit/TinyWireM
+ * This file adds support for the I2C implementation from https://github.com/adafruit/Wire
  * Adafruit's version has a buffer overrun bugfix.
  * The bug resulted in the appearance of extra dots onscreen.
  */
-#ifndef TINY4KOLED_TINYWIREM_H
-#define TINY4KOLED_TINYWIREM_H
+#ifndef TINY4KOLED_Wire_H
+#define TINY4KOLED_Wire_H
 #endif
 
-// #include <TinyWireM.h>
+#include <Wire.h>
 /*
  * Tiny4kOLED - Drivers for SSD1306 controlled dot matrix OLED/PLED 128x32 displays
  *
@@ -46,10 +46,9 @@
 class SSD1306Device {
 
 	public:
-		SSD1306Device(void (*wireBeginFunc)(void), bool (*wireBeginTransmissionFunc)(void), bool (*wireWriteFunc)(uint8_t byte), uint8_t (*wireEndTransmissionFunc)(void));
-		void begin(uint8_t init_sequence_length, const uint8_t init_sequence []);
-		void begin(uint8_t width, uint8_t height, uint8_t init_sequence_length, const uint8_t init_sequence []);
-		void begin(uint8_t xOffset, uint8_t yOffset, uint8_t width, uint8_t height, uint8_t init_sequence_length, const uint8_t init_sequence []);
+		SSD1306Device(){}
+		void begin();
+		void begin(uint8_t width, uint8_t height);
 		void switchRenderFrame(void);
 		void switchDisplayFrame(void);
 		void switchFrame(void);
@@ -58,11 +57,9 @@ class SSD1306Device {
 		void setCombineFunction(uint8_t (*combineFunc)(uint8_t, uint8_t, uint8_t));
 		void setCursor(uint8_t x, uint8_t y);
 		void fill(uint8_t fill);
-		void fillToEOL(uint8_t fill);
 		void fillToEOP(uint8_t fill);
 		void fillLength(uint8_t fill, uint8_t length);
 		void clear(void);
-		void clearToEOL(void);
 		void clearToEOP(void);
 		void bitmap(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t bitmap[]);
 		void bitmap(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint8_t bitmap[]);
@@ -95,18 +92,6 @@ class SSD1306Device {
 		void setInternalIref(bool bright);
 		void off(void);
 		void on(void);
-
-		// 2. Scrolling Command Table
-
-		void scrollRight(uint8_t startPage, uint8_t interval, uint8_t endPage, uint8_t startColumn = 0x00, uint8_t endColumn = 0xFF);
-		void scrollLeft(uint8_t startPage, uint8_t interval, uint8_t endPage, uint8_t startColumn = 0x00, uint8_t endColumn = 0xFF);
-		void scrollRightOffset(uint8_t startPage, uint8_t interval, uint8_t endPage, uint8_t offset);
-		void scrollLeftOffset(uint8_t startPage, uint8_t interval, uint8_t endPage, uint8_t offset);
-		void scrollContentRight(uint8_t startPage, uint8_t endPage, uint8_t startColumn, uint8_t endColumn);
-		void scrollContentLeft(uint8_t startPage, uint8_t endPage, uint8_t startColumn, uint8_t endColumn);
-		void deactivateScroll(void);
-		void activateScroll(void);
-		void setVerticalScrollArea(uint8_t top, uint8_t rows);
 
 		// 3. Addressing Setting Command Table
 		void setColumnStartAddress(uint8_t startAddress);
@@ -143,59 +128,9 @@ class SSD1306Device {
 
 		void enableChargePump(uint8_t voltage = SSD1306_VOLTAGE_7_5);
 		void disableChargePump(void);
-
-		// Custom
-
-		/*
-		Clears area to the right and left of main sprite
-		so you don't need to do a full screen clear when switching
-		between different sprites
-		*/
-
-		void clearEdges(uint8_t L, uint8_t R){
-			setCursor(0,0);
-			fillLength(0,L);
-			setCursor(0,1);
-			fillLength(0,L);
-
-			//right side
-			setCursor(64-R,0);
-			fillLength(0,64-R);
-			setCursor(64-R,1);
-			fillLength(0,64-R);
-		}
-		void clearEdges(){
-			clearEdges(20,20);
-		}
 };
 
 // ----------------------------------------------------------------------------
-
-static const uint8_t tiny4koled_init_defaults [] PROGMEM = {	// Initialization Sequence
-	0xAE,			// Display OFF (sleep mode)
-	0x20, 0b00,		// Set Memory Addressing Mode
-					// 00=Horizontal Addressing Mode; 01=Vertical Addressing Mode;
-					// 10=Page Addressing Mode (RESET); 11=Invalid
-	0xB0,			// Set Page Start Address for Page Addressing Mode, 0-7
-	0xC0,			// Set COM Output Scan Direction
-	0x00,			// Set low nibble of column address
-	0x10,			// Set high nibble of column address
-	0x40,			// Set display start line address
-	0x81, 0x7F,		// Set contrast control register
-	0xA0,			// Set Segment Re-map. A0=column 0 mapped to SEG0; A1=column 127 mapped to SEG0.
-	0xA6,			// Set display mode. A6=Normal; A7=Inverse
-	0xA8, 0x3F,		// Set multiplex ratio(1 to 64)
-	0xA4,			// Output RAM to Display
-					// 0xA4=Output follows RAM content; 0xA5,Output ignores RAM content
-	0xD3, 0x00,		// Set display offset. 00 = no offset
-	0xD5, 0x80,		// --set display clock divide ratio/oscillator frequency
-	0xD9, 0x22,		// Set pre-charge period
-	0xDA, 0x12,		// Set com pins hardware configuration
-	0xDB, 0x20,		// --set vcomh 0x20 = 0.77xVcc
-	0xAD, 0x00,		// Select external IREF. 0x10 or 0x30 for Internal current reference at 19uA or 30uA
-	0x8D, 0x10		// Set DC-DC disabled
-};
-
 
 // Initialization sequence for bright rotated 72 x 40 screen
 static const uint8_t tiny4koled_init_72x40br [] PROGMEM = {
@@ -208,50 +143,45 @@ static const uint8_t tiny4koled_init_72x40br [] PROGMEM = {
 
 #endif
 
-#ifndef DATACUTE_I2C_TINYWIREM
-#define DATACUTE_I2C_TINYWIREM
-
-static bool datacute_write_tinywirem(uint8_t byte) {
-	return TinyWireM.write(byte);
+static bool datacute_write_Wire(uint8_t byte) {
+	return Wire.write(byte);
 }
 
-static uint8_t datacute_read_tinywirem(void) __attribute__((unused));
-static uint8_t datacute_read_tinywirem(void) {
-	return TinyWireM.read();
+static uint8_t datacute_read_Wire(void) __attribute__((unused));
+static uint8_t datacute_read_Wire(void) {
+	return Wire.read();
 }
 
-static void datacute_end_read_tinywirem(void) __attribute__((unused));
-static void datacute_end_read_tinywirem(void) {}
+static void datacute_end_read_Wire(void) __attribute__((unused));
+static void datacute_end_read_Wire(void) {}
 
-static uint8_t datacute_endTransmission_tinywirem(void) {
-	return TinyWireM.endTransmission();
+static uint8_t datacute_endTransmission_Wire(void) {
+	return Wire.endTransmission();
 }
 
-#endif
-
-static bool tiny4koled_beginTransmission_tinywirem(void) {
-	TinyWireM.beginTransmission(SSD1306);
+static bool tiny4koled_beginTransmission_Wire(void) {
+	Wire.beginTransmission(SSD1306);
 	return true;
 }
 
 #ifndef TINY4KOLED_QUICK_BEGIN
-static bool tiny4koled_check_tinywirem(void) {
+static bool tiny4koled_check_Wire(void) {
 	const uint8_t noError = 0x00;
-	tiny4koled_beginTransmission_tinywirem();
-	return (datacute_endTransmission_tinywirem()==noError);
+	tiny4koled_beginTransmission_Wire();
+	return (datacute_endTransmission_Wire()==noError);
 }
 #endif
 
-static void tiny4koled_begin_tinywirem(void) {
-	TinyWireM.begin();
+static void tiny4koled_begin_Wire(void) {
+	Wire.begin();
 #ifndef TINY4KOLED_QUICK_BEGIN
-	while (!tiny4koled_check_tinywirem()) {
+	while (!tiny4koled_check_Wire()) {
 		// delay(10);
 	}
 #endif
 }
 
-SSD1306Device oled(&tiny4koled_begin_tinywirem, &tiny4koled_beginTransmission_tinywirem, &datacute_write_tinywirem, &datacute_endTransmission_tinywirem);
+// SSD1306Device oled(&tiny4koled_begin_Wire, &tiny4koled_beginTransmission_Wire, &datacute_write_Wire, &datacute_endTransmission_Wire);
 
 /*
  * Tiny4kOLED - Drivers for SSD1306 controlled dot matrix OLED/PLED 128x32 displays
@@ -262,8 +192,6 @@ SSD1306Device oled(&tiny4koled_begin_tinywirem, &tiny4koled_beginTransmission_ti
  */
 
 // ----------------------------------------------------------------------------
-
-// #include "Tiny4kOLED_common.h"
 
 #define SSD1306_COLUMNS 128
 #define SSD1306_PAGES 4
@@ -280,28 +208,20 @@ static uint8_t oledPages = SSD1306_PAGES;
 static uint8_t oledX = 0, oledY = 0;
 static uint8_t renderingFrame = 0xB0, drawingFrame = 0x40;
 
-static void (*wireBeginFn)(void);
-static bool (*wireBeginTransmissionFn)(void);
-static bool (*wireWriteFn)(uint8_t byte);
-static uint8_t (*wireEndTransmissionFn)(void);
-
-// static uint8_t (*combineFn)(uint8_t x, uint8_t y, uint8_t b) = 0;
-// static uint8_t writesSinceSetCursor = 0;
-
 static void ssd1306_begin(void) {
-	wireBeginFn();
+	tiny4koled_begin_Wire();
 }
 
 static void ssd1306_send_start(void) {
-	wireBeginTransmissionFn();
+	tiny4koled_beginTransmission_Wire();
 }
 
 static bool ssd1306_send_byte(uint8_t byte) {
-	return wireWriteFn(byte);
+	return datacute_write_Wire(byte);
 }
 
 static void ssd1306_send_stop(void) {
-	wireEndTransmissionFn();
+	datacute_endTransmission_Wire();
 }
 
 static void ssd1306_send_command_start(void) {
@@ -313,14 +233,6 @@ static void ssd1306_send_data_start(void) {
 	ssd1306_send_start();
 	ssd1306_send_byte(SSD1306_DATA);
 }
-
-// static void ssd1306_send_command_byte(uint8_t byte) {
-// 	if (ssd1306_send_byte(byte) == 0) {
-// 		ssd1306_send_stop();
-// 		ssd1306_send_command_start();
-// 		ssd1306_send_byte(byte);
-// 	}
-// }
 
 static void ssd1306_send_data_byte(uint8_t byte) {
 	// if (combineFn) byte = (*combineFn)(oledX + writesSinceSetCursor, oledY, byte);
@@ -353,64 +265,28 @@ static void ssd1306_send_command3(uint8_t command1, uint8_t command2, uint8_t co
 	ssd1306_send_stop();
 }
 
-static void ssd1306_send_command6(uint8_t command1, uint8_t command2, uint8_t command3, uint8_t command4, uint8_t command5, uint8_t command6) {
-	ssd1306_send_command_start();
-	ssd1306_send_byte(command1);
-	ssd1306_send_byte(command2);
-	ssd1306_send_byte(command3);
-	ssd1306_send_byte(command4);
-	ssd1306_send_byte(command5);
-	ssd1306_send_byte(command6);
-	ssd1306_send_stop();
-}
-
-static void ssd1306_send_command7(uint8_t command1, uint8_t command2, uint8_t command3, uint8_t command4, uint8_t command5, uint8_t command6, uint8_t command7) {
-	ssd1306_send_command_start();
-	ssd1306_send_byte(command1);
-	ssd1306_send_byte(command2);
-	ssd1306_send_byte(command3);
-	ssd1306_send_byte(command4);
-	ssd1306_send_byte(command5);
-	ssd1306_send_byte(command6);
-	ssd1306_send_byte(command7);
-	ssd1306_send_stop();
-}
-
-// static uint8_t invertByte(uint8_t x, uint8_t y, uint8_t byte) {
-// 	return byte ^ 0xff;
-// }
-
-SSD1306Device::SSD1306Device(void (*wireBeginFunc)(void), bool (*wireBeginTransmissionFunc)(void), bool (*wireWriteFunc)(uint8_t byte), uint8_t (*wireEndTransmissionFunc)(void)) {
-	wireBeginFn = wireBeginFunc;
-	wireBeginTransmissionFn = wireBeginTransmissionFunc;
-	wireWriteFn = wireWriteFunc;
-	wireEndTransmissionFn = wireEndTransmissionFunc;
-}
-
-void SSD1306Device::begin(uint8_t init_sequence_length, const uint8_t init_sequence []) {
+void SSD1306Device::begin(){
 	ssd1306_begin();
 
 	ssd1306_send_command_start();
-	for (uint8_t i = 0; i < init_sequence_length; i++) {
-		ssd1306_send_data_byte(pgm_read_byte(&init_sequence[i]));
+	for (uint8_t i = 0; i < 8; i++) {
+		ssd1306_send_data_byte(pgm_read_byte(&tiny4koled_init_72x40br[i]));
 	}
 	ssd1306_send_stop();
+
+	// zoom the oled in
+	enableZoomIn();//Need this so the sprites aren't all weird
+	setRotation(2);//flip display upside-down
+	on();
+	clear();
 }
 
-void SSD1306Device::begin(uint8_t width, uint8_t height, uint8_t init_sequence_length, const uint8_t init_sequence []) {
+void SSD1306Device::begin(uint8_t width, uint8_t height) {
 	oledOffsetX = (128 - width) >> 1;
 	oledOffsetY = 0;
 	oledWidth = width;
 	oledPages = height >> 3;
-	begin(init_sequence_length,init_sequence);
-}
-
-void SSD1306Device::begin(uint8_t xOffset, uint8_t yOffset, uint8_t width, uint8_t height, uint8_t init_sequence_length, const uint8_t init_sequence []) {
-	oledOffsetX = xOffset;
-	oledOffsetY = yOffset >> 3;
-	oledWidth = width;
-	oledPages = height >> 3;
-	begin(init_sequence_length,init_sequence);
+	begin();
 }
 
 void SSD1306Device::setPages(uint8_t pages) {
@@ -485,6 +361,7 @@ void SSD1306Device::bitmap(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1,  uint
 	}
 	setCursor(0, 0);
 }
+
 void SSD1306Device::renderFBO(uint8_t x0, uint8_t y0, uint8_t w, uint8_t h,  uint8_t* bitmap) {
 	uint16_t j = 0;
  	for (uint8_t y = 0; y <= h; y++) {
@@ -497,6 +374,7 @@ void SSD1306Device::renderFBO(uint8_t x0, uint8_t y0, uint8_t w, uint8_t h,  uin
 	}
 	setCursor(0, 0);
 }
+
 void SSD1306Device::renderFBO2x(uint8_t x0, uint8_t y0, uint8_t w, uint8_t h,  uint8_t* bitmap) {
 	uint16_t j = 0;
  	for (uint8_t y = 0; y <= h; y++) {
@@ -528,18 +406,19 @@ void SSD1306Device::bitmap2x(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, con
 	setCursor(0, 0);
 }
 
-void SSD1306Device::bitmap_from_spritesheet2x(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint16_t offset) {
-	bitmap_from_spritesheet(x0,y0,x1,y1,offset,true);
+void SSD1306Device::bitmap_from_spritesheet2x(uint8_t x0, uint8_t y0, uint8_t w, uint8_t h, uint16_t offset) {
+	bitmap_from_spritesheet(x0,y0,w,h,offset,true);
 }
-void SSD1306Device::bitmap_from_spritesheet(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint16_t offset) {
-	bitmap_from_spritesheet(x0,y0,x1,y1,offset,false);
+void SSD1306Device::bitmap_from_spritesheet(uint8_t x0, uint8_t y0, uint8_t w, uint8_t h, uint16_t offset) {
+	bitmap_from_spritesheet(x0,y0,w,h,offset,false);
 }
-void SSD1306Device::bitmap_from_spritesheet(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint16_t offset, bool twoTimesScale) {
+void SSD1306Device::bitmap_from_spritesheet(uint8_t x0, uint8_t y0, uint8_t w, uint8_t h, uint16_t offset, bool twoTimesScale) {
 	uint16_t j = 0;
+	uint16_t y1 = abs(y0 - h)/8;
  	for (uint8_t y = y0; y <= y1; y++) {
 		setCursor(x0,y);
 		ssd1306_send_data_start();
-		for (uint8_t i = 0; i < (x1-x0); i++) {
+		for (uint8_t i = 0; i < w; i++) {
 			ssd1306_send_data_byte(pgm_read_byte(&spritesheet[j+offset]));
 			if(twoTimesScale)
 				ssd1306_send_data_byte(pgm_read_byte(&spritesheet[j+offset]));
@@ -551,17 +430,18 @@ void SSD1306Device::bitmap_from_spritesheet(uint8_t x0, uint8_t y0, uint8_t x1, 
 }
 
 
-void SSD1306Device::overlayBitmap2x(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, const uint8_t bitmapA[], uint8_t offsetX, uint8_t offsetY, uint8_t widthB, uint8_t heightB, const uint8_t bitmapB[]){
+void SSD1306Device::overlayBitmap2x(uint8_t x0, uint8_t y0, uint8_t w, uint8_t h, const uint8_t bitmapA[], uint8_t offsetX, uint8_t offsetY, uint8_t widthB, uint8_t heightB, const uint8_t bitmapB[]){
 	// int8_t width = x1-x0;
 	// if(width<=0)
 	// 	return;
 	uint8_t j = 0;
 	uint8_t jB = 0;
+	uint16_t y1 = abs(y0 - h)/8;
 
  	for (uint8_t y = y0; y <= y1; y++) {
 		setCursor(x0,y);
 		ssd1306_send_data_start();
-		for (uint8_t i = 0; i < (x1-x0); i++) {
+		for (uint8_t i = 0; i < w; i++) {
 			uint8_t byteA = pgm_read_byte(&bitmapA[j]);
 			if(i>=offsetX && i<(offsetX+widthB) && y>=(offsetY/8) && y<((heightB+offsetY)/8)){
 				uint8_t byteB = pgm_read_byte(&bitmapB[jB]);
@@ -578,15 +458,18 @@ void SSD1306Device::overlayBitmap2x(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t 
 	}
 	setCursor(0, 0);
 }
-void SSD1306Device::overlay_bitmap_from_spritesheet2x(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1, uint16_t bitmapA_offset, uint8_t offsetX, uint8_t offsetY, uint8_t widthB, uint8_t heightB, uint16_t bitmapB_offset){
+
+void SSD1306Device::overlay_bitmap_from_spritesheet2x(uint8_t x0, uint8_t y0, uint8_t w, uint8_t h, uint16_t bitmapA_offset, uint8_t offsetX, uint8_t offsetY, uint8_t widthB, uint8_t heightB, uint16_t bitmapB_offset){
 
 	uint8_t j = 0;
 	uint8_t jB = 0;
 
+	uint16_t y1 = abs(y0 - h)/8;
+
  	for (uint8_t y = y0; y <= y1; y++) {
 		setCursor(x0,y);
 		ssd1306_send_data_start();
-		for (uint8_t i = 0; i < (x1-x0); i++) {
+		for (uint8_t i = 0; i < w; i++) {
 			uint8_t byteA = pgm_read_byte(&spritesheet[j+bitmapA_offset]);
 			if(i>=offsetX && i<(offsetX+widthB) && y>=(offsetY/8) && y<((heightB+offsetY)/8)){
 				uint8_t byteB = pgm_read_byte(&spritesheet[jB+bitmapB_offset]);
@@ -703,44 +586,6 @@ void SSD1306Device::off(void) {
 
 void SSD1306Device::on(void) {
 	ssd1306_send_command(0xAF);
-}
-
-// 2. Scrolling Command Table
-
-void SSD1306Device::scrollRight(uint8_t startPage, uint8_t interval, uint8_t endPage, uint8_t startColumn, uint8_t endColumn) {
-	ssd1306_send_command7(0x26, 0x00, startPage + oledOffsetY, interval, endPage + oledOffsetY, startColumn, endColumn);
-}
-
-void SSD1306Device::scrollLeft(uint8_t startPage, uint8_t interval, uint8_t endPage, uint8_t startColumn, uint8_t endColumn) {
-	ssd1306_send_command7(0x27, 0x00, startPage + oledOffsetY, interval, endPage + oledOffsetY, startColumn, endColumn);
-}
-
-void SSD1306Device::scrollRightOffset(uint8_t startPage, uint8_t interval, uint8_t endPage, uint8_t offset) {
-	ssd1306_send_command6(0x29, 0x00, startPage + oledOffsetY, interval, endPage + oledOffsetY, offset);
-}
-
-void SSD1306Device::scrollLeftOffset(uint8_t startPage, uint8_t interval, uint8_t endPage, uint8_t offset) {
-	ssd1306_send_command6(0x2A, 0x00, startPage + oledOffsetY, interval, endPage + oledOffsetY, offset);
-}
-
-void SSD1306Device::scrollContentRight(uint8_t startPage, uint8_t endPage, uint8_t startColumn, uint8_t endColumn) {
-	ssd1306_send_command7(0x2C, 0x00, startPage + oledOffsetY, 0x01, endPage + oledOffsetY, startColumn + oledOffsetX, endColumn + oledOffsetX);
-}
-
-void SSD1306Device::scrollContentLeft(uint8_t startPage, uint8_t endPage, uint8_t startColumn, uint8_t endColumn) {
-	ssd1306_send_command7(0x2D, 0x00, startPage + oledOffsetY, 0x01, endPage + oledOffsetY, startColumn + oledOffsetX, endColumn + oledOffsetX);
-}
-
-void SSD1306Device::deactivateScroll(void) {
-	ssd1306_send_command(0x2E);
-}
-
-void SSD1306Device::activateScroll(void) {
-	ssd1306_send_command(0x2F);
-}
-
-void SSD1306Device::setVerticalScrollArea(uint8_t top, uint8_t rows) {
-	ssd1306_send_command3(0xA3, top, rows);
 }
 
 // 3. Addressing Setting Command Table

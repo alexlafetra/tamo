@@ -1,6 +1,6 @@
 
 
-class Animation{
+class Sprite{
   public:
     //number of times the anim has looped
     uint8_t loopCount = 0;
@@ -28,59 +28,71 @@ class Animation{
 
     //draws current frame to the screen
     void showCurrentFrame();
+    void showCurrentFrame(bool clearScreen,bool updateDisplay);
 
     void nextFrame();
 
     //combines isNextFrameReady() and showCurrentFrame() and nextFrame()
     void update();
+    void update(bool clearScreen, bool updateDisplay);
 
     bool hasPlayedAtLeastOnce();
 
     //ptr to the frame data
     const uint16_t * frames;
 
-    Animation(){};
-    Animation(int16_t x1, int16_t y1, uint16_t w, uint16_t h, const uint16_t* buffer, uint16_t frameCount, uint32_t frameRate){
+    Sprite(){};
+    Sprite(int16_t x1, int16_t y1, uint16_t w, uint16_t h, const uint16_t* buffer, uint16_t frameCount, uint32_t frameRate){
       numberOfFrames = frameCount;
       msPerFrame = frameRate;
       //store pointer to the sprite offsets (this pointer is an array of offsets)
       frames = buffer;
       xCoord = x1;
-      yCoord = y1/8;
+      yCoord = y1;
       width = w;
       height = h;
     } __attribute__((noinline));
 };
 
-bool Animation::hasPlayedAtLeastOnce(){
+bool Sprite::hasPlayedAtLeastOnce(){
   return loopCount;
 }
 //returns TRUE if it's been enough time for the next frame to be shown
-bool Animation::isNextFrameReady(){
-  if(millis()-timeLastFramePlayed>=msPerFrame){
+bool Sprite::isNextFrameReady(){
+  if(millis()-timeLastFramePlayed>msPerFrame){
     return true;
   }
   else{
     return false;
   }
 }
-void Animation::showCurrentFrame(){
-  oled.bitmap_from_spritesheet2x(xCoord,yCoord,xCoord+width,yCoord+height/16,pgm_read_word(&frames[currentFrame]));
+void Sprite::showCurrentFrame(bool clearScreen,bool updateDisplay){
+  if(clearScreen)
+    fbo.clear();
+  fbo.bitmap_from_spritesheet(xCoord,yCoord,width,height,pgm_read_word(&frames[currentFrame]));
+  if(updateDisplay)
+    oled.renderFBO2x(4,0,36,3,fbo.buffer);
+}
+void Sprite::showCurrentFrame(){
+  showCurrentFrame(true,true);
 }
 
-void Animation::nextFrame(){
+void Sprite::nextFrame(){
   currentFrame++;
   if(currentFrame>=numberOfFrames){
     currentFrame = 0;
     loopCount++;
   }
 }
-void Animation::update(){
+void Sprite::update(bool clearScreen, bool updateDisplay){
   if(isNextFrameReady()){
     nextFrame();
     timeLastFramePlayed = millis();
   }
-  showCurrentFrame();
+  showCurrentFrame(clearScreen,updateDisplay);
+}
+void Sprite::update(){
+  update(true,true);
 }
 
 /*
@@ -89,10 +101,10 @@ small icons are 7x7
 so they need to be offset by (5,4)
 */
 
-class TalkingAnimation:public Animation{
+class TalkingSprite:public Sprite{
   public:
-  TalkingAnimation(){}
-  TalkingAnimation(int16_t x1, int16_t y1, uint16_t w, uint16_t h, const uint16_t* buffer, uint16_t frameCount, uint32_t frameRate){
+  TalkingSprite(){}
+  TalkingSprite(int16_t x1, int16_t y1, uint16_t w, uint16_t h, const uint16_t* buffer, uint16_t frameCount, uint32_t frameRate){
     currentFrame = 0;
     numberOfFrames = frameCount;
     msPerFrame = frameRate;
@@ -101,21 +113,25 @@ class TalkingAnimation:public Animation{
     //allocate mem for pointers to bitmaps
     frames = buffer;
     xCoord = x1;
-    yCoord = y1/8;
+    yCoord = y1;
     width = w;
     height = h;
     loopCount = 0;
   } __attribute__((noinline));
+  //important! to update both the talking anim and the main sprite this overload needs to clear the screen, but not draw to the oled yet
   void showCurrentFrame(){
-    if(currentFrame)
-      oled.overlay_bitmap_from_spritesheet2x(xCoord,yCoord,xCoord+width,yCoord+height/16,pgm_read_word(&frames[0]),3,1,7,7,pgm_read_word(&frames[currentFrame]));
+    if(currentFrame){
+      fbo.clear();
+      fbo.bitmap_from_spritesheet(xCoord,yCoord,width,height,pgm_read_word(&frames[0]));
+      fbo.bitmap_from_spritesheet(xCoord+3,yCoord+1,8,8,pgm_read_word(&frames[currentFrame]));
+    }
     //if it's the first frame, just send it normally (it'll always be the empty talking sprite)
     else
-      Animation::showCurrentFrame();
+      Sprite::showCurrentFrame(true,false);
   }
   void update(){
-    if(Animation::isNextFrameReady()){
-      Animation::nextFrame();
+    if(Sprite::isNextFrameReady()){
+      Sprite::nextFrame();
       timeLastFramePlayed = millis();
     }
     showCurrentFrame();

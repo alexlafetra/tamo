@@ -1,17 +1,17 @@
 #include "Arduino.h"
-#include "Animation.h"
+#include "Sprite.h"
 // #include "debug/numbers.cpp"
 
-#define SPRITESTARTX 20
+#define SPRITESTARTX 8
 #define SPRITESTARTY 0
 
 //Speeds for Sprites
-#define VVVFAST 50
-#define VVFAST 100
-#define VFAST 200
-#define FAST 400
-#define MEDIUM 600
-#define SLOW 1200
+#define VVVFAST 200
+#define VVFAST 600
+#define VFAST 800
+#define FAST 1600
+#define MEDIUM 2400
+#define SLOW 9600
 
 // Thoughts
 #define THOUGHT_OF_LOVE 0 //heart
@@ -99,7 +99,7 @@ mood/state can be changed during sleep, and when he wakes up he'll live() or vib
 class Tamo{
   public:
     Tamo();
-    Animation sprite;
+    Sprite sprite;
     uint8_t mood = MOOD_BIRTH;
     uint8_t thought = THOUGHT_OF_LOVE;
     int16_t moodTime = 0;
@@ -132,8 +132,8 @@ class Tamo{
     void setMoodSprite(uint8_t mood);
 
     void basicEmotion();
-    void waitAndPlayThruSprite(uint8_t,bool);
-    void waitAndBlink(uint8_t);
+    void waitAndPlayThruSprite(uint16_t,bool);
+    void waitAndBlink(uint16_t);
     void idle();
     void smokeBreak();
     void smokingDamage();
@@ -155,7 +155,7 @@ class Tamo{
 };
 
 Tamo::Tamo(){
-  sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(IDLE_SPRITE),2,MEDIUM);
+  sprite = Sprite(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(IDLE_SPRITE),2,MEDIUM);
 }
 
 bool Tamo::getStatusBit(uint8_t which){
@@ -181,12 +181,8 @@ void Tamo::sleep(){
   setStatusBit(IS_ASLEEP_BIT,true);
   sleepHardware();
 
-  //when the WDT interrupt finishes it goes to this line and tamo can go back to sleep
+  //when the RTC interrupt finishes it goes to this line and tamo can go back to sleep
   while(isAsleep()){
-    //this sleep mode only leaves the WDT running (millis() won't update)
-    set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-    //allows the CPU to go to sleep
-    sleep_enable();
     //put the attiny to sleep
     sleep_cpu();
   }
@@ -234,7 +230,7 @@ void Tamo::body(){
   if(mood ==  MOOD_BIRTH || mood == MOOD_DEAD)
     return;
 
-  timeSinceLastCig+=10;
+  timeSinceLastCig+=5;
   //tamo only smokes if it's asleep, not dead, and not being born, since smoking can change tamo's mood
   if(timeSinceLastCig > 200 && isAsleep() &&  !getStatusBit(IS_DEAD_BIT)){
     mood = MOOD_SMOKING;
@@ -271,9 +267,9 @@ void Tamo::debugCheckMoodSprites(){
   for(uint8_t currentIdentity = 0; currentIdentity<3; currentIdentity++){
     identity = identities[currentIdentity];
     for(uint8_t currentSprite = 0; currentSprite<5; currentSprite++){
-      sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(sprites[currentSprite]),2,VFAST);
+      sprite = Sprite(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(sprites[currentSprite]),2,VFAST);
       while(true){
-        readButtons();
+        readButton();
         if(SINGLE_CLICK && itsbeen(200)){
           break;
         }
@@ -284,9 +280,9 @@ void Tamo::debugCheckMoodSprites(){
 }
 
 void Tamo::baby(){
-  // sprite = Animation(SPRITESTARTX+3,8,10,8,baby_idle_sprite,2,MEDIUM);
+  // sprite = Sprite(SPRITESTARTX+3,8,10,8,baby_idle_sprite,2,MEDIUM);
   // while(true){
-  //   readButtons();
+  //   readButton();
   //   if(LONG_PRESS && itsbeen(200)){
 
   //     break;
@@ -307,12 +303,12 @@ void Tamo::smokingDamage(){
 
 //tamo sneaks a cigarette
 void Tamo::smokeBreak(){
-  sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,cig_animation,5,1000);
+  sprite = Sprite(SPRITESTARTX,SPRITESTARTY,16,16,cig_animation,5,1000);
   while(sprite.loopCount == 0){
     //update and show the current sprite
     sprite.update();
     lastTime = millis();
-    readButtons();
+    readButton();
     //interrupting the smoke break
     if(SINGLE_CLICK){
       timeSinceLastCig = 0;
@@ -343,7 +339,7 @@ void Tamo::basicEmotion(){
     //count down the mood timer
     moodTime--;
     //read inputs
-    readButtons();
+    readButton();
     //feed tamo!
     if(LONG_PRESS){
       lastTime = millis();
@@ -370,31 +366,114 @@ void Tamo::basicEmotion(){
   }
 }
 
+void drawReticle(bool bounce){
+  //left
+  fbo.drawLine(4-bounce,1-bounce,6-bounce,3-bounce,1);
+  fbo.drawLine(4-bounce,14+bounce,6-bounce,12+bounce,1);
+  fbo.drawLine(2-bounce,5,4-bounce,7,1);
+  fbo.drawLine(2-bounce,10,4-bounce,8,1);
+  //right
+  fbo.drawLine(27+bounce,1-bounce,25+bounce,3-bounce,1);
+  fbo.drawLine(27+bounce,14+bounce,25+bounce,12+bounce,1);
+  fbo.drawLine(27+bounce,7,29+bounce,5,1);
+  fbo.drawLine(27+bounce,8,29+bounce,10,1);
+}
+
 void Tamo::eat(){
   const uint16_t * foodAnimations[] = {cheese_animation,apple_animation,penny_animation,cig_animation};
   uint8_t currentFood = randomInt(4);
-  sprite = Animation(SPRITESTARTX,0,16,16,foodAnimations[currentFood],5,FAST);
-  sprite.showCurrentFrame();
-  while(!SINGLE_CLICK && !isAsleep()){
-    readButtons();
+  sprite = Sprite(SPRITESTARTX,SPRITESTARTY,16,16,foodAnimations[currentFood],5,SLOW);
+  //counter goes from 0-64, when it's 0-16 the sprite moves in, when it's 48-64 the sprite moves out
+  int16_t counter = 0;
+
+  do{
+    if(counter < 16){
+      sprite.yCoord = counter-16+1;
+      sprite.showCurrentFrame(true,false);
+    }
+    else if(counter > 80){
+      sprite.yCoord = counter-80+1;
+      sprite.showCurrentFrame(true,false);
+    }
+    else{
+      sprite.yCoord = 1;
+      sprite.showCurrentFrame(true,false);
+    }
+    drawReticle(counter>48);
+    oled.renderFBO2x(4,0,36,3,fbo.buffer);
+    readButton();
     sleepCheck();
-    if(itsbeen(250)){
+    if(itsbeen(500)){
       // on
-      PORTB |= (1 << TOP_LED_PIN);
+      digitalWrite(LED_B,true);
     }
     else{
       // off
-      PORTB &= ~(1<<TOP_LED_PIN);
+      digitalWrite(LED_B,false);
     }
-    if(itsbeen(500)){
+    counter = (counter+2)%96;
+    if(!counter){
       currentFood = (currentFood + 1)%4;
-      sprite = Animation(SPRITESTARTX,0,16,16,foodAnimations[currentFood],5,FAST);
-      sprite.showCurrentFrame();
-      lastTime = millis();
+      sprite = Sprite(SPRITESTARTX,SPRITESTARTY,16,16,foodAnimations[currentFood],5,SLOW);
     }
   }
-  //autoplay eating animation
-  waitAndPlayThruSprite(150,true);
+  while(!SINGLE_CLICK && !isAsleep());
+
+  lastTime = millis();
+
+  if(isAsleep()){
+    return;
+  }
+  //recenter sprite! play thru animation of tamo eating next to the food
+  sprite = Sprite(32,0,16,16,getSprite(EATING_SPRITE),2,VVFAST);
+  Sprite foodSprite = Sprite(16,1,16,16,foodAnimations[currentFood],5,VVFAST);
+  
+  //slide in
+  int8_t i = 16;
+  while(i>=0){
+    sprite.xCoord = i+16;
+    sprite.update(true,false);
+    foodSprite.xCoord = i;
+    //janky frame updating, just to keep it in sync with the main sprite
+    if(foodSprite.isNextFrameReady())
+      foodSprite.nextFrame();
+    foodSprite.currentFrame = 0;
+    foodSprite.showCurrentFrame(false,true);
+    i-=2;
+  }
+
+  lastTime = millis();
+  uint8_t offset = 0;
+  bool playedThru = false;
+  uint8_t currentFrame = 0;
+  while(true){
+    if(currentFrame != foodSprite.currentFrame){
+      lastTime = millis();
+      offset = 2; 
+      currentFrame = foodSprite.currentFrame;
+    }
+    else{
+      offset = 0;
+    }
+    sprite.update(true,false);
+    foodSprite.xCoord = offset;
+    foodSprite.update(false,false);
+    
+    if(foodSprite.currentFrame && !playedThru)
+      playedThru = true;
+    else if(!foodSprite.currentFrame && playedThru)
+      break;
+    fbo.updateDisplay();
+  }
+  sprite.loopCount = 0;
+  foodSprite.currentFrame = 4;
+  foodSprite.xCoord = 0;
+  while(sprite.loopCount < 2){
+    foodSprite.showCurrentFrame(true,false);
+    sprite.update(false,true);
+  }
+
+  //determine if tamo liked it or not
   uint8_t foodPreference;
   //money
   if(thought == THOUGHT_OF_MONEY)
@@ -409,18 +488,18 @@ void Tamo::eat(){
   //cheese
   else foodPreference = 0;
 
+  //cigarette damage
+  if(currentFood == 3){
+    smokingDamage();
+  }
+
   //if it's not the right kind of food, tamo gets mad
   if(currentFood != foodPreference){
-    sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(MAD_SPRITE),2,VFAST);
+    sprite = Sprite(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(MAD_SPRITE),2,VVFAST);
   }
-  //if it is, he eats it
+  //if it is, he's happy
   else{
-    //tamo eats
-    sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(EATING_SPRITE),2,VFAST);
-    while(sprite.loopCount < 4){
-      sprite.update();
-    }
-    sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(HAPPY_SPRITE),2,VFAST);
+    sprite = Sprite(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(HAPPY_SPRITE),2,VVFAST);
     //reset hunger counter
     hunger = 0;
     //reset health counter
@@ -428,20 +507,16 @@ void Tamo::eat(){
     //tamo needs to poop!
     setStatusBit(NEEDS_TO_POOP_BIT,true);
   }
+
   while(sprite.loopCount < 4){
     sprite.update();
-  }
-  //cigarette damage
-  if(currentFood == 3){
-    smokingDamage();
   }
 
   lastTime = millis();
   mood = MOOD_NEUTRAL;
-  PORTB &= ~(1<<TOP_LED_PIN);
 }
 
-void Tamo::waitAndBlink(uint8_t speed){
+void Tamo::waitAndBlink(uint16_t speed){
   //wait for user input
   bool on = false;
   uint32_t lastBlink = millis();
@@ -450,38 +525,36 @@ void Tamo::waitAndBlink(uint8_t speed){
       lastBlink = millis();
       on = !on;
       // on
-      if(on)
-        PORTB |= (1 << TOP_LED_PIN);
+      // if(on)
+        // PORTB |= (1 << TOP_LED_PIN);
       //off
-      else
-        PORTB &= ~(1<<TOP_LED_PIN);
+      // else
+        // PORTB &= ~(1<<TOP_LED_PIN);
+      digitalWrite(LED_B,on?1:0);
     }
     sleepCheck();
-    readButtons();
+    readButton();
   }
+  digitalWrite(LED_B,0);
   //turn off LED
-  PORTB &= ~(1<<TOP_LED_PIN);
+  // PORTB &= ~(1<<TOP_LED_PIN);
 }
 
-void Tamo::waitAndPlayThruSprite(uint8_t speed,bool bounce){
+void Tamo::waitAndPlayThruSprite(uint16_t speed,bool bounce){
   lastTime = millis();
   uint8_t offset = 0;
   while(true){
     if(itsbeen(speed)){
       lastTime = millis();
       //if it's not a cigarette
-      if(!offset){
-        oled.clearEdges(SPRITESTARTX+5,0);
-      }
       if(bounce)
-        offset = 5; 
+        offset = 2; 
       if(sprite.currentFrame == sprite.numberOfFrames - 2){
         sprite.xCoord = SPRITESTARTX;
         sprite.nextFrame();
         sprite.showCurrentFrame();
         lastTime = millis();
-        while(!itsbeen(300)){}
-        oled.clearEdges(SPRITESTARTX,12);
+        while(!itsbeen(speed)){}
         break;
       }
       else{
@@ -489,9 +562,6 @@ void Tamo::waitAndPlayThruSprite(uint8_t speed,bool bounce){
       }
     }
     else{
-      if(offset){
-        oled.clearEdges(SPRITESTARTX,12);
-      }
       offset = 0;
     }
     sprite.xCoord = SPRITESTARTX+offset;
@@ -505,20 +575,28 @@ void Tamo::birth(){
 
   //if it's not 255, identity was already set! so don't get reborn
   if(identity == NO_IDENTITY){
-    sprite = Animation(SPRITESTARTX+32,SPRITESTARTY,16,16,egg_sprite,4,SLOW);
-    oled.fill(0);
+    sprite = Sprite(SPRITESTARTX+16,SPRITESTARTY,16,16,egg_sprite,4,VFAST);
     while(sprite.xCoord > SPRITESTARTX){
-      sprite.xCoord-=2;
+      sprite.xCoord--;
       sprite.showCurrentFrame();
     }
     sprite.xCoord = SPRITESTARTX;
     sprite.showCurrentFrame();
     //wait for button press
-    waitAndBlink(200);
+    // waitAndBlink(VFAST);
+    uint8_t counter;
+    while(!SINGLE_CLICK && !isAsleep()){
+      readButton();
+      sleepCheck();
+      sprite.showCurrentFrame(true,false);
+      drawReticle(counter>48);
+      fbo.updateDisplay();
+      counter = (counter+2)%96;
+    }
     if(isAsleep())
       return;
     //wait for button press
-    waitAndPlayThruSprite(200,true);
+    waitAndPlayThruSprite(VVFAST,true);
     if(isAsleep())
       return;
     
@@ -551,12 +629,12 @@ void Tamo::dead(){
   if(EEPROM.read(IDENTITY_ADDRESS) != NO_IDENTITY)
     EEPROM.write(IDENTITY_ADDRESS,NO_IDENTITY);
 
-  sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,death_sprite,2,MEDIUM);
+  sprite = Sprite(SPRITESTARTX,SPRITESTARTY,16,16,death_sprite,2,MEDIUM);
   //wake tamo up when it dies!
   setStatusBit(IS_ASLEEP_BIT,false);
   lastTime = millis();
   while(!isAsleep()){
-    readButtons();
+    readButton();
     sleepCheck();
     sprite.update();
     if(SINGLE_CLICK && itsbeen(200)){
@@ -592,61 +670,76 @@ void Tamo::talk(uint8_t t){
     frameCount = 3;
   }
 
-  TalkingAnimation talkingSprite(SPRITESTARTX+20,SPRITESTARTY,12,16,animationBuffer,frameCount,400);
+  TalkingSprite talkingSprite(SPRITESTARTX+10,SPRITESTARTY,12,16,animationBuffer,frameCount,sprite.msPerFrame);
   setMoodSprite(mood); //get the actual mood sprite
-  sprite.xCoord = SPRITESTARTX-12;//move sprite to the left
+  sprite.xCoord = SPRITESTARTX-6;//move sprite to the left
   lastTime = millis();
   SINGLE_CLICK = false;
 
+  //slide in
+  int8_t i = 6;
+  while(i >= 0){
+    sprite.xCoord = SPRITESTARTX-6+i;
+    i-=3;
+    sprite.update();
+  }
+
   //talk for 2 cycle counts, and 
   while((talkingSprite.loopCount<2 && !SINGLE_CLICK)){
-    sprite.update();
     talkingSprite.update();
-    if(itsbeen(100)){
-      readButtons();
+    sprite.update(false,true);
+    if(itsbeen(200)){
+      readButton();
     }
-    // if(DOUBLE_CLICK){
-    //   setStatusBit(IS_ASLEEP_BIT,true);
-    //   return;
-    // }
   }
-  oled.clearEdges();//clear screen edges
+
+  //slide out
+  i = 0;
+  while(i <= 6){
+    sprite.xCoord = SPRITESTARTX-6+i;
+    i+=3;
+    sprite.update();
+  }
   sprite.xCoord = SPRITESTARTX;//move sprite back
 }
 
 void Tamo::setMoodSprite(uint8_t m){
   switch(m){
     case MOOD_NEUTRAL:
-      sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(IDLE_SPRITE),2,MEDIUM);
+      sprite = Sprite(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(IDLE_SPRITE),2,FAST);
       return;
     case MOOD_SAD:
-      sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(SAD_SPRITE),2,MEDIUM);
+      sprite = Sprite(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(SAD_SPRITE),2,FAST);
       return;
     case MOOD_ANGRY:
-      sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(MAD_SPRITE),2,VFAST);
+      sprite = Sprite(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(MAD_SPRITE),2,VFAST);
       return;
     case MOOD_HAPPY:
-      sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(HAPPY_SPRITE),2,FAST);
+      sprite = Sprite(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(HAPPY_SPRITE),2,VFAST);
       return;
     default:
-      sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(IDLE_SPRITE),2,MEDIUM);
+      sprite = Sprite(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(IDLE_SPRITE),2,FAST);
       return;
   }
 }
 
 void Tamo::poop(){
-  sprite = Animation(SPRITESTARTX,SPRITESTARTY,16,16,poopAnim,2,MEDIUM);
+  sprite = Sprite(SPRITESTARTX,SPRITESTARTY,16,16,poopAnim,2,VFAST);
   lastTime = millis();
   while(!isAsleep()){
-    readButtons();
-    if(SINGLE_CLICK && itsbeen(400)){
+    readButton();
+    if(SINGLE_CLICK && itsbeen(800)){
       lastTime = millis();
-      oled.bitmap_from_spritesheet2x(SPRITESTARTX,SPRITESTARTY,SPRITESTARTX+16,SPRITESTARTY+1,egg_sprite[3]);
-      while(!itsbeen(400)){}
+      fbo.clear();
+      fbo.bitmap_from_spritesheet(SPRITESTARTX,SPRITESTARTY,16,16,egg_sprite[3]);
+      oled.renderFBO2x(4,0,36,3,fbo.buffer);
+      while(!itsbeen(800)){}
       setStatusBit(NEEDS_TO_POOP_BIT,false);
       break;
     }
-    sprite.update();
+    fbo.clear();
+    // drawReticle(sprite.currentFrame%2);
+    sprite.update(false,true);
     sleepCheck();
   }
 }
@@ -684,6 +777,7 @@ void Tamo::batteryCheck(){
 
 //function selecting which emotion loop to run based on tamo's mood
 void Tamo::feel(){
+
   // if the sleep bit is set, fall asleep
   if(isAsleep()){
     sleep();
@@ -794,43 +888,43 @@ void Tamo::game(){
   oled.clear();
   while(true){
 
-    //erase last target
-    oled.setCursor(location,0);
-		ssd1306_send_data_start();
-    ssd1306_send_data_byte(0);
-    ssd1306_send_stop();
+    // //erase last target
+    // oled.setCursor(location,0);
+		// ssd1306_send_data_start();
+    // ssd1306_send_data_byte(0);
+    // ssd1306_send_stop();
 
-    //update location
-    location+=speed;
-    if(location>64 || location < 0)
-      speed = -speed;
+    // //update location
+    // location+=speed;
+    // if(location>64 || location < 0)
+    //   speed = -speed;
 
-    //draw target
-    oled.setCursor(location,0);
-		ssd1306_send_data_start();
-    ssd1306_send_data_byte(255);
-    ssd1306_send_stop();
+    // //draw target
+    // oled.setCursor(location,0);
+		// ssd1306_send_data_start();
+    // ssd1306_send_data_byte(255);
+    // ssd1306_send_stop();
 
-    //draw gun
-    oled.setCursor(32,1);
-    ssd1306_send_data_start();
-    ssd1306_send_data_byte(255);
-    ssd1306_send_stop();
+    // //draw gun
+    // oled.setCursor(32,1);
+    // ssd1306_send_data_start();
+    // ssd1306_send_data_byte(255);
+    // ssd1306_send_stop();
 
-    //read inputs
-    readButtons();
+    // //read inputs
+    // readButton();
 
-    //if it's a hit, break!
-    if(SINGLE_CLICK){
-      if((abs(location - 32) < speed)){
-        mood = MOOD_HAPPY;
-        break;
-      }
-      else{
-        mood = MOOD_ANGRY;
-        break;
-      }
-    }
+    // //if it's a hit, break!
+    // if(SINGLE_CLICK){
+    //   if((abs(location - 32) < speed)){
+    //     mood = MOOD_HAPPY;
+    //     break;
+    //   }
+    //   else{
+    //     mood = MOOD_ANGRY;
+    //     break;
+    //   }
+    // }
   }
   oled.clear();
 }

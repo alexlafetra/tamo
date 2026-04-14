@@ -1,9 +1,5 @@
-#define BUTTON_PIN 1
-#define TOP_LED_PIN PB3 //primary LED (blue)
-#define BOTTOM_LED_PIN PB4 //secondary LED
-
-#define LONG_PRESS_TIME 500
-#define DOUBLE_CLICK_TIME 100
+#define LONG_PRESS_TIME 1000
+#define DOUBLE_CLICK_TIME 200
 
 // these prob don't need to be volatile, since readButtons() isn't called from an interrupt
 volatile bool BUTTON = false;
@@ -13,41 +9,15 @@ volatile bool SINGLE_CLICK = false;
 
 volatile uint32_t timeOfLastButtonPress = 0;
 
-
-/*
-Calibration notes:
-@5V it's ~212
-@3.9V it's ~260
-@3.73 it's ~295
-@3.3V it's ~358
-@1.57 it's ~703
-
-voltage = -150.70169*(measurement)+893.05592
-
-attiny85 can operate from 1.8v - 5.5v
-
-*/
-
-//This is partially from chatGPT :+)
 uint16_t readVcc() {
-
-  //Enable ADC
-  ADCSRA |= 1<<ADEN;
-  // Read 1.1V reference against AVcc
-  ADMUX = _BV(MUX3) | _BV(MUX2); // Select internal 1.1V (on ATTiny85)
-  // delay(2); // Wait for Vref to settle
-  ADCSRA |= _BV(ADSC); // Start conversion
-  while (bit_is_set(ADCSRA, ADSC)); // Wait until done
-  uint16_t result = ADC;
-
-  //disable ADC
-  ADCSRA &= ~_BV(ADEN);
+  uint16_t result = analogRead(BATTERY_PIN);
   return result;
 }
 
 //reading inputs
-void readButtons(){
-  uint8_t val = (PINB & (1<<PB1));//check the value from the PB1 register
+void readButton(){
+  uint8_t val = digitalRead(BUTTON_PIN);
+  // uint8_t val = (PINB & (1<<PB1));//check the value from the PB1 register
   //if the button is pressed
   if(!val){
     //if the button wasn't previously pressed, then it's a fresh press
@@ -62,22 +32,23 @@ void readButtons(){
       timeOfLastButtonPress = millis();
     }
     //turn on the LED
-    PORTB |= (1<<BOTTOM_LED_PIN);
+    digitalWrite(LED_A,true);
     //set the button flag
     BUTTON = true;
     //check to see if it's been held
-    if((millis() - timeOfLastButtonPress) > (500) ){
+    if((millis() - timeOfLastButtonPress) > (LONG_PRESS_TIME) ){
       LONG_PRESS = true;
     }
   }
   //if the button is released
   else{
     //turn off the LED
-    PORTB &= ~(1<<BOTTOM_LED_PIN);
+    // PORTB &= ~(1<<BOTTOM_LED_PIN);
+    digitalWrite(LED_A,false);
     //if the button *was* held, then you just released it
     if(BUTTON){
       //if it was held for a while, it's a long press
-      if((millis() - timeOfLastButtonPress) > (500) ){
+      if((millis() - timeOfLastButtonPress) > (LONG_PRESS_TIME) ){
         LONG_PRESS = true;
         DOUBLE_CLICK = false;
       }
@@ -97,18 +68,6 @@ void readButtons(){
   }
 }
 
-
-void initOled(){
-  //start i2c communication w little oled
-  oled.begin(72, 40, sizeof(tiny4koled_init_72x40br), tiny4koled_init_72x40br);
-  //zoom the oled in
-  oled.enableZoomIn();//Need this so the sprites aren't all weird
-  oled.setRotation(2);//flip display upside-down
-  oled.on();
-  oled.clear();
-}
-
-
 //time (ms) before tamo sleeps
 // #define TIME_BEFORE_SLEEP 60000
 #define TIME_BEFORE_SLEEP 12000
@@ -116,17 +75,12 @@ void initOled(){
 void sleepHardware(){
   //turn off OLED, LEDs
   oled.off();
-  PORTB &= ~(1<<BOTTOM_LED_PIN);
-  PORTB &= ~(1<<TOP_LED_PIN);
-
-  // //https://bigdanzblog.wordpress.com/2014/08/10/attiny85-wake-from-sleep-on-pin-state-change-code-example/
-  GIMSK |= _BV(PCIE);                     // Enable Pin Change Interrupts
-  PCMSK |= _BV(PCINT1);                   // Use PB1 as interrupt pin
+  digitalWrite(LED_A,false);
+  digitalWrite(LED_B,false);
 }
 
 void wakeHardware(){
   sleep_disable();                       // first thing after waking from sleep: disable sleep
-  PCMSK &= ~_BV(PCINT1);                  // Turn off PB1 interrupt
   
   //reset button states, so wakeup doesn't trigger anything
   SINGLE_CLICK = false;
@@ -134,6 +88,7 @@ void wakeHardware(){
   lastTime = millis();
 
   oled.on();//turn screen back on
+  digitalWrite(LED_A,true);
 }
 
 

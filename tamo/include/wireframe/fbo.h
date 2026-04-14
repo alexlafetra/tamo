@@ -1,4 +1,5 @@
 #include "wireframe/WireFrame.h"
+#include <stdint.h>
 
 #ifndef _swap_int16_t
 #define _swap_int16_t(a, b)                                                    \
@@ -23,6 +24,7 @@ class FrameBuffer{
         //if there's an old buffer, free its mem
         if(buffer)
             delete [] buffer;
+
         bufferSize = width*height/8;
         buffer = new uint8_t [bufferSize];
 
@@ -65,6 +67,9 @@ class FrameBuffer{
             buffer[i] = c;
         }
     }
+    void clear(){
+        fill(0);
+    }
     void renderWireFrame(WireFrame& d, uint8_t c){
         for(uint16_t edge = 0; edge<d.numberOfEdges; edge++){
             drawLine(d.verts[d.edges[edge][0]].x*d.scale+d.xPos,d.verts[d.edges[edge][0]].y*d.scale+d.yPos,d.verts[d.edges[edge][1]].x*d.scale+d.xPos,d.verts[d.edges[edge][1]].y*d.scale+d.yPos,c);
@@ -85,7 +90,57 @@ class FrameBuffer{
             buffer[index] &= ~uint8_t(1<<shift);
     }
     void render(uint8_t x0, uint8_t y0){
-        oled.renderFBO2x(x0,y0,width,2,buffer);
+        oled.renderFBO2x(x0,y0,width,height/8,buffer);
+    }
+    void updateDisplay(){
+        oled.renderFBO2x(4,0,36,3,buffer);
+    }
+    //okay so when sprites are drawn and they horizontally break over the fbo, they drop down onto the next page
+
+    void bitmap_from_spritesheet(int8_t x0, int8_t y0, uint8_t w, uint8_t h, uint16_t spritesheet_offset){
+        const uint16_t size = (w*h/8);
+        uint8_t byte = 0;
+        for(uint16_t i = 0; i<size; i++){
+            //find the byte index in the fbo buffer
+            uint8_t y = i / w;
+            int16_t index = 0;
+            index = x0+(i%w) + width*y + ((y0/8)*width);
+
+            uint16_t bmp_vertical_offset = 0;
+            if(y0 < 0){
+                bmp_vertical_offset = y0*width;
+            }
+
+            //catching errors
+            if(index < 0)
+                continue;
+
+            int8_t x = i % w;
+            if((x + x0) >= width)
+                continue;
+
+            uint8_t byte = pgm_read_byte(&spritesheet[i + spritesheet_offset]);
+
+            //tricky overlay to handle non-full-byte vertical offsets
+            int8_t y_offset = (y0%8);
+            if(y_offset > 0){
+                byte = (byte<<y_offset);
+                if(i > w){
+                    uint8_t aboveByte = pgm_read_byte(&spritesheet[i - w + spritesheet_offset]);
+                    byte |= (aboveByte>>(8-(y_offset)));
+                }
+            }
+            else if(y_offset < 0){
+                byte = (byte>>(-y_offset));
+                if(i < w){
+                    uint8_t belowByte = pgm_read_byte(&spritesheet[i + w + spritesheet_offset]);
+                    byte |= (belowByte<<(8+(y_offset)));
+                }
+
+            }
+
+            buffer[index] = buffer[index] | byte;
+        }
     }
     //stole this from Adafruit GFX!
     void drawLine(int8_t x0, int8_t y0, int8_t x1, int8_t y1, int8_t color){
