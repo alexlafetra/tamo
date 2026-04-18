@@ -158,6 +158,44 @@ void disconnectUnusedPins(){
   }
 }
 
+
+// UART tutorial
+// https://avr8.com/attiny3217-uart-tutorial/
+void initUART(){
+  PORTB.DIRSET = PIN2_bm;         // Set PB2 as an output for USART0 Tx
+  // USART0.BAUD = 1389;             // Set UART baud rate to 9600 (20MHz / 6 clock)
+  USART0.BAUD = 1111;             // Set UART baud rate to 9600 (16MHz / 6 clock)
+  USART0.CTRLB = USART_TXEN_bm;   // UART transmitter enable
+}
+
+// Transmit a string using the USART
+void str_tx(char *txt)
+{
+    int index = 0;  // Index into the string
+    
+    // Send characters from the string until the string terminator is found
+    while (txt[index] != '\0') {
+        if (USART0.STATUS & USART_DREIF_bm) {   // Check if data can be sent
+            USART0.STATUS = USART_TXCIF_bm;     // Clear the transmit complete flag
+            USART0.TXDATAL = txt[index];        // Sent a character
+            index++;                            // Point to next character
+        }
+    }
+}
+
+// Transmit a string using the USART
+void data_tx(unsigned char *data, uint16_t size)
+{
+  for(uint16_t i = 0; i<size; i++){
+    // wait until data can be sent
+    while (!(USART0.STATUS & USART_DREIF_bm));
+    if (USART0.STATUS & USART_DREIF_bm) {
+        USART0.STATUS = USART_TXCIF_bm;     // Clear the transmit complete flag
+        USART0.TXDATAL = data[i];        // send byte
+    }
+  }
+}
+
 void setup() {
 
   /*
@@ -177,6 +215,9 @@ void setup() {
 
   //set floating pins to OUTPUT (to save power during sleep)
   disconnectUnusedPins();
+
+  //initialize UART
+  initUART();
 
   //disabling ADC (it's enabled whenever tamo measures battery VCC, then disabled again)
   // ADCSRA &= ~_BV(ADEN);
@@ -202,12 +243,17 @@ void setup() {
   flag.xPos = 16;
   flag.yPos = 8;
   flag.rotate(15,0);
+  delay(500);
 }
 
-void loop() {
+uint8_t d[] = {
+  '1'
+};
 
+void loop() {
   // tamo.live();
-  tamo.poop();
+  data_tx(d,sizeof(d));
+
   // flag.rotate(4,1);
   // fbo.clear();
   // fbo.renderWireFrame(flag,1);
