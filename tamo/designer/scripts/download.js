@@ -59,7 +59,7 @@ async function saveGIF(){
 
 async function canvasesToGif(canvases, msDelay){
     const gif = new GIF({
-        workerScript: 'lib/gif.worker.js',
+        workerScript: 'designer/scripts/lib/gif.worker.js',
         workers: 2,
         quality: 10,
         width: canvases[0].width,
@@ -72,7 +72,7 @@ async function canvasesToGif(canvases, msDelay){
         gif.addFrame(frame,{delay:msDelay});
     }
     gif.on('finished',function(blob){
-        console.log("done!");
+
         const url = URL.createObjectURL(blob);
         // download it, display it, whatever
         const a = document.createElement('a');
@@ -82,6 +82,7 @@ async function canvasesToGif(canvases, msDelay){
         for(let canvas of canvases){
             canvas.remove();
         }
+        
     });
     gif.render();
 }

@@ -3,23 +3,23 @@
 
 <head>
   <meta charset="UTF-8" />
-  <link rel="icon" type="image/gif" href="images/sprites/tamo_idle.gif" />
-  <link rel="stylesheet" href="style.css">
-  <script src="scripts/lib/jszip.min.js"></script>
-  <script src="scripts/lib/p5.min.js"></script>
-  <script src="scripts/lib/p5.webserial.js"></script>
-  <script src="scripts/lib/CanvasToBMP.js"></script>
-  <script src="scripts/lib/gifuct-browser.js"></script>
+  <link rel="icon" type="image/gif" href="designer/images/sprites/tamo_idle.gif" />
+  <link rel="stylesheet" href="designer/style.css">
+  <script src="designer/scripts/lib/jszip.min.js"></script>
+  <script src="designer/scripts/lib/p5.min.js"></script>
+  <script src="designer/scripts/lib/p5.webserial.js"></script>
+  <script src="designer/scripts/lib/CanvasToBMP.js"></script>
+  <script src="designer/scripts/lib/gifuct-browser.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gif.js/dist/gif.js"></script>
-  <script src="scripts/spriteLoader.js"></script>
-  <script src="scripts/upload.js"></script>
-  <script src="scripts/download.js"></script>
-  <script src="scripts/bytes.js"></script>
-  <script src="scripts/sprite.js"></script>
-  <script src="scripts/undo.js"></script>
-  <script src="scripts/frameEditing.js"></script>
-  <script src="scripts/pixelEditing.js"></script>
-  <script src="scripts/main.js" defer></script>
+  <script src="designer/scripts/spriteLoader.js"></script>
+  <script src="designer/scripts/upload.js"></script>
+  <script src="designer/scripts/download.js"></script>
+  <script src="designer/scripts/bytes.js"></script>
+  <script src="designer/scripts/sprite.js"></script>
+  <script src="designer/scripts/undo.js"></script>
+  <script src="designer/scripts/frameEditing.js"></script>
+  <script src="designer/scripts/pixelEditing.js"></script>
+  <script src="designer/scripts/main.js" defer></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>tamo flipbook</title>
 </head>
@@ -30,13 +30,13 @@
       <div id="app_container">
         <!-- {/* title image, gifs */} -->
         <div id="title_container">
-          <img id="title_image" class="transparent_img_drop_shadow" style="width:200px;" src='images/logo.gif' />
-          <img id="gif_1" class="title_gif " src='images/sprites/tamo_idle.gif' style="left:-55px;top:-40px;"></img>
-          <img id="gif_2" class="title_gif " src='images/sprites/porcini_happy.gif' style="left:195px;top:-40px;"></img>
-          <img id="gif_3" class="title_gif " src='images/sprites/bug_angry.gif' style="left:-70px;top:40px;"></img>
-          <img id="gif_4" class="title_gif " src='images/sprites/boto_sad.gif' style="left:210px;top:40px;"></img>
+          <img id="title_image" class="transparent_img_drop_shadow" style="width:200px;" src='designer/images/logo.gif' />
+          <img id="gif_1" class="title_gif " src='designer/images/sprites/tamo_idle.gif' style="left:-55px;top:-40px;"></img>
+          <img id="gif_2" class="title_gif " src='designer/images/sprites/porcini_happy.gif' style="left:195px;top:-40px;"></img>
+          <img id="gif_3" class="title_gif " src='designer/images/sprites/bug_angry.gif' style="left:-70px;top:40px;"></img>
+          <img id="gif_4" class="title_gif " src='designer/images/sprites/boto_sad.gif' style="left:210px;top:40px;"></img>
         </div>
-        <img id="hardware_gif" src="images/tamo_rotating_small.gif"></img>
+        <img id="hardware_gif" src="designer/images/tamo_rotating_small.gif"></img>
 
         <!-- {/* ui */} -->
         <!-- <div id = "ui_container"> -->
@@ -49,17 +49,17 @@
             <!-- {/* frame editing */} -->
             <div id="frame_editing_controls" class="button_holder">
               <div class="tool_button button" onmouseenter="setTooltip('move frame back')"
-                onclick="moveCurrentFrameBack()"><img class="tool_icon" src="images/icons/back_icon.gif"></div>
+                onclick="moveCurrentFrameBack()"><img class="tool_icon" src="designer/images/icons/back_icon.gif"></div>
               <div class="tool_button button" onmouseenter="setTooltip('play [space]')" onclick="togglePlayback()"><img
-                  class="tool_icon" src="images/icons/play_icon.bmp"></div>
+                  class="tool_icon" src="designer/images/icons/play_icon.bmp"></div>
               <div class="tool_button button" onmouseenter="setTooltip('copy to next frame')"
-                onclick="copyFrameToNextFrame()"><img class="tool_icon" src="images/icons/duplicate_icon.gif"></div>
+                onclick="copyFrameToNextFrame()"><img class="tool_icon" src="designer/images/icons/duplicate_icon.gif"></div>
               <div class="tool_button button" onmouseenter="setTooltip('reverse frames')" onclick="reverseFrames()"><img
-                  class="tool_icon" src="images/icons/reorder_icon.gif"></div>
+                  class="tool_icon" src="designer/images/icons/reorder_icon.gif"></div>
               <div class="tool_button button" onmouseenter="setTooltip('delete frames')" onclick="deleteCurrentFrame()">
-                <img class="tool_icon" src="images/icons/clear_icon.gif"></div>
+                <img class="tool_icon" src="designer/images/icons/clear_icon.gif"></div>
               <div class="tool_button button" onmouseenter="setTooltip('move frame forward')"
-                onclick="moveCurrentFrameForward()"><img class="tool_icon" src="images/icons/forward_icon.gif"></div>
+                onclick="moveCurrentFrameForward()"><img class="tool_icon" src="designer/images/icons/forward_icon.gif"></div>
             </div>
           </div>
         <div id = "big_undo_buttons">
@@ -74,30 +74,30 @@
               style="border:1px solid black;width:20px;height:20px;" onmouseenter="setTooltip('swap color [shift]')"
               onclick="toggleColor(this);"></div>
             <div class="tool_button button" id="pixel_tool_button" onmouseenter="setTooltip('pixel [P]')"
-              onclick="setTool('pixel',this);"><img src="images/icons/pixel_icon.gif"></div>
+              onclick="setTool('pixel',this);"><img src="designer/images/icons/pixel_icon.gif"></div>
             <div class="tool_button button" id="line_tool_button" onmouseenter="setTooltip('line [L]')"
-              onclick="setTool('line',this);"><img src="images/icons/line_icon.gif"></div>
+              onclick="setTool('line',this);"><img src="designer/images/icons/line_icon.gif"></div>
             <div class="tool_button button" id="fill_tool_button" onmouseenter="setTooltip('fill [F]')"
-              onclick="setTool('fill',this);"><img src="images/icons/fill_icon.gif"></div>
+              onclick="setTool('fill',this);"><img src="designer/images/icons/fill_icon.gif"></div>
           </div>
           <div class="button_holder">
             <div class="tool_button button" id="select_tool_button" onmouseenter="setTooltip('select [S]')"
-              onclick="setTool('select',this);"><img src="images/icons/select_icon.gif"></div>
+              onclick="setTool('select',this);"><img src="designer/images/icons/select_icon.gif"></div>
             <div class="tool_button button" id="move_tool_button" onmouseenter="setTooltip('move pixels [M]')"
-              state={settings.currentTool=='move' } onclick="setTool('move',this);"><img src="images/icons/move_icon.gif">
+              state={settings.currentTool=='move' } onclick="setTool('move',this);"><img src="designer/images/icons/move_icon.gif">
             </div>
             <div class="tool_button button" onmouseenter="setTooltip('clear frame')" onclick="clearFrame()"><img
-                src="images/icons/clear_icon.gif"></div>
+                src="designer/images/icons/clear_icon.gif"></div>
           </div>
           <div id="full_frame_edit_controls" class="button_holder">
             <div class="tool_button button" onmouseenter="setTooltip('invert pixels')" onclick="invertFrame()">invert
             </div>
             <div class="tool_button button" onmouseenter="setTooltip('flip horizontally')"
-              onclick="mirrorHorizontally()"><img src="images/icons/flip_horizontal.gif"></div>
+              onclick="mirrorHorizontally()"><img src="designer/images/icons/flip_horizontal.gif"></div>
             <div class="tool_button button" onmouseenter="setTooltip('flip vertically')" onclick="mirrorVertically()">
-              <img src="images/icons/flip_vertical.gif"></div>
+              <img src="designer/images/icons/flip_vertical.gif"></div>
             <div class="tool_button button" onmouseenter="setTooltip('rotate')" onclick="rotateFrame()"><img
-                src="images/icons/rotate_tool.gif"></div>
+                src="designer/images/icons/rotate_tool.gif"></div>
           </div>
         </div>
         <!-- extra settings -->
@@ -154,7 +154,7 @@
         </div>
         <!-- upload/load controls -->
         <div id="upload_controls" class="button_holder" style="flex-direction: column;">
-          <img id="file_icon" src="images/icons/file.gif">
+          <img id="file_icon" src="designer/images/icons/file.gif">
           <label id="drop-zone" class="button">
             <!-- upload (gif/png/bmp/jpeg) -->
              upload
@@ -179,7 +179,7 @@
             <canvas id="main_canvas" ondragend="handleDragLeave()" ondragleave= "handleDragLeave()" ondragover = "handleDragOver(event)" ondrop = "handleDrop(event)"onmouseout="handleMouseOut(event)" onmouseenter="handleMouseEnter(event)"
               onmousedown="handleMouseDown(event)" onmousemove="handleMouseMove(event)"" onmouseup="handleMouseUp(event)" ontouchstart = "handleMouseDown(event)" ontouchend="handleMouseUp(event)" ontouchcancel="handleMouseUp(event)"
               ontouchmove="handleMouseMove(event)"></canvas>
-            <!-- <img id = "canvas_border_image" src = "images/border_animated.gif"> -->
+            <!-- <img id = "canvas_border_image" src = "designer/images/border_animated.gif"> -->
             <div id="canvas_overlay_grid"></div>
             <div id="selection_box"></div>
             <div id="pixel_cursor"></div>
