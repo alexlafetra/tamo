@@ -1,0 +1,662 @@
+
+let sprites = [
+  Sprite('idle', 16, 16),
+  // Sprite('happy'),
+  // Sprite('angry'),
+  // Sprite('sad'),
+  // Sprite('eating')
+];
+
+let presetSpriteNames = [
+  'idle',
+  'happy',
+  'mad',
+  'sad',
+  'eating',
+  'misc.'
+];
+
+const templates = {
+  creature: {
+    defaultName: 'tamo',
+    presetSpriteNames: [
+      'idle',
+      'happy',
+      'mad',
+      'sad',
+      'eating',
+      'misc.'
+    ],
+    width: 16,
+    height: 16,
+    frames: 2,
+    maxFrames: 2
+  },
+  thought: {
+    defaultName: 'love',
+    presetSpriteNames: [
+      'thinking',
+    ],
+    width: 7,
+    height: 7,
+    frames: 2,
+    maxFrames: 3
+  },
+  food: {
+    defaultName: 'apple',
+    presetSpriteNames: [
+      'food'
+    ],
+    width: 16,
+    height: 13,
+    frames: 5,
+    maxFrames: 5
+  }
+}
+
+let currentMouseCoords = {
+  x : 0,
+  y : 0
+};
+
+let currentSprite = 0;
+let timeoutID = undefined;
+let spriteName = "tamo";
+let settingsShown = false;
+
+const settings = {
+  currentTool: 'pixel',
+  currentColor: 1,
+  lineStarted: false,
+  moveStarted: false,
+  overlayGhosting: true,
+  foregroundColor: '#ffffff',
+  backgroundColor: '#000000',
+  frameSpeed: 500,
+  maxCanvasDimension: 128,
+  useAlphaAsBackground: false,
+  resizeCanvasToImage: true,
+  createSpritesByFileName: true,
+  showGrid: true,
+  maxFrames: 2,
+};
+
+
+function loadTemplate(template) {
+  spriteName = template.defaultName;
+  document.getElementById("sprite_name_static").innerHTML = spriteName;
+  presetSpriteNames = [...template.presetSpriteNames];
+  settings.maxFrames = template.maxFrames;
+  sprites = [
+    Sprite(template.presetSpriteNames[0], template.width, template.height)
+  ];
+  //add in frames to match the amount the template needs
+  for (let i = sprites[0].frames.length; i < template.frames; i++) {
+    sprites[0].frames.push(PixelFrame(template.width, template.height, 0));
+  }
+  document.documentElement.style.setProperty('--sprite-width', `${template.width}px`);
+  document.documentElement.style.setProperty('--sprite-height', `${template.height}px`);
+  document.documentElement.style.setProperty('--background-width', `${100 / template.width}%`);
+  document.documentElement.style.setProperty('--background-height', `${100 / template.height}%`);
+  reloadSpritePreviews();
+  updateFrames();
+}
+
+function loadSelectedTemplate(event) {
+  loadTemplate(templates[event.target.value]);
+}
+
+
+function setAnimationSpeed(event) {
+  //set new speed
+  settings.frameSpeed = parseInt(event.target.value);
+  //clear old timeout ID, if there was one then the sequence was playing
+  if (timeoutID) {
+    window.clearTimeout(timeoutID);
+    timeoutID = window.setTimeout(playNextFrame, settings.frameSpeed);
+  }
+}
+
+function toggleExtraSettingsVisibility(){
+  document.documentElement.style.setProperty('--extra-settings-display', settingsShown?'block':'none');
+  settingsShown = !settingsShown;
+}
+
+function toggleGridVisibility(domElement) {
+  settings.showGrid = !settings.showGrid;
+  if (settings.showGrid) {
+    showGrid(domElement);
+  }
+  else {
+    hideGrid(domElement);
+  }
+}
+function showGrid(domElement){
+  if(domElement){
+    domElement.innerText = "hide grid";
+    domElement.style.backgroundColor = "blue";
+    domElement.style.color = "yellow";
+  }
+  document.documentElement.style.setProperty('--grid-visibility', 'visible');
+}
+
+function hideGrid(domElement){
+  if(domElement){
+    domElement.innerText = "show grid";
+    domElement.style.backgroundColor = null;
+    domElement.style.color = null;
+  }
+  document.documentElement.style.setProperty('--grid-visibility', 'hidden');
+}
+
+function togglePreviousFrameOverlay(domElement) {
+  settings.overlayGhosting = !settings.overlayGhosting;
+  if (settings.overlayGhosting) {
+    domElement.innerText = "disable overlay";
+    domElement.style.background = "blue";
+    domElement.style.color = "yellow";
+  }
+  else {
+    domElement.innerText = "enable overlay";
+    domElement.style.background = null;
+    domElement.style.color = null;
+  }
+  updateCanvas(false);
+}
+
+function editName() {
+  //remove static name
+  document.getElementById("sprite_name_static").remove();
+  const nameArea = document.getElementById("sprite_name");
+  //add textarea name
+  const newTextArea = document.createElement('textarea');
+  newTextArea.id = "sprite_name_textarea";
+  newTextArea.autofocus = true;
+  newTextArea.value = spriteName;
+  newTextArea.addEventListener('input', (e) => {
+    spriteName = e.target.value;
+  });
+  //finish edit
+  newTextArea.addEventListener('blur', finishEditingName);
+  newTextArea.addEventListener('keydown', (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      finishEditingName();
+    }
+  });
+  nameArea.appendChild(newTextArea);
+}
+
+function finishEditingName() {
+  const textArea = document.getElementById("sprite_name_textarea");
+  textArea.removeEventListener('blur', finishEditingName);//prevent this from firing again when remove() is called
+  textArea.remove();
+  const staticText = document.createElement('div');
+  staticText.id = "sprite_name_static";
+  staticText.innerText = spriteName;
+  staticText.addEventListener('dblclick', editName);
+  const nameArea = document.getElementById("sprite_name");
+  nameArea.appendChild(staticText);
+  reloadSpritePreviews();
+}
+
+function getClickCoords(e) {
+  const dims = e.target.getBoundingClientRect();
+  const sprite = sprites[currentSprite];
+  let clickCoords;
+  if (e.type == 'touchmove' || e.type == 'touchstart') {
+    clickCoords = {
+      x: e.touches[0].clientX - dims.left,
+      y: e.touches[0].clientY - dims.top
+    };
+  }
+  else if(e.type == 'touchend' || e.type == 'touchcancel'){
+    clickCoords = {
+      x: e.changedTouches[0].clientX - dims.left,
+      y: e.changedTouches[0].clientY - dims.top
+    };
+  }
+  else {
+    clickCoords = {
+      x: e.clientX - dims.left,
+      y: e.clientY - dims.top
+    };
+  }
+  //px per char
+  const pixelDims = {
+    width: dims.width / sprite.width,
+    height: dims.height / sprite.height,
+  };
+
+  return { x: Math.trunc(clickCoords.x / pixelDims.width), x_rounded: Math.round(clickCoords.x / pixelDims.width), y: Math.trunc(clickCoords.y / pixelDims.height), y_rounded: Math.round(clickCoords.y / pixelDims.height) };
+}
+
+function handleKeyDown(e) {
+  if ((e.target === document.body)) {
+    const sprite = sprites[currentSprite];
+    switch (e.key) {
+      case 'a':
+      case 'A':
+        if (e.metaKey || e.ctrlKey) {
+          e.preventDefault();
+          selectionBox.selectAll();
+        }
+        break;
+      case 'X':
+      case 'x':
+        if (e.metaKey || e.ctrlKey) {
+          cut();
+        }
+        break;
+      case 'C':
+      case 'c':
+        if (e.metaKey || e.ctrlKey) {
+          copy();
+        }
+        break;
+      case 'Z':
+      case 'z':
+        if (e.metaKey || e.ctrlKey) {
+          if (e.shiftKey) {
+            redo();
+          }
+          else {
+            undo();
+          }
+        }
+        break;
+      case '1':
+      case '2':
+      case '3':
+      case '4':
+      case '5':
+      case '6':
+      case '7':
+      case '8':
+      case '9':
+        const newVal = parseInt(e.key) - 1;
+        if (newVal < sprite.frames.length) {
+          sprite.currentFrame = newVal;
+          updateFrames();
+        }
+        break;
+      case '+':
+      case '=':
+        addNewFrame();
+        break;
+      case '-':
+        deleteCurrentFrame();
+        break;
+      case 'p':
+      case 'P':
+        setTool('pixel');
+        break;
+      case 's':
+      case 'S':
+        setTool('select');
+        break;
+      case 'l':
+      case 'L':
+        setTool('line');
+        break;
+      case 'f':
+      case 'F':
+        setTool('fill');
+        break;
+      case 'm':
+      case 'M':
+        setTool('move');
+        break;
+      case 'v':
+      case 'V':
+        if (e.metaKey || e.ctrlKey) {
+          paste(e);
+          return;
+        }
+      case 'ArrowLeft':
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        sprite.previousFrame();
+        updateFrames();
+        break;
+      case 'ArrowRight':
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        sprite.nextFrame();
+        updateFrames();
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        if(currentSprite)
+          currentSprite--;
+        else
+          currentSprite = sprites.length-1;
+        updateFrames();
+        reloadSpritePreviews();
+        break;
+      case 'ArrowDown':
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        if(currentSprite < sprites.length - 1)
+          currentSprite++;
+        else
+          currentSprite = 0;
+        updateFrames();
+        reloadSpritePreviews();
+        break;
+      case ' ':
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        togglePlayback();
+        break;
+      case 'Shift':
+        toggleColor();
+        break;
+    }
+  }
+}
+
+function handleKeyUp(e) {
+  if ((e.target === document.body)) {
+    switch (e.key) {
+      case 'Shift':
+        toggleColor();
+        break;
+    }
+  }
+}
+
+function setTooltip(text) {
+  document.getElementById("tooltip_text").innerText = text;
+}
+function setTool(tool, domElement) {
+  if(tool == settings.currentTool)
+    return;
+  //logic to cancel active tools
+  switch(settings.currentTool){
+    case 'line':
+      if(line.started){
+        cancelLine();
+      }
+      break;
+    case 'move':
+      break;
+  }
+  settings.currentTool = tool;
+  let otherToolButtons = document.getElementsByClassName('tool_button');
+  for (let tool of otherToolButtons) {
+    tool.style.backgroundColor = '';
+  }
+  if (!domElement)
+    domElement = document.getElementById(`${tool}_tool_button`);
+  domElement.style.backgroundColor = 'blue';
+}
+
+function setMouseCoordDisplay(e) {
+  let coords = getClickCoords(e);
+  // console.log(coords);
+  document.documentElement.style.setProperty('--cursor-x', `${coords.x}px`);
+  document.documentElement.style.setProperty('--cursor-y', `${coords.y}px`);
+  setTooltip(`{${coords.x},${coords.y}}`);
+}
+
+function blendColor(c1, c2) {
+  let newBytes = '#';
+  for (let byte = 0; byte < 3; byte++) {
+    const b1 = c1.substring(byte + 1, byte + 3);
+    const b2 = c2.substring(byte + 1, byte + 3);
+    newBytes += (Math.round((parseInt(b1, 16) + parseInt(b2, 16)) / 2)).toString(16).padStart(2, '0');
+  }
+  return newBytes;
+}
+
+function playNextFrame() {
+  sprites[currentSprite].nextFrame();
+  updateFrames();
+  timeoutID = window.setTimeout(playNextFrame, settings.frameSpeed);
+}
+function togglePlayback() {
+  if (settings.playing) {
+    settings.playing = false;
+    window.clearTimeout(timeoutID);
+    timeoutID = undefined;
+    settings.overlayGhosting = true;
+    showGrid();
+    updateCanvas(false);
+  }
+  else {
+    settings.playing = true;
+    hideGrid();
+    settings.overlayGhosting = false;
+    playNextFrame();
+  }
+}
+function toggleColor(domElement) {
+  if (!domElement)
+    domElement = document.getElementById('color_toggle_button');
+  settings.currentColor = 1 - settings.currentColor;
+  domElement.style.backgroundColor = settings.currentColor ? 'white' : 'black';
+}
+
+function createNewSprite(title, setToCurrent = true) {
+  pushUndoState();
+  const newSprite = Sprite(title);
+  for(let i = 0; i<sprites[currentSprite].frames.length; i++){
+    newSprite.frames[i] = PixelFrame(sprites[currentSprite].width,sprites[currentSprite].height,sprites[currentSprite].frames[i].data);
+  }
+  sprites.push(newSprite);
+  if (setToCurrent) {
+    currentSprite = sprites.length - 1;
+    reloadSpritePreviews();
+    updateFrames();
+  }
+  else {
+    reloadSpritePreviews();
+  }
+}
+
+//draws the sprite to the main canvas
+function updateCanvas(updatePreview = true) {
+  //if you're editing the first frame, update the sprite preview for this sprite to match
+  if (sprites[currentSprite].currentFrame == 0) {
+    renderFrame(document.getElementById(`sprite_preview_${currentSprite}`).getContext('2d'), sprites[currentSprite], sprites[currentSprite].frames[0]);
+  }
+  const canvas = document.getElementById("main_canvas");
+  if (!canvas)
+    return;
+
+  const sprite = sprites[currentSprite];
+  document.documentElement.style.setProperty('--sprite-width', `${sprite.width}px`);
+  document.documentElement.style.setProperty('--sprite-height', `${sprite.height}px`);
+  document.documentElement.style.setProperty('--background-width', `${100 / sprite.width}%`);
+  document.documentElement.style.setProperty('--background-height', `${100 / sprite.height}%`);
+                
+  //figure out the last frame, to draw ghosting
+  let previousFrame = undefined;
+  if (sprite.currentFrame > 0)
+    previousFrame = sprite.currentFrame - 1;
+  else if (sprite.frames.length > 1)
+    previousFrame = sprite.frames.length - 1;
+
+  //set canvas dims (these aren't the visual size of the canvas)
+  canvas.width = sprite.width;
+  canvas.height = sprite.height;
+
+  //get drawing context
+  const context = canvas.getContext("2d");
+  //draw over each pixel
+  for (let x = 0; x < sprite.width; x++) {
+    for (let y = 0; y < sprite.height; y++) {
+
+      // if(currentMouseCoordsRef.current != null && currentMouseCoordsRef.current.x == x && currentMouseCoordsRef.current.y == y)
+      //   context.fillStyle = '#008b00ff';
+
+      //if there's a pixel there, draw foreground color
+      if (sprite.frames[sprite.currentFrame].getPixel(x, y)) {
+        context.fillStyle = settings.foregroundColor;
+      }
+      else {
+        //if there's a no pixel, but one on a previous frame, ghost it
+        if (previousFrame !== undefined && settings.overlayGhosting && sprite.frames[previousFrame].getPixel(x, y)) {
+          context.fillStyle = blendColor(settings.foregroundColor, settings.backgroundColor);
+        }
+        else {
+          context.fillStyle = settings.backgroundColor
+        }
+      }
+      context.fillRect(x, y, 1, 1);
+    }
+  }
+  if(updatePreview)
+    updateActivePreview(sprite.currentFrame);
+}
+
+function renderFrame(context, sprite, frame, pallette = {foregroundColor : settings.foregroundColor,backgroundColor : settings.backgroundColor}) {
+  //draw over each pixel
+  for (let x = 0; x < sprite.width; x++) {
+    for (let y = 0; y < sprite.height; y++) {
+      context.fillStyle = frame.getPixel(x, y) ? pallette.foregroundColor : pallette.backgroundColor;
+      context.fillRect(x, y, 1, 1);
+    }
+  }
+}
+
+function updateActivePreview(index) {
+  const canv = document.getElementById(`frame_${index}_preview`);
+  renderFrame(canv.getContext('2d'), sprites[currentSprite], sprites[currentSprite].frames[index]);
+}
+
+//recreates preview canvases
+function reloadFramePreviews() {
+  //doing some bounds checking on the preview dimensions so they don't get huge or tiny
+  const maxPreviewDim = 32;
+  const aspectRatio = sprites[currentSprite].height / sprites[currentSprite].width;
+  let scaledWidth, scaledHeight;
+  if (aspectRatio > 1) {
+    scaledHeight = maxPreviewDim;
+    scaledWidth = scaledHeight / aspectRatio;
+  }
+  else {
+    scaledWidth = maxPreviewDim;
+    scaledHeight = scaledWidth * aspectRatio;
+  }
+
+  const frames = [];
+  for (let f = 0; f < sprites[currentSprite].frames.length; f++) {
+    //create preview canvas
+    let newCanvas = document.createElement('canvas');
+    newCanvas.width = sprites[currentSprite].width;
+    newCanvas.height = sprites[currentSprite].height;
+
+    //styling canvas
+    newCanvas.className = (f == sprites[currentSprite].currentFrame) ? 'active_canvas preview_canvas' : 'preview_canvas';
+    newCanvas.id = `frame_${f}_preview`;
+    // newCanvas.className = 'preview_canvas';
+    newCanvas.style.borderColor = (f == sprites[currentSprite].currentFrame) ? 'blue' : undefined;
+    newCanvas.style.width = scaledWidth + 'px';
+    newCanvas.style.height = scaledHeight + 'px';
+
+    newCanvas.addEventListener('click', () => { sprites[currentSprite].currentFrame = f; updateFrames(); })
+    renderFrame(newCanvas.getContext('2d'), sprites[currentSprite], sprites[currentSprite].frames[f]);
+    frames.push(newCanvas);
+  }
+  // if (frames.length < settings.maxFrames) {
+    const newCanvButton = document.createElement('div');
+    newCanvButton.addEventListener('click', addNewFrame);
+    newCanvButton.innerText = ' + ';
+    newCanvButton.className = "button";
+    frames.push(newCanvButton)
+  // }
+  const frameHolder = document.getElementById("preview_gallery_holder");
+  frameHolder.replaceChildren(...frames);
+}
+
+function updateFrames() {
+  reloadFramePreviews();
+  updateCanvas(false);
+  document.getElementById('frame_counter_label').innerText = `frame -- ${sprites[currentSprite].currentFrame + 1} / ${sprites[currentSprite].frames.length}`
+}
+
+function createSpritePreview(domElement,index){
+  domElement.className = "sprite_preview_holder";
+  const canv = document.createElement('canvas');
+  canv.id = `sprite_preview_${index}`;
+  canv.className = "sprite_preview";
+  canv.width = sprites[index].width;
+  canv.height = sprites[index].height;
+  domElement.addEventListener('click', () => {
+    currentSprite = index;
+    reloadSpritePreviews();
+    updateFrames();
+  })
+  renderFrame(canv.getContext('2d'), sprites[index], sprites[index].frames[0]);
+  domElement.appendChild(canv);
+}
+
+function createBlankPreview(domElement,name){
+  domElement.className = "sprite_blank_preview_holder";
+  const blank = document.createElement('div');
+  blank.className = "button new_frame_button";
+  blank.innerText = " + ";
+  blank.addEventListener('click', () => createNewSprite(name,true));
+  domElement.appendChild(blank);
+}
+
+function spriteWithName(name){
+  for(let s  = 0; s<sprites.length; s++){
+    if(sprites[s] && sprites[s].fileName == name)
+      return {index:s,sprite:sprites[s]};
+  }
+  return undefined;
+}
+
+function reloadSpritePreviews() {
+  //clear out old previews
+  const previewHolder = document.getElementById('sprite_previews');
+  previewHolder.textContent = '';
+
+  //draw sprites you already have
+  for(let i = 0; i<sprites.length; i++){
+    const slot = document.createElement('div');
+    if (i == currentSprite) {
+      slot.style.background = 'blue';
+      slot.style.color = 'white';
+    }
+
+    //if there's an existing sprite for this slot, draw it
+    createSpritePreview(slot,i);
+
+    const text = document.createElement('div');
+    text.innerText = sprites[i].fileName;
+    slot.appendChild(text);
+    previewHolder.appendChild(slot);
+  }
+  //draw empty slots for sprites that are still needed
+  for (let i = 0; i < presetSpriteNames.length; i++) {
+    const slot = document.createElement('div');
+    //if there's an existing sprite for this slot, draw it
+    const matchingSprite = spriteWithName(presetSpriteNames[i]);
+    if (matchingSprite) {
+      continue;
+    }
+    //if not, draw a blank area
+    else {
+      createBlankPreview(slot,presetSpriteNames[i]);
+    }
+
+    const text = document.createElement('div');
+    text.innerText = presetSpriteNames[i];
+    slot.appendChild(text);
+    previewHolder.appendChild(slot);
+  }
+}
+
+function factoryResetSprites() {
+  alert("WARNING: you are about to reset all artwork on Tamo! You will lose any custom sprites.")
+}
+
+window.addEventListener("keydown", handleKeyDown);
+window.addEventListener("keyup", handleKeyUp);
+reloadSpritePreviews();
+updateFrames();

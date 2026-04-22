@@ -9,6 +9,15 @@
 // GPIO4 (Pin 6)	UART1 TX
 // GPIO5 (Pin 7)	UART1 RX
 
+
+#define BUTTON_PIN PIN_PB3
+#define LED_A PIN_PA6
+#define LED_B PIN_PC0
+#define BATTERY_PIN PIN_PA7
+#define UART_RX_PIN PIN_PB3
+#define UART_TX_PIN PIN_PB2
+
+
 /*
 notes on pins:
 
@@ -22,65 +31,24 @@ PB3 -- UART RX
 
 PA6 -- DAC out / LED A
 PC0 -- LED B
-
 */
-
-#define BUTTON_PIN PIN_PB3
-#define LED_A PIN_PA6
-#define LED_B PIN_PC0
-#define BATTERY_PIN PIN_PA7
-
-#include <Wire.h>
-#include <avr/sleep.h>
-#include <avr/interrupt.h>
-#include <EEPROM.h>
 
 using namespace std;
 
-uint32_t lastTime = 0;
-
-bool itsbeen(uint32_t time){
-  return((millis()-lastTime)>time);  
-} __attribute__((noinline));
-
-//returns a random number from 0 - range, exclusive
-uint8_t randomInt(uint8_t range){
-  return millis()%range;
-}
-
-#include "spriteFrames.cpp"
-#include "display.cpp"
-#include <Wire.h>
-SSD1306Device oled;
-#include "wireframe/fbo.h"
+#include "utils.h"
+// #include "flash.cpp"
 
 //this stores the active graphics area! which is half-res of the screen, sprites are drawn 2x
+#include "FrameBuffer.h"
 FrameBuffer fbo(36,24);
 
+#include <Wire.h>
+#include "Display.h"
+SSD1306Device oled;
 
-const Vertex verts[9] = {
-  //outline
-  Vertex(-2.5,-1.5,0),Vertex(2.5,-1.5,0),Vertex(2.5,1.5,0),Vertex(-2.5,1.5,0),
-  //triangle tip
-  Vertex(-1,0,0),
-  //stripes
-  Vertex(-1.25,-0.25,0),Vertex(2.5,-0.25,0),Vertex(-1.25,0.25,0),Vertex(2.5,0.25,0)
-};
+#include "spriteLoader.h"
 
-const uint8_t edges[8][2] = {
-  //rect
-  {0,1},{1,2},{2,3},{3,0},
-  //triangle
-  {0,4},{4,3},
-  //stripes
-  {5,6},{7,8}
-};
-
-WireFrame flag(9,verts,8,edges);
-
-#include "hardware.cpp"
-#include "Tamo.cpp"
-
+#include "Tamo.h"
 Tamo tamo;
 
 //Interrupt callback to wake Attiny back up
@@ -158,45 +126,9 @@ void disconnectUnusedPins(){
   }
 }
 
+uint8_t debugIdentity = NO_IDENTITY;
 
-// UART tutorial
-// https://avr8.com/attiny3217-uart-tutorial/
-void initUART(){
-  PORTB.DIRSET = PIN2_bm;         // Set PB2 as an output for USART0 Tx
-  // USART0.BAUD = 1389;             // Set UART baud rate to 9600 (20MHz / 6 clock)
-  USART0.BAUD = 1111;             // Set UART baud rate to 9600 (16MHz / 6 clock)
-  USART0.CTRLB = USART_TXEN_bm;   // UART transmitter enable
-}
-
-// Transmit a string using the USART
-void str_tx(char *txt)
-{
-    int index = 0;  // Index into the string
-    
-    // Send characters from the string until the string terminator is found
-    while (txt[index] != '\0') {
-        if (USART0.STATUS & USART_DREIF_bm) {   // Check if data can be sent
-            USART0.STATUS = USART_TXCIF_bm;     // Clear the transmit complete flag
-            USART0.TXDATAL = txt[index];        // Sent a character
-            index++;                            // Point to next character
-        }
-    }
-}
-
-// Transmit a string using the USART
-void data_tx(unsigned char *data, uint16_t size)
-{
-  for(uint16_t i = 0; i<size; i++){
-    // wait until data can be sent
-    while (!(USART0.STATUS & USART_DREIF_bm));
-    if (USART0.STATUS & USART_DREIF_bm) {
-        USART0.STATUS = USART_TXCIF_bm;     // Clear the transmit complete flag
-        USART0.TXDATAL = data[i];        // send byte
-    }
-  }
-}
-
-void setup() {
+void setup(){
 
   /*
       Turning on LED controls
@@ -215,9 +147,6 @@ void setup() {
 
   //set floating pins to OUTPUT (to save power during sleep)
   disconnectUnusedPins();
-
-  //initialize UART
-  initUART();
 
   //disabling ADC (it's enabled whenever tamo measures battery VCC, then disabled again)
   // ADCSRA &= ~_BV(ADEN);
@@ -238,24 +167,48 @@ void setup() {
   //turn on/set up the screen
   oled.begin(72, 40);
 
-  //wireframe testing
-  flag.scale = 3.0;
-  flag.xPos = 16;
-  flag.yPos = 8;
-  flag.rotate(15,0);
-  delay(500);
+  //initialize UART
+  Serial.begin(115200);
+
+  tamo.identity = EEPROM.read(EEPROM_IDENTITY_ADDR);
 }
 
-uint8_t d[] = {
-  '1'
-};
+void writeFrameToSerial(){
+  Serial.println("*--------------------------*");
+  for(uint8_t y = 0; y<fbo.height; y++){
+    for(uint8_t x = 0; x<fbo.width; x++){
+      uint8_t val = fbo.getPixel(x,y);
+      if(val)
+        Serial.print("0");
+      else
+        Serial.print(" ");
+    }
+    Serial.print('\n');
+  }
+}
+
+void debugDumpEEPROM(){
+  Serial.println("*-----------*");
+  for(uint8_t i = 0; i<64; i++){
+    Serial.print(EEPROM.read(i+CUSTOM_SPRITE_DATA_ADDR));
+  }
+}
 
 void loop() {
-  // tamo.live();
-  data_tx(d,sizeof(d));
-
-  // flag.rotate(4,1);
-  // fbo.clear();
-  // fbo.renderWireFrame(flag,1);
-  // oled.renderFBO2x(4,0,36,3,fbo.buffer);
+  // checkSerialConnection();
+  // delay(500);
+  readButton();
+  if(BUTTON){
+    digitalWrite(LED_A,LOW);
+    digitalWrite(LED_B,LOW);
+  }
+  else{
+    digitalWrite(LED_A,HIGH);
+    digitalWrite(LED_B,HIGH);
+  }
+  // testNumbers();
+  // else{
+    tamo.live();
+  //   // tamo.debugCheckMoodSprites();
+  // }
 }
