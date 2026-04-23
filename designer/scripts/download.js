@@ -23,7 +23,7 @@ function downloadAllFramesAsBMPs(){
       const sprite = sprites[currentSprite];
       tempCanvas.width = sprite.width;
       tempCanvas.height = sprite.height;
-      renderFrame(tempCanvas.getContext('2d'),sprite,sprite.frames[frameIndex]);
+      renderFrame(tempCanvas.getContext('2d'),sprite,sprite.frames[frameIndex],settings.outputColors);
       window.CanvasToBMP.toBlob(tempCanvas,(blob) => {
         const filename = spriteName+'_'+sprite.fileName+'_'+(frameIndex+1)+'.bmp';
         zip.file(filename,blob);
@@ -50,24 +50,28 @@ async function saveGIF(){
         const tempCanvas = document.createElement('canvas');
         tempCanvas.width = sprite.width;
         tempCanvas.height = sprite.height;
-        renderFrame(tempCanvas.getContext('2d'),sprite,frame,{foregroundColor:'#ffffff',backgroundColor:'#000000'});
-        // renderFrame(tempCanvas.getContext('2d'),sprite,frame,{foregroundColor:'#000000',backgroundColor:'#ffffff'});
+        renderFrame(tempCanvas.getContext('2d'),sprite,frame,settings.outputColors);
         canvases.push(tempCanvas);
     });
     await canvasesToGif(canvases, settings.frameSpeed,);
 };
 
 async function canvasesToGif(canvases, msDelay){
-    const gif = new GIF({
+    const props = {
         workerScript: 'designer/scripts/lib/gif.worker.js',
         workers: 2,
         quality: 10,
         width: canvases[0].width,
         height: canvases[0].height,
-        // transparent: '0xffffff',
-        transparent:'0x000000'
-        // background: '0x0000ff'
-    });
+    }
+    if(settings.outputColors.foregroundColor == 'transparent'){
+        props.transparent = settings.outputColors.backgroundColor == '#ffffff'?'0x000000':'0xffffff';//set 'transparent' to whichever foreground is not
+    }
+    else if(settings.outputColors.backgroundColor == 'transparent'){
+        props.transparent = settings.outputColors.foregroundColor == '#ffffff'?'0x000000':'0xffffff';//set 'transparent' to whichever background is not
+    }
+
+    const gif = new GIF(props);
     for(let frame of canvases){
         gif.addFrame(frame,{delay:msDelay});
     }

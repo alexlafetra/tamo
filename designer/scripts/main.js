@@ -63,6 +63,63 @@ let currentSprite = 0;
 let timeoutID = undefined;
 let spriteName = "tamo";
 let settingsShown = false;
+let resizeDimensions = {
+  width : sprites[currentSprite].width,
+  height : sprites[currentSprite].height,
+  alignment : 'center',
+}
+
+function hideResizePreview(){
+  document.documentElement.style.setProperty('--resize-box-visibility','hidden');
+}
+function showResizePreview(){
+  document.documentElement.style.setProperty('--resize-box-visibility','visible');
+  updateResizePreview();
+}
+function updateResizePreview(){
+  let x,y;
+  if(resizeDimensions.alignment == 'center'){
+    x = Math.round((sprites[currentSprite].width - resizeDimensions.width)/2);
+    y = Math.round((sprites[currentSprite].height - resizeDimensions.height)/2);
+  }
+  else if(resizeDimensions.alignment == 'top left'){
+    x = 0;
+    y = 0;
+  }
+  document.documentElement.style.setProperty('--resize-box-width', `${resizeDimensions.width}px`);
+  document.documentElement.style.setProperty('--resize-box-height', `${resizeDimensions.height}px`);
+  document.documentElement.style.setProperty('--resize-box-start-x', `${x}px`);
+  document.documentElement.style.setProperty('--resize-box-start-y', `${y}px`); 
+}
+
+function setResizeDimensionWidth(e){
+  const val = e.target.value;
+  if(val == undefined || val == null)
+    val = 0;
+  resizeDimensions.width = val;
+  updateResizePreview();
+}
+
+function setResizeDimensionHeight(e){
+  const val = e.target.value;
+  if(val == undefined || val == null)
+    val = 0;
+  resizeDimensions.height = val;
+  updateResizePreview();
+}
+function setResizeAlignment(e){
+  resizeDimensions.alignment = e.target.value;
+  updateResizePreview();
+}
+function resizeAllSprites(){
+  for(let sprite of sprites){
+    sprite.resize(Math.max(resizeDimensions.width,1),Math.max(resizeDimensions.height,1),resizeDimensions.alignment);
+  }
+  reloadFramePreviews();
+  reloadSpritePreviews();
+  updateCanvas();
+}
+
 
 const settings = {
   currentTool: 'pixel',
@@ -79,6 +136,10 @@ const settings = {
   createSpritesByFileName: true,
   showGrid: true,
   maxFrames: 2,
+  outputColors : {
+    foregroundColor:'#ffffff',
+    backgroundColor:'#000000'
+  }
 };
 
 
@@ -117,9 +178,14 @@ function setAnimationSpeed(event) {
   }
 }
 
-function toggleExtraSettingsVisibility(){
-  document.documentElement.style.setProperty('--extra-settings-display', settingsShown?'block':'none');
+function toggleExtraSettingsVisibility(domElement){
   settingsShown = !settingsShown;
+  document.documentElement.style.setProperty('--extra-settings-display', settingsShown?'block':'none');
+  if(domElement){
+    domElement.innerText = settingsShown?"hide settings":"settings";
+    domElement.style.backgroundColor = settingsShown?"blue":null;
+    domElement.style.color = settingsShown?"yellow":null;
+  }
 }
 
 function toggleGridVisibility(domElement) {
@@ -367,6 +433,66 @@ function handleKeyUp(e) {
   }
 }
 
+function setOutputForeground(domElement){
+  const colorName = domElement.innerText;
+
+  const currentButton = document.getElementById(`foreground_${settings.outputColors.foregroundColor == '#000000'?'black':(settings.outputColors.foregroundColor == '#ffffff')?'white':settings.outputColors.foregroundColor}`);
+  switch(currentButton.innerText){
+    case 'transparent':
+    case 'white':
+      currentButton.style.backgroundColor = null;
+      currentButton.style.color = null;
+      break;
+    case 'black':
+      currentButton.style.backgroundColor = 'black';
+      currentButton.style.color = 'white';
+      break;
+  }
+  switch(colorName){
+    case 'white':
+      settings.outputColors.foregroundColor = '#ffffff';
+      break;
+    case 'black':
+      settings.outputColors.foregroundColor = '#000000';
+      break;
+    case 'transparent':
+      settings.outputColors.foregroundColor = 'transparent';
+      break;
+  }
+  domElement.style.backgroundColor = 'blue';
+  domElement.style.color = 'yellow';
+}
+
+function setOutputBackground(domElement){
+  const colorName = domElement.innerText;
+
+  const currentButton = document.getElementById(`background_${settings.outputColors.backgroundColor == '#000000'?'black':(settings.outputColors.backgroundColor == '#ffffff')?'white':settings.outputColors.backgroundColor}`);
+  switch(currentButton.innerText){
+    case 'transparent':
+    case 'white':
+      currentButton.style.backgroundColor = null;
+      currentButton.style.color = null;
+      break;
+    case 'black':
+      currentButton.style.backgroundColor = 'black';
+      currentButton.style.color = 'white';
+      break;
+  }
+  switch(colorName){
+    case 'white':
+      settings.outputColors.backgroundColor = '#ffffff';
+      break;
+    case 'black':
+      settings.outputColors.backgroundColor = '#000000';
+      break;
+    case 'transparent':
+      settings.outputColors.backgroundColor = 'transparent';
+      break;
+  }
+  domElement.style.backgroundColor = 'blue';
+  domElement.style.color = 'yellow';
+}
+
 function setTooltip(text) {
   document.getElementById("tooltip_text").innerText = text;
 }
@@ -512,11 +638,11 @@ function updateCanvas(updatePreview = true) {
     updateActivePreview(sprite.currentFrame);
 }
 
-function renderFrame(context, sprite, frame, pallette = {foregroundColor : settings.foregroundColor,backgroundColor : settings.backgroundColor}) {
+function renderFrame(context, sprite, frame, palette = {foregroundColor : settings.foregroundColor,backgroundColor : settings.backgroundColor}) {
   //draw over each pixel
   for (let x = 0; x < sprite.width; x++) {
     for (let y = 0; y < sprite.height; y++) {
-      context.fillStyle = frame.getPixel(x, y) ? pallette.foregroundColor : pallette.backgroundColor;
+      context.fillStyle = frame.getPixel(x, y) ? (palette.foregroundColor ==  'transparent'?(palette.backgroundColor == '#000000'?'#ffffff':'#000000'):palette.foregroundColor):(palette.backgroundColor ==  'transparent'?(palette.foregroundColor == '#000000'?'#ffffff':'#000000'):palette.backgroundColor);
       context.fillRect(x, y, 1, 1);
     }
   }
@@ -585,6 +711,21 @@ function createSpritePreview(domElement,index){
   canv.className = "sprite_preview";
   canv.width = sprites[index].width;
   canv.height = sprites[index].height;
+
+  const maxPreviewDim = 16;
+  const aspectRatio = sprites[currentSprite].height / sprites[currentSprite].width;
+  let scaledWidth, scaledHeight;
+  if (aspectRatio > 1) {
+    scaledHeight = maxPreviewDim;
+    scaledWidth = scaledHeight / aspectRatio;
+  }
+  else {
+    scaledWidth = maxPreviewDim;
+    scaledHeight = scaledWidth * aspectRatio;
+  }
+
+  canv.style.width = `${scaledWidth}px`;
+  canv.style.height = `${scaledHeight}px`;
   domElement.addEventListener('click', () => {
     currentSprite = index;
     reloadSpritePreviews();

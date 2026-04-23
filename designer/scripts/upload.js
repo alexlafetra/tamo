@@ -21,14 +21,30 @@ function gifToSprite(file, frameCallback) {
                 //loop over each frame, build & fill a new PixelFrame object with its data
                 gifFrames.map((frame, frameIndex) => {
                     spriteFrames.push(PixelFrame(gif.lsd.width, gif.lsd.height, 0));
+                    console.log(frame.pixels);
+                    console.log(frame);
+                    //this is inefficient, but consistent
+                    let containsTransparentPixels = false;
+                    //check for any transparent pixels!
+                    frame.pixels.map((pixelValue, pixelIndex) => {
+                        if(pixelValue == frame.transparentIndex){
+                            containsTransparentPixels = true;
+                            return;
+                        }
+                    });
                     frame.pixels.map((pixelValue, pixelIndex) => {
                         //get the x,y coords for the PixelFrame (using the gif frame offsets, and accounting for diff dimensions)
                         const x = pixelIndex % frame.dims.width + frame.dims.left;
                         const y = Math.trunc(pixelIndex / frame.dims.width) + frame.dims.top;
-                        if(frame.transparentIndex)
+                        //if this frame contains any transparent pixels, those should be black and everything else should be white
+                        if(containsTransparentPixels){
                             spriteFrames[frameIndex].setPixel(x, y, (pixelValue == frame.transparentIndex) ? 0 : 1);
-                        else
-                            spriteFrames[frameIndex].setPixel(x, y, (pixelValue == gif.lsd.backgroundColorIndex) ? 0 : 1);
+                        }
+                        //if this pixel matches the designated 'background color' (not sure when .gif's even use that)
+                        //or if it's brightness > 0, the pixel should be white
+                        else{
+                            spriteFrames[frameIndex].setPixel(x, y, (pixelValue == gif.lsd.backgroundColorIndex) ? 0 : (((frame.colorTable[pixelValue][0]+frame.colorTable[pixelValue][1]+frame.colorTable[pixelValue][2])) > 0));
+                        }
                     });
                 });
 
@@ -122,7 +138,7 @@ async function processLoadedFiles(fileList, sprite, startFrame) {
 //callback from the <input> element
 function loadFiles(files) {
     //parsing files by name
-    if (settings.createSpritesByFileName) {
+    if (settings.createSpritesByFileName && files.length > 1) {
         const filesByName = [];
         let similarFiles = [];
 
@@ -179,7 +195,7 @@ function loadFiles(files) {
     }
     else {
         //load files like normal, into the current sprite
-        processLoadedFiles(files, sprites[currentSprite], (files.length === 1) ? sprites[currentSprite].currentFrame : 0);
+        processLoadedFiles(files, sprites[currentSprite], sprites[currentSprite].currentFrame);
         reloadSpritePreviews();
         reloadFramePreviews();
         updateCanvas();

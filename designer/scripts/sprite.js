@@ -12,11 +12,11 @@ const Sprite = (name = 'happy', w = 16, h = 16) => {
         previousFrame : function(){
             this.currentFrame = this.currentFrame?((this.currentFrame - 1) % this.frames.length):(this.frames.length-1);
         },
-        resize : function(width,height){
+        resize : function(width,height,alignment){
             this.width = width;
             this.height = height;
             for(let frame of this.frames){
-                frame.resize(this.width,this.height);
+                frame.resize(this.width,this.height,alignment);
             }
         }
     }
@@ -36,7 +36,7 @@ const PixelFrame = (w,h,fill) => {
         data : data,
         getPixel : function(x,y){
             if(x>=this.width || x<0 || y>=this.height || y<0)
-                return undefined;
+                return 0;
             return this.data[x+this.width*y];
         },
         setPixel : function(x,y,val){
@@ -138,18 +138,17 @@ const PixelFrame = (w,h,fill) => {
             }
             return this;
         },
-        resize : function(width,height){
+        resize : function(width,height,alignment){
             if(width === this.width && height === this.height)
                 return;
+            const coordOffset = {
+                x : (alignment == 'center')?Math.round((width - this.width)/2):0,
+                y : (alignment == 'center')?Math.round((height - this.height)/2):0
+            }
             const newData = [];
             for(let i = 0; i<width*height; i++){
                 const coords = {x:i%width,y:Math.trunc(i/width)};
-                if(coords.x < this.width && coords.y < this.height){
-                    newData[i] = this.getPixel(coords.x,coords.y);
-                }
-                else{
-                    newData[i] = 0;
-                }
+                newData[i] = this.getPixel(coords.x-coordOffset.x,coords.y-coordOffset.y);
             }
             this.data = newData;
             this.width = width;
@@ -159,11 +158,13 @@ const PixelFrame = (w,h,fill) => {
             const pixelData = canvas.getContext('2d').getImageData(0,0,this.width,this.height);
             for(let px = 0; px<pixelData.data.length/4;px++){
                 let val;
-                if(useAlphaAsBg){
-                    val = pixelData.data[px*4+3] > 0;
+                if(settings.outputColors.backgroundColor == 'transparent'){
+                    val = pixelData.data[px*4+3]?1:0;
                 }
                 else{
                     val = (pixelData.data[px*4]+pixelData.data[px*4+1]+pixelData.data[px*4+2])/3 > 122.5;
+                    if(settings.outputColors.backgroundColor == '#ffffff')
+                        val = !val;
                 }
                 this.setPixel(px%this.width,Math.trunc(px/this.width),val?1:0);
             }
