@@ -62,7 +62,7 @@ let currentMouseCoords = {
 let currentSprite = 0;
 let timeoutID = undefined;
 let spriteName = "tamo";
-let settingsShown = false;
+let settingsShown = true;
 let resizeDimensions = {
   width : sprites[currentSprite].width,
   height : sprites[currentSprite].height,
@@ -118,6 +118,22 @@ function resizeAllSprites(){
   reloadFramePreviews();
   reloadSpritePreviews();
   updateCanvas();
+}
+function updateUploadProgressBar(percent,dotCounter){
+  let text;
+  if(percent>=100){
+    text = ' sent sprites!';
+  }
+  else{
+    text = ' uploading to tamo';
+    for(let i = 0; i<dotCounter; i++){
+      text += '.';
+    }
+  }
+  document.getElementBytId("upload_progress_bar").innerText = text;
+
+  document.documentElement.style.setProperty('--progress-bar-visibility','shown');
+  document.documentElement.style.setProperty('--upload-progress', `${percent}%`);
 }
 
 
@@ -182,7 +198,6 @@ function toggleExtraSettingsVisibility(domElement){
   settingsShown = !settingsShown;
   document.documentElement.style.setProperty('--extra-settings-display', settingsShown?'block':'none');
   if(domElement){
-    domElement.innerText = settingsShown?"hide settings":"settings";
     domElement.style.backgroundColor = settingsShown?"blue":null;
     domElement.style.color = settingsShown?"yellow":null;
   }

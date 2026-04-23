@@ -1,53 +1,12 @@
+//this is written with just regular webserial API calls
+//due to conflicts with the p5 webserial library getting it to clear out the read buffer
+//and wait for a specific number of bytes to be received
 const commands = {
     WEBSERIAL_HELLO : 0x67,
     TAMO_HELLO : 0x68,
     REQUEST_NEXT_SPRITE_PACKET : 0x69,
     SET_IDENTITY : 0x6A,
     TAMO_DISCONNECT : 0x6B
-}
-
-class SerialInterface{
-    constructor(){
-        this.connected = false;
-        this.port = createSerial();
-        this.options = {
-            baudRate: 9600,
-            bufferSize: 255
-        };
-    }
-    async connect(){
-        await this.port.open(this.options.baudRate);
-        if(this.port.opened()){
-            this.connected = true;
-            console.log(this.port.port.getInfo());
-            document.getElementById("serial_connect_button").innerText = "disconnect from tamo";
-        }
-    };
-    disconnect(){
-        if(this.port.opened()){
-            this.port.close();
-            document.getElementById("serial_connect_button").innerText = "connect to tamo";
-        }
-        this.connected = false;
-    }
-    write(val){
-        this.port.write(val);
-    }
-    read(size){
-        return this.port.read(size);
-    }
-    read(){
-        return this.port.read();
-    }
-}
-
-const interface = new SerialInterface();
-
-async function toggleSerialConnection(){
-    if(interface.connected)
-        interface.disconnect();
-    else
-        await interface.connect();
 }
 
 async function clearReadBuffer(port) {
@@ -78,19 +37,76 @@ async function readBytes(port,numberOfBytes){
         result.set(value.slice(0,numberOfBytes),offset);
         offset += value.length;
     }
-    // console.log("received:");
-    // console.log(result);
     reader.releaseLock();
     return result;
 }
 
+async function transmitDataInPackets(data){
+    // write the sprite size
+    console.log(`sending data size (${data.byteLength}) as: ${data.byteLength>>8},${data.byteLength&255}`);
+    writer = port.writable.getWriter();
+    await writer.write(new Uint8Array([data.byteLength>>8,data.byteLength&255]));
+    writer.releaseLock();
+
+    let writeLocation = 0;
+    let dotCounter = 0;
+    while(true){
+        //read back tamo's response
+        value = await readBytes(port,2);
+
+        console.log("received:");
+        console.log(value);
+
+        if(value[0] == commands.REQUEST_NEXT_SPRITE_PACKET){
+
+            const packetSize = value[1];
+            console.log("tamo asked for "+packetSize.toString()+" bytes...");
+            
+            const packet = data.slice(writeLocation,writeLocation+packetSize);
+
+            console.log("sending: ");
+            console.log(packet);
+
+            // send the packet
+            writer = port.writable.getWriter();
+            writer.write(packet);
+            writer.releaseLock();
+
+            writeLocation += packetSize;
+            
+            //update the progress bar
+            dotCounter++;
+            dotCounter%=3;
+            updateUploadProgressBar(writeLocation/data.byteLength*100,dotCounter);
+
+            if(writeLocation >= data.byteLength)
+                return true;
+
+        }
+        else if(value[0] == commands.TAMO_DISCONNECT){
+            console.log("tamo disconnected! closing port...");
+            return false;
+        }
+        else{
+            console.log("error! unrecognized command:");
+            console.log(value[0]);
+            return false;
+        }
+    }
+}
+
 async function uploadSpriteData(){
-
-
     //open the port
-    const port = await navigator.serial.requestPort();
-    await port.open({ baudRate: 115200 });
+    let port;
+    try{
+        port = await navigator.serial.requestPort();
+    }
+    catch(error){
+        console.log(error);
+        return;
+    }
 
+    await port.open({ baudRate: 115200 });
     //clear buffer
     await clearReadBuffer(port);
 
@@ -105,51 +121,27 @@ async function uploadSpriteData(){
     console.log(value);
     console.log(commands.TAMO_HELLO);
     if(value[0] == commands.TAMO_HELLO){
+
         console.log("tamo says hello!");
-        // const spriteData = convertSpriteToByteArray(sprites[0]);
-        const spriteData = packAllSpritesIntoByteArray();
-        let sending = true;
 
-        // write the sprite size
-        console.log("sending sprite size...");
-        console.log(spriteData.byteLength);
-        writer = port.writable.getWriter();
-        await writer.write(new Uint8Array([spriteData.byteLength>>8,spriteData.byteLength&255]));
-        writer.releaseLock();
-
-        let writeLocation = 0;
-        while(sending){
-            //read back tamo's response
-            value = await readBytes(port,2);
-
-            console.log("received:");
-            console.log(value);
-            if(value[0] == commands.REQUEST_NEXT_SPRITE_PACKET){
-                const packetSize = value[1];
-                console.log("tamo asked for "+packetSize.toString()+" bytes...");
-                
-                const data = spriteData.slice(writeLocation,writeLocation+packetSize);
-
-                console.log("sending: ");
-                console.log(data);
-
-                // write the sprite size
-                writer = port.writable.getWriter();
-                writer.write(data);
-                writer.releaseLock();
-
-                writeLocation += packetSize;
-                if(writeLocation >= spriteData.byteLength)
+        //quickly filter sprites to only send the relevant 5
+        const organizedSprites = [];
+        presetSpriteNames.map((name,nameIndex) => {
+            let found = false;
+            for(let sprite of sprites){
+                if(sprite.fileName.contains(name)){
+                    found = true;
+                    organizedSprites[nameIndex] = sprite;
                     break;
-
+                }
             }
-            else if(value[0] == commands.TAMO_DISCONNECT){
-                console.log("tamo disconnected! closing port...");
-                await port.close();
-                sending = false;
-
-            }
-        }
+            //if there isn't one, pass undefined (packSpritesIntoByteArray will substitute it for spriteNotFound)
+            if(!found)
+                organizedSprites[nameIndex] = undefined;
+        })
+        const spriteData = packSpritesIntoByteArray(organizedSprites);
+        const success = await transmitDataInPackets(spriteData);
+        await port.close();
     }
     console.log("port closed");
 }

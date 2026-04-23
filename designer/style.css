@@ -35,11 +35,15 @@
     --cursor-visibility:hidden;
 
     /* extra settings */
-    --extra-settings-display:none;
+    --extra-settings-display:block;
 
     /* ui */
     --drop-shadow-color: #46788b;
     --button-highlight-color: blue;
+
+    /* upload progress bar */
+    --upload-progress:0%;
+    --progress-bar-visibility:hidden;
 }
 
 html{
@@ -64,13 +68,16 @@ html{
     padding-top:20px;
     position:relative;
     display:grid;
-    grid-template-rows: 200px auto fit-content fit-content fit-content;
-    grid-template-columns: fit-content fit-content(100px) fit-content fit-content(500px);
+    gap:10px;
+    /* grid-template-rows: 200px min-content min-content calc(var(--sprite-height) * var(--canvas-scale)) min-content min-content; */
+    grid-template-columns: min-content;
     grid-template-areas:"title title title title"
+                        "frame_controls frame_controls sprite_name sprite_name"
                         "frame_controls frame_controls canvas sprite_slots"
                         "edit_controls edit_controls canvas sprite_slots"
-                        "upload_controls upload_controls canvas sprite_slots"
-                        "extra_settings extra_settings extra_settings sprite_slots";
+                        "file_controls file_controls canvas sprite_slots"
+                        "file_controls file_controls canvas sprite_slots"
+                        "file_controls file_controls extra_settings sprite_slots";
 }
 #frame_controls{
     grid-area:frame_controls;
@@ -98,6 +105,33 @@ html{
     border-radius: 10px;
     margin-right:10px;
 }
+#sprite_loader_controls{
+    display:flex;
+    flex-direction: row;
+    width:fit-content;
+    height:100%;
+}
+#sprite_loader_buttons{
+    height:fit-content;
+    display:flex;
+    flex-direction: column;
+}
+#upload_progress_bar_container{
+    height:100%;
+    width:20px;
+    background:yellow;
+    visibility:var(--progress-bar-visibility);
+}
+#upload_progress_bar{
+    background:blue;
+    height:var(--upload-progress);
+    width:100%;
+    color:yellow;
+    writing-mode: vertical-lr;
+    align-content: center;
+    white-space: pre;
+    /* padding:10px 0px; */
+}
 #edit_controls_container{
     height:fit-content;
     display:flex;
@@ -107,10 +141,16 @@ html{
     padding-top:10px;
     margin-top: 0px;
 }
-#upload_controls{
-    grid-area: upload_controls;
+#file_controls{
+    grid-area: file_controls;
     padding:10px;
 }
+#canvas_container_container{
+    max-height: 600px;
+    max-width: 100%;
+    overflow: scroll;
+}
+
 #canvas_container{
     display:block;
     pointer-events:none;
@@ -129,9 +169,7 @@ html{
     width:calc(var(--canvas-scale)*var(--sprite-width) + 150px);
     height:calc(var(--canvas-scale)*var(--sprite-height) + 150px);
     left:-75px;
-    top:-60px;
-    /* marginLeft:-((sprites[currentSprite].width)*settings.canvasScale)/2+'px',
-    marginTop:-((sprites[currentSprite].height)*settings.canvasScale)*0.45+'px' */
+    top:-60px
 }
 
 #main_canvas{
@@ -159,7 +197,6 @@ html{
     border-right:1px solid #4f4f4f;
     border-bottom:1px solid #4f4f4f;
     background-position: -0.5px -0.5px;
-    /* background-size: 6.25% 6.25%; */
     background-size: var(--background-width) var(--background-height);
 }
 
@@ -202,9 +239,11 @@ html{
 
 .color_settings{
     display:flex;
+    width:fit-content;
     flex-direction: row;
-    align-items: center;
-    white-space: pre;
+    flex-wrap: wrap;
+    margin:auto;
+    /* align-items: center; */
 }
 
 #preview_gallery_holder{
@@ -250,7 +289,10 @@ html{
 
 #sprite_name{
     display:flex;
+    width:fit-content;
+    height:fit-content;
     flex-direction: column;
+    grid-area:sprite_name;
     /* padding-bottom:10px; */
 }
 #sprite_name_textarea{
@@ -331,22 +373,41 @@ html{
 #resize_controls{
     display:flex;
     flex-direction: column;
+    gap:5px;
 }
 .ui_label{
     font-weight:bold;
 }
-
-#upload_controls:hover #file_icon_holder{
-    background-color: blue;
+#file_icon{
+    image-rendering: pixelated;
+    width:40px;
+    mix-blend-mode:difference;
 }
-#file_icon_holder{
+
+#download_controls{
+    display:flex;
+    flex-direction: column;
+    gap:10px;
+    border:1px solid black;
+    border-radius: 10px;
+    width:fit-content;
+    padding:10px;
     background-color: white;
+}
+#download_controls:hover{
+    background-color: blue;
+    color:yellow;
+}
+#download_controls:hover .button{
+    mix-blend-mode: difference;
+}
+#download_icon_holder{
     width:100%;
     display:flex;
     justify-content: center;
     border-radius:10px;
 }
-#file_icon{
+#download_icon{
     image-rendering: pixelated;
     width:40px;
     /* margin:auto; */
@@ -382,6 +443,7 @@ html{
 .button_holder{
     display:flex;
     width:fit-content;
+    gap:inherit;
 }
 .button{
     color:black;
@@ -544,13 +606,14 @@ html{
     width:fit-content;
     height:fit-content;
     flex-direction: column;
-    margin:25px auto;
+    margin-top: 25px;
 }
 #big_undo_buttons .button{
     width:40px;
     height:40px;
     font-size:15px;
     font-family: chopin;
+    border-radius:40px;
 }
 
 #undo_button{
@@ -563,27 +626,33 @@ html{
         overflow-y: scroll;
         overflow-x: hidden;
         width:fit-content;
-        /* min-width:500px; */
         padding:0px 100px;
-        /* margin:auto 0px; */
         height:100%;
         display:grid;
+        /* margin:auto; */
         justify-content: center;
-        grid-template-rows: 180px fit-content fit-content fit-content;
-        grid-template-columns: fit-content;
+        grid-template-rows: 180px min-content min-content min-content 80px 50px min-content;
+        grid-template-columns: min-content min-content;
         grid-template-areas: "title title title"
-                            "frame_controls frame_controls frame_controls"
+                            "frame_controls frame_controls null"
+                            "canvas canvas sprite_name"
                             "canvas canvas sprite_slots"
-                            "edit_controls undo_buttons upload_controls"
-                            "extra_settings extra_settings extra_settings";
+                            "edit_controls undo_buttons sprite_slots"
+                            "edit_controls undo_buttons file_controls"
+                            "extra_settings extra_settings file_controls"
     }
     #big_undo_buttons{
         display:flex;
     }
+    #sprite_name{
+        margin-bottom:0px;
+        padding-left:20px;
+        align-self:center;
+    }
     #frame_controls{
         justify-self: center;
         justify-items: center;
-        margin-bottom:0px;
+        /* margin-bottom:-30px; */
         padding:10px;
         height:fit-content;
     }
@@ -591,6 +660,7 @@ html{
         justify-items: center;
         align-items: center;
         margin-top: 0px;
+
     }
     #title_container{
         margin-top:60px;
@@ -598,11 +668,13 @@ html{
         margin-bottom:0px;
     }
     #canvas_container_container{
-        margin:auto;
-        margin-top:10px;
+        max-height: 600px;
+        max-width: 300px;
+        /* width:100%; */
+        overflow: scroll;
     }
     #canvas_container{
-        margin:0px;
+        margin:10px;
     }
     #main_canvas{
         touch-action: pinch-zoom;

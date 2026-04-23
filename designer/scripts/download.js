@@ -12,34 +12,33 @@ function downloadZip(fileName){
 }
 
 
-function downloadAllFramesAsBMPs(){
+async function zipAllFrames(){
     //create a new JSZip object
     zip = new JSZip();
 
     const tempCanvas = document.createElement('canvas');
     const fileName = spriteName;
-    //call this function recursively, when each file is zipped it zips the next one!
-    const addFilesToZip = (spriteIndex,frameIndex) => {
-      const sprite = sprites[currentSprite];
-      tempCanvas.width = sprite.width;
-      tempCanvas.height = sprite.height;
-      renderFrame(tempCanvas.getContext('2d'),sprite,sprite.frames[frameIndex],settings.outputColors);
-      window.CanvasToBMP.toBlob(tempCanvas,(blob) => {
-        const filename = spriteName+'_'+sprite.fileName+'_'+(frameIndex+1)+'.bmp';
-        zip.file(filename,blob);
-        if(frameIndex < sprite.frames.length-1){
-          addFilesToZip(spriteIndex,frameIndex+1);
-        }
-        else if(spriteIndex < (sprites.length-1)){
-          addFilesToZip(spriteIndex+1,0);
-        }
-        else{
-          downloadZip(fileName);
-          tempCanvas.remove();
-        }
-      });
-    }
-    addFilesToZip(0,0);
+
+    //iterate over each sprite
+    sprites.map((sprite,spriteIndex) => {
+        //& iterate over each frame in the sprite
+        sprite.frames.map(async (frame,frameIndex) => {
+            //resize canvas to fit frame
+            tempCanvas.width = frame.width;
+            tempCanvas.height = frame.height;
+            //draw frame to the canvas
+            renderFrame(tempCanvas.getContext('2d'),sprite,frame,settings.outputColors);
+            //compile a .bmp file
+            await window.CanvasToBMP.toBlob(tempCanvas,(blob) => {
+                const filename = spriteName+'_'+sprite.fileName+'_'+(frameIndex+1)+'.bmp';
+                zip.file(filename,blob);
+            });
+
+        });
+    });
+
+    tempCanvas.remove();
+    downloadZip(fileName);
 }
 
 async function saveGIF(){

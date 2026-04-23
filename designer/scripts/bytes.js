@@ -55,23 +55,16 @@ const spriteNotFound = new Uint8Array([
   109, 1, 124, 129, 253, 0, 249, 5, 4, 249, 1, 124, 129, 253, 0, 219, 219, 0, 128, 128, 63, 128, 159, 32, 160, 159, 0, 128, 128, 63, 128, 182
 ]);
 
-function packAllSpritesIntoByteArray(){
+function packSpritesIntoByteArray(arrayOfSprites){
   const bytes = [];
-  for(let s = 0; s<presetSpriteNames.length; s++){
-    for(let f = 0; f<sprites[s].frames.length; f++){
-      let data;
-      //no sprite here, use the 404 canvas!
-      if(s >= sprites.length){
-        data = spriteNotFound.slice(0,64);
-        bytes.push(data);
-        break;
-      }
-      else{
-        data = convertFrameToByteArray(sprites[s],f);
-        bytes.push(data);
-      }
+  for(let sprite of arrayOfSprites){
+    if(sprite == undefined)
+      bytes.push(spriteNotFound);
+    for(let frame of sprite.frames){
+      bytes.push(convertFrameToByteArray(sprite,frame));
     }
   }
+
   let dataLength = 0;
   for(let data of bytes){
     dataLength += data.byteLength;
@@ -83,7 +76,6 @@ function packAllSpritesIntoByteArray(){
     totalBytes.set(bytes[data],position);
     position += bytes[data].byteLength;
   }
-  console.log(totalBytes);
   return totalBytes;
 }
 

@@ -6,8 +6,8 @@
   <link rel="icon" type="image/gif" href="designer/images/sprites/tamo_idle.gif" />
   <link rel="stylesheet" href="designer/style.css">
   <script src="designer/scripts/lib/jszip.min.js"></script>
-  <script src="designer/scripts/lib/p5.min.js"></script>
-  <script src="designer/scripts/lib/p5.webserial.js"></script>
+  <!-- <script src="designer/scripts/lib/p5.min.js"></script> -->
+  <!-- <script src="designer/scripts/lib/p5.webserial.js"></script> -->
   <script src="designer/scripts/lib/CanvasToBMP.js"></script>
   <script src="designer/scripts/lib/gifuct-browser.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gif.js/dist/gif.js"></script>
@@ -93,9 +93,8 @@
           <div class="button_holder">
             <div class="tool_button button" id="select_tool_button" onmouseenter="setTooltip('select [S]')"
               onclick="setTool('select',this);"><img src="designer/images/icons/select_icon.gif"></div>
-            <div class="tool_button button" id="move_tool_button" onmouseenter="setTooltip('move pixels [M]')"
-              state={settings.currentTool=='move' } onclick="setTool('move',this);"><img
-                src="designer/images/icons/move_icon.gif">
+            <div class="tool_button button" id="move_tool_button" onmouseenter="setTooltip('move pixels [M]')" onclick="setTool('move',this);">
+              <img src="designer/images/icons/move_icon.gif">
             </div>
             <div class="tool_button button" onmouseenter="setTooltip('clear frame')" onclick="clearFrame()"><img
                 src="designer/images/icons/clear_icon.gif"></div>
@@ -114,7 +113,7 @@
         </div>
         <!-- extra settings -->
         <div id="extra_settings_container">
-          <div id="extra_settings_button" class="button" onclick="toggleExtraSettingsVisibility(this)">settings</div>
+          <div id="extra_settings_button" style = "background:blue;color:yellow;padding:5px;"class="button" onclick="toggleExtraSettingsVisibility(this)">settings</div>
           <div id="canvas_appearance_settings" class="button_holder">
             <div class="button_holder" id="resize_controls" onmouseover="showResizePreview()"
               onmouseleave="hideResizePreview()">
@@ -163,11 +162,13 @@
             <div class="button" style="background-color:blue;color:yellow;" onclick="togglePreviousFrameOverlay(this);">
               disable overlay</div>
             <div id = "output_color_settings">
-              <div id = "output_foreground_settings" class = "color_settings">foreground: <div class = "button" id = "foreground_white" onclick = "setOutputForeground(this)" style = "color:yellow;background:blue;">white</div>
+              --foreground--
+              <div id = "output_foreground_settings" class = "color_settings"><div class = "button" id = "foreground_white" onclick = "setOutputForeground(this)" style = "color:yellow;background:blue;">white</div>
                 <div class = "button" id = "foreground_black" style = "color:white; background:black;" onclick = "setOutputForeground(this)">black</div>
                 <div class = "button" id = "foreground_transparent" style = "color:gray; border:1px dashed gray;" onclick = "setOutputForeground(this)">transparent</div>
               </div>
-              <div id = "output_background_settings" class = "color_settings">background: <div class = "button" id = "background_white" onclick = "setOutputBackground(this)">white</div>
+              --background--
+              <div id = "output_background_settings" class = "color_settings"><div class = "button" id = "background_white" onclick = "setOutputBackground(this)">white</div>
                 <div class = "button" id = "background_black" style = "color:yellow; background:blue;" onclick = "setOutputBackground(this)">black</div>
                 <div class = "button" id = "background_transparent" style = "color:gray; border:1px dashed gray;" onclick = "setOutputBackground(this)">transparent</div>
               </div>
@@ -178,7 +179,7 @@
         <!-- sprite previews/checklist -->
         <div id="sprite_preview_container">
           <!-- name -->
-          <div>sprites:</div>
+          <div style = "padding:10px;">spritesheet:</div>
           <div id="sprite_previews"></div>
           <!-- templates -->
           <div id="template_controls">
@@ -191,30 +192,47 @@
           </div>
         </div>
         <!-- upload/load controls -->
-        <div id="upload_controls" class="button_holder" style="flex-direction: column;">
-          <div id="file_icon_holder">
-            <img id="file_icon" src="designer/images/icons/file.gif">
+        <div id="file_controls" class="button_holder" style="flex-direction: column;">
+          <div id="upload_controls">
+            <label id="drop-zone" class="button">
+              <img id="file_icon" src="designer/images/icons/file.gif">
+              <div class = "ui_label">upload (gif/image)</div>
+              <input type="file" id="file-input" multiple accept="image/*" style="display:none;"
+                oninput="handleFileInput(event)">
+            </label>
           </div>
-          <label id="drop-zone" class="button">
-            <!-- upload (gif/png/bmp/jpeg) -->
-            upload
-            <input type="file" id="file-input" multiple accept="image/*" style="display:none;"
-              oninput="handleFileInput(event)">
-          </label>
-          <div id="serial_connection_controls_container" class="button_holder">
-            <div class="button" id="upload_sprites_button" onclick="uploadSpriteData()">export to tamo</div>
+          <div id = "download_controls">
+            <div class = "ui_label">save as...</div>
+            <div style = "display:flex;flex-direction: row;">
+               <div id = "download_icon_holder">
+                <img id="download_icon" src="designer/images/icons/download.gif">
+              </div>
+              <div>
+                <div class="button" onclick="saveGIF();" style = "background:#69baae;">.gif</div>
+                <div class="button" onclick="zipAllFrames();" style = "background:#ffd79f;">.bmp</div>
+                <div class="button" onclick="zipAllFrames();" style = "background:#ea10cc;">.zip</div>
+              </div>
+            </div>
           </div>
-          <div>save...</div>
-          <div class="button" onclick="downloadAllFramesAsBMPs()">.zip</div>
-          <div class="button" onclick="saveGIF()">.gif</div>
+          <div id = "sprite_loader_controls" class = "button_holder">
+              <div class = "button_holder" id = "sprite_loader_buttons">
+                <div class="button tool_button" id="upload_sprites_button" onclick="uploadSpriteData()">upload to tamo</div>
+                <img src = "designer/images/tamo_rotating_small.gif" style = "width:100%;height:80px;image-rendering: pixelated;filter:drop-shadow(4px 4px 2px var(--drop-shadow-color))"> 
+              </div>
+              <div id = "upload_progress_bar_container">
+                <div id = "upload_progress_bar"></div>
+              </div>
+          </div>
+        </div>
+
+        <!-- sprite name -->
+        <div id="sprite_name">
+          hello:
+          <div id="sprite_name_static" ondblclick="editName()">tamo</div>
         </div>
 
         <!-- canvas -->
         <div id="canvas_container_container">
-          <div id="sprite_name">
-            name:
-            <div id="sprite_name_static" ondblclick="editName()">tamo</div>
-          </div>
           <div id="canvas_container">
             <canvas id="main_canvas" ondragend="handleDragLeave()" ondragleave="handleDragLeave()"
               ondragover="handleDragOver(event)" ondrop="handleDrop(event)" onmouseout="handleMouseOut(event)"
