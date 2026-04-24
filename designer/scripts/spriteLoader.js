@@ -2,11 +2,11 @@
 //due to conflicts with the p5 webserial library getting it to clear out the read buffer
 //and wait for a specific number of bytes to be received
 const commands = {
-    WEBSERIAL_HELLO : 0x67,
-    TAMO_HELLO : 0x68,
-    REQUEST_NEXT_SPRITE_PACKET : 0x69,
-    SET_IDENTITY : 0x6A,
-    TAMO_DISCONNECT : 0x6B
+    WEBSERIAL_HELLO : 0x01,
+    TAMO_HELLO : 0x02,
+    REQUEST_NEXT_SPRITE_PACKET : 0x03,
+    SET_IDENTITY : 0x04,
+    TAMO_DISCONNECT : 0x05
 }
 
 async function clearReadBuffer(port) {
@@ -38,6 +38,7 @@ async function readBytes(port,numberOfBytes){
         offset += value.length;
     }
     reader.releaseLock();
+    console.log(result);
     return result;
 }
 
@@ -119,9 +120,9 @@ async function uploadSpriteData(){
     console.log("getting tamo response...")
     let value = await readBytes(port,1);
     console.log(value);
-    console.log(commands.TAMO_HELLO);
+    // console.log(commands.TAMO_HELLO);
     if(value[0] == commands.TAMO_HELLO){
-
+        console.log(value);
         console.log("tamo says hello!");
 
         //quickly filter sprites to only send the relevant 5

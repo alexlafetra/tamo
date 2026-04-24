@@ -40,9 +40,8 @@
             style="left:-70px;top:40px;"></img>
           <img id="gif_4" class="title_gif " src='designer/images/sprites/boto_sad.gif'
             style="left:210px;top:40px;"></img>
+          <img class = "title_gif" src = "designer/images/icons/tamo_rotate_optimized.gif" id = "tamo_image"> 
         </div>
-        <!-- <img id="hardware_gif" src="designer/images/tamo_rotating_small.gif"></img> -->
-
         <!-- {/* ui */} -->
         <!-- <div id = "ui_container"> -->
         <div id="frame_controls">
@@ -113,7 +112,7 @@
         </div>
         <!-- extra settings -->
         <div id="extra_settings_container">
-          <div id="extra_settings_button" style = "background:blue;color:yellow;padding:5px;"class="button" onclick="toggleExtraSettingsVisibility(this)">settings</div>
+          <div id="extra_settings_button" style = "background:blue;color:yellow;padding:5px;"class="button" onclick="toggleExtraSettingsVisibility(this)"><img id = "settings_icon" src = "designer/images/icons/settings_icon.gif">settings</div>
           <div id="canvas_appearance_settings" class="button_holder">
             <div class="button_holder" id="resize_controls" onmouseover="showResizePreview()"
               onmouseleave="hideResizePreview()">
@@ -216,8 +215,8 @@
           </div>
           <div id = "sprite_loader_controls" class = "button_holder">
               <div class = "button_holder" id = "sprite_loader_buttons">
+                <img id = "upload_icon" src = "designer/images/icons/upload_icon.gif"> 
                 <div class="button tool_button" id="upload_sprites_button" onclick="uploadSpriteData()">upload to tamo</div>
-                <img src = "designer/images/tamo_rotating_small.gif" style = "width:100%;height:80px;image-rendering: pixelated;filter:drop-shadow(4px 4px 2px var(--drop-shadow-color))"> 
               </div>
               <div id = "upload_progress_bar_container">
                 <div id = "upload_progress_bar"></div>

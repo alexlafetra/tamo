@@ -35,6 +35,7 @@ PC0 -- LED B
 
 using namespace std;
 
+#include <EEPROM.h>
 #include "utils.h"
 // #include "flash.cpp"
 
@@ -45,8 +46,6 @@ FrameBuffer fbo(36,24);
 #include <Wire.h>
 #include "Display.h"
 SSD1306Device oled;
-
-#include "spriteLoader.h"
 
 #include "Tamo.h"
 Tamo tamo;
@@ -195,20 +194,6 @@ void debugDumpEEPROM(){
 }
 
 void loop() {
-  // checkSerialConnection();
-  // delay(500);
   readButton();
-  if(BUTTON){
-    digitalWrite(LED_A,LOW);
-    digitalWrite(LED_B,LOW);
-  }
-  else{
-    digitalWrite(LED_A,HIGH);
-    digitalWrite(LED_B,HIGH);
-  }
-  // testNumbers();
-  // else{
-    tamo.live();
-  //   // tamo.debugCheckMoodSprites();
-  // }
+  // tamo.live();
 }

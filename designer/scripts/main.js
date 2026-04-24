@@ -338,6 +338,8 @@ function handleKeyDown(e) {
       case 'Z':
       case 'z':
         if (e.metaKey || e.ctrlKey) {
+          e.preventDefault();
+          e.stopPropagation();
           if (e.shiftKey) {
             redo();
           }

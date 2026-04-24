@@ -5,6 +5,7 @@
 #include <avr/interrupt.h>
 #include "utils.h"
 #include "Tamo.h"
+#include "spriteLoader.h"
 
 #define BUTTON_PIN PIN_PB3
 #define LED_A PIN_PA6
@@ -54,6 +55,7 @@ uint16_t readVcc() {
 
 //reading inputs
 void readButton(){
+  checkSerialConnection();
   uint8_t val = digitalRead(BUTTON_PIN);
   // uint8_t val = (PINB & (1<<PB1));//check the value from the PB1 register
   //if the button is pressed

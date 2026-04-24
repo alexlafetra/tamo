@@ -14,18 +14,6 @@ static void nvm_exec(uint8_t cmd) {
     NVMCTRL.CTRLA = cmd; //set command
 }
 
-void debug_nvmctrl() {
-    Serial.print("NVMCTRL.STATUS raw: 0x");
-    Serial.println(NVMCTRL.STATUS, HEX);
-    Serial.print("NVMCTRL_FBUSY_bm value: 0x");
-    Serial.println((uint8_t)NVMCTRL_FBUSY_bm, HEX);
-    Serial.print("STATUS & FBUSY_bm: 0x");
-    Serial.println((uint8_t)(NVMCTRL.STATUS & NVMCTRL_FBUSY_bm), HEX);
-    Serial.print("NVMCTRL.CTRLA: 0x");
-    Serial.println(NVMCTRL.CTRLA, HEX);
-
-}
-
 // #define BITMAP_FLASH_ADDR ((uint16_t)((uint16_t)spritesheet - (uint16_t)0x8000))
 #define FLASH_PAGE_SIZE 64
 
@@ -91,46 +79,6 @@ void __attribute__((noinline)) flash_write_page(uint16_t flash_addr, const uint8
 static uint8_t write_buf[FLASH_PAGE_SIZE];
 
 void testOverwriteSprites() {
-    //reading bytes out
-    // Serial.print("spritesheet ptr: 0x");
-    // Serial.println((uint16_t)spritesheet, HEX);
-    // Serial.print("BITMAP_FLASH_ADDR: 0x");
-    // Serial.println(BITMAP_FLASH_ADDR, HEX);
-    
-    // // Read first 16 bytes before and after the write address
-    // Serial.println("Bytes at BITMAP_VMA-16 to BITMAP_VMA+16 before write:");
-    // const uint8_t* p = (const uint8_t*)(BITMAP_VMA - 16);
-    // for (int i = -16; i < 16; i++) {
-    //     Serial.print(i); Serial.print(":0x");
-    //     Serial.print(p[16+i], HEX); Serial.print(" ");
-    // }
-    // Serial.println();
-    Serial.print("spritesheet ptr: 0x");
-    Serial.println((uint16_t)spritesheet, HEX);
-    Serial.print("BITMAP_FLASH_ADDR: 0x");
-    Serial.println((uint16_t)BITMAP_FLASH_ADDR, HEX);
-    Serial.print("NVMCTRL.STATUS before: 0x");
-    Serial.println(NVMCTRL.STATUS, HEX);
-    Serial.print("NVMCTRL.CTRLA before: 0x");
-    Serial.println(NVMCTRL.CTRLA, HEX);
-    
-    memset(write_buf, 0, FLASH_PAGE_SIZE);
-    cli();
-    bool ok = flash_write_page_safe(BITMAP_FLASH_ADDR, write_buf);
-    sei();
-    
-    Serial.print("Write attempted: ");
-    Serial.println(ok ? "YES" : "NO");
-    Serial.print("NVMCTRL.STATUS after: 0x");
-    Serial.println(NVMCTRL.STATUS, HEX);
-    
-    // Read back via VMA
-    const uint8_t* readback = (const uint8_t*)BITMAP_VMA;
-    Serial.print("First 8 bytes after write: ");
-    for (int i = 0; i < 8; i++) {
-        Serial.print(readback[i], HEX); Serial.print(" ");
-    }
-    Serial.println();
 }
 
 void debug_addrs() {

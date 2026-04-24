@@ -72,7 +72,7 @@ html{
     /* grid-template-rows: 200px min-content min-content calc(var(--sprite-height) * var(--canvas-scale)) min-content min-content; */
     grid-template-columns: min-content;
     grid-template-areas:"title title title title"
-                        "frame_controls frame_controls sprite_name sprite_name"
+                        "frame_controls frame_controls sprite_name tamo_image"
                         "frame_controls frame_controls canvas sprite_slots"
                         "edit_controls edit_controls canvas sprite_slots"
                         "file_controls file_controls canvas sprite_slots"
@@ -107,18 +107,25 @@ html{
 }
 #sprite_loader_controls{
     display:flex;
-    flex-direction: row;
+    flex-direction: column;
     width:fit-content;
-    height:100%;
+    height:fit-content;
+    width:fit-content;
+}
+#sprite_loader_buttons:hover{
+    background:blue;
 }
 #sprite_loader_buttons{
+    border-radius: 10px;
+    padding:10px;
+    background:white;
     height:fit-content;
     display:flex;
     flex-direction: column;
 }
 #upload_progress_bar_container{
-    height:100%;
-    width:20px;
+    width:100%;
+    height:20px;
     background:yellow;
     visibility:var(--progress-bar-visibility);
 }
@@ -293,6 +300,7 @@ html{
     height:fit-content;
     flex-direction: column;
     grid-area:sprite_name;
+    align-self:baseline;
     /* padding-bottom:10px; */
 }
 #sprite_name_textarea{
@@ -407,12 +415,23 @@ html{
     justify-content: center;
     border-radius:10px;
 }
+#upload_icon{
+    image-rendering: pixelated;
+    height:40px;
+    mix-blend-mode:difference;
+}
 #download_icon{
     image-rendering: pixelated;
     width:40px;
     /* margin:auto; */
     mix-blend-mode:difference;
     /* margin:auto auto; */
+}
+#settings_icon{
+    image-rendering: pixelated;
+    width:20px;
+    mix-blend-mode:difference;
+    padding-right:5px;
 }
 .tool_button{
     background-color: white;
@@ -620,6 +639,15 @@ html{
     filter:var(--undo-button-filter);
 }
 
+#tamo_image{
+    width:200px;
+    height:auto;
+    image-rendering:optimizeSpeed;
+    filter:drop-shadow(4px 4px 2px var(--drop-shadow-color));
+    left:250px;
+    top:-40px;
+    /* grid-area:tamo_image; */
+}
 
 @media all and (max-width: 650px) {
     #app_container{
@@ -640,6 +668,11 @@ html{
                             "edit_controls undo_buttons sprite_slots"
                             "edit_controls undo_buttons file_controls"
                             "extra_settings extra_settings file_controls"
+    }
+    #tamo_image{
+        left:150px;
+        top:120px;
+        width:150px;
     }
     #big_undo_buttons{
         display:flex;
