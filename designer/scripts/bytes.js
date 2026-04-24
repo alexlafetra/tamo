@@ -1,6 +1,6 @@
 
 function convertFrameToByteArray(sprite,frame){
-    const pixelArray = [...sprite.frames[frame].data];
+    const pixelArray = [...frame.data];
     let byteArray;
 
     if(settings.bytePackingFormat == 'horizontal'){
@@ -57,14 +57,19 @@ const spriteNotFound = new Uint8Array([
 
 function packSpritesIntoByteArray(arrayOfSprites){
   const bytes = [];
+  console.log(arrayOfSprites);
   for(let sprite of arrayOfSprites){
-    if(sprite == undefined)
+    if(sprite == undefined){
       bytes.push(spriteNotFound);
-    for(let frame of sprite.frames){
-      bytes.push(convertFrameToByteArray(sprite,frame));
+      continue;
+    }
+    else{
+      for(let frame of sprite.frames){
+        bytes.push(convertFrameToByteArray(sprite,frame));
+      }
     }
   }
-
+  console.log(bytes);
   let dataLength = 0;
   for(let data of bytes){
     dataLength += data.byteLength;
@@ -76,6 +81,7 @@ function packSpritesIntoByteArray(arrayOfSprites){
     totalBytes.set(bytes[data],position);
     position += bytes[data].byteLength;
   }
+  console.log(totalBytes);
   return totalBytes;
 }
 

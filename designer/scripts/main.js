@@ -12,8 +12,8 @@ let presetSpriteNames = [
   'happy',
   'mad',
   'sad',
-  'eating',
-  'misc.'
+  // 'eating',
+  // 'misc.'
 ];
 
 const templates = {
@@ -119,20 +119,23 @@ function resizeAllSprites(){
   reloadSpritePreviews();
   updateCanvas();
 }
+
 function updateUploadProgressBar(percent,dotCounter){
   let text;
+  let color = 'blue';
   if(percent>=100){
     text = ' sent sprites!';
+    color = 'green';
   }
   else{
-    text = ' uploading to tamo';
-    for(let i = 0; i<dotCounter; i++){
+    text = ' uploading';
+    for(let i = 0; i<Math.round(percent/(100/3)); i++){
       text += '.';
     }
   }
-  document.getElementBytId("upload_progress_bar").innerText = text;
-
-  document.documentElement.style.setProperty('--progress-bar-visibility','shown');
+  document.getElementById("upload_progress_bar").innerText = text;
+  document.documentElement.style.setProperty('--progress-bar-display','block');
+  document.documentElement.style.setProperty('--progress-bar-color', color);
   document.documentElement.style.setProperty('--upload-progress', `${percent}%`);
 }
 

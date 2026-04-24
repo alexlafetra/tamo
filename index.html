@@ -192,16 +192,15 @@
         </div>
         <!-- upload/load controls -->
         <div id="file_controls" class="button_holder" style="flex-direction: column;">
-          <div id="upload_controls">
-            <label id="drop-zone" class="button">
-              <img id="file_icon" src="designer/images/icons/file.gif">
-              <div class = "ui_label">upload (gif/image)</div>
-              <input type="file" id="file-input" multiple accept="image/*" style="display:none;"
-                oninput="handleFileInput(event)">
-            </label>
+          <div id = "sprite_loader_controls" class = "button_holder">
+            <img id = "upload_icon" src = "designer/images/icons/upload_icon.gif"> 
+            <div class="button tool_button" id="upload_sprites_button" onclick="uploadSpriteData()">send to tamo</div>
+            <div id = "upload_progress_bar_container">
+              <div id = "upload_progress_bar"></div>
+            </div>
           </div>
           <div id = "download_controls">
-            <div class = "ui_label">save as...</div>
+            <div class = "ui_label">save to...</div>
             <div style = "display:flex;flex-direction: row;">
                <div id = "download_icon_holder">
                 <img id="download_icon" src="designer/images/icons/download.gif">
@@ -213,14 +212,13 @@
               </div>
             </div>
           </div>
-          <div id = "sprite_loader_controls" class = "button_holder">
-              <div class = "button_holder" id = "sprite_loader_buttons">
-                <img id = "upload_icon" src = "designer/images/icons/upload_icon.gif"> 
-                <div class="button tool_button" id="upload_sprites_button" onclick="uploadSpriteData()">upload to tamo</div>
-              </div>
-              <div id = "upload_progress_bar_container">
-                <div id = "upload_progress_bar"></div>
-              </div>
+          <div id="upload_controls">
+            <label id="drop-zone" class="button">
+              <img id="file_icon" src="designer/images/icons/file.gif">
+              <div class = "ui_label">upload (gif/image)</div>
+              <input type="file" id="file-input" multiple accept="image/*" style="display:none;"
+                oninput="handleFileInput(event)">
+            </label>
           </div>
         </div>
 

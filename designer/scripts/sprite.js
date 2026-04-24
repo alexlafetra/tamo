@@ -34,12 +34,16 @@ const PixelFrame = (w,h,fill) => {
         width : w,
         height: h,
         data : data,
+        isUnwritten : true,
         getPixel : function(x,y){
+            if(this.isUnwritten)
+                return 0;
             if(x>=this.width || x<0 || y>=this.height || y<0)
                 return 0;
             return this.data[x+this.width*y];
         },
         setPixel : function(x,y,val){
+            this.isUnwritten = false;
             if(x>=this.width || x<0 || y>=this.height || y<0)
                 return;
             this.data[x+this.width*y] = val;

@@ -37,6 +37,7 @@ using namespace std;
 
 #include <EEPROM.h>
 #include "utils.h"
+#include "spriteLoader.h"
 // #include "flash.cpp"
 
 //this stores the active graphics area! which is half-res of the screen, sprites are drawn 2x
@@ -173,27 +174,27 @@ void setup(){
 }
 
 void writeFrameToSerial(){
-  Serial.println("*--------------------------*");
-  for(uint8_t y = 0; y<fbo.height; y++){
-    for(uint8_t x = 0; x<fbo.width; x++){
-      uint8_t val = fbo.getPixel(x,y);
-      if(val)
-        Serial.print("0");
-      else
-        Serial.print(" ");
-    }
-    Serial.print('\n');
-  }
+  // Serial.println("*--------------------------*");
+  // for(uint8_t y = 0; y<fbo.height; y++){
+  //   for(uint8_t x = 0; x<fbo.width; x++){
+  //     uint8_t val = fbo.getPixel(x,y);
+  //     if(val)
+  //       Serial.print("0");
+  //     else
+  //       Serial.print(" ");
+  //   }
+  //   Serial.print('\n');
+  // }
 }
 
 void debugDumpEEPROM(){
-  Serial.println("*-----------*");
-  for(uint8_t i = 0; i<64; i++){
-    Serial.print(EEPROM.read(i+CUSTOM_SPRITE_DATA_ADDR));
-  }
+  // Serial.println("*-----------*");
+  // for(uint8_t i = 0; i<64; i++){
+  //   Serial.print(EEPROM.read(i+CUSTOM_SPRITE_DATA_ADDR));
+  // }
 }
 
 void loop() {
-  readButton();
-  // tamo.live();
+  tamo.live();
 }
+

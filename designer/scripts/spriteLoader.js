@@ -9,18 +9,26 @@ const commands = {
     TAMO_DISCONNECT : 0x05
 }
 
+//digests everything in the input buffer
 async function clearReadBuffer(port) {
-    const tempReader = port.readable.getReader();
+    const reader = port.readable.getReader();
+    const timeout = 50;
+    
     try {
         while (true) {
+            const timeoutPromise = new Promise(resolve => 
+                setTimeout(() => resolve({ value: null, done: true }), timeout)
+            );
             const { value, done } = await Promise.race([
-                tempReader.read(),
-                new Promise(resolve => setTimeout(() => resolve({ value: null, done: true }), 50))
+                reader.read(),
+                timeoutPromise
             ]);
-            if (done) break;
+            
+            if (done || value === null) break;
+            console.log("Discarded:", value); // remove once confident
         }
     } finally {
-        tempReader.releaseLock();
+        reader.releaseLock();
     }
 }
 
@@ -42,7 +50,7 @@ async function readBytes(port,numberOfBytes){
     return result;
 }
 
-async function transmitDataInPackets(data){
+async function transmitDataInPackets(data,port){
     // write the sprite size
     console.log(`sending data size (${data.byteLength}) as: ${data.byteLength>>8},${data.byteLength&255}`);
     writer = port.writable.getWriter();
@@ -96,6 +104,27 @@ async function transmitDataInPackets(data){
     }
 }
 
+function debugSendSprites(){
+        //quickly filter sprites to only send the relevant 5
+        const organizedSprites = [];
+        presetSpriteNames.map((name,nameIndex) => {
+            let found = false;
+            for(let sprite of sprites){
+                if(sprite.fileName.includes(name)){
+                    found = true;
+                    organizedSprites[nameIndex] = sprite;
+                    break;
+                }
+            }
+            //if there isn't one, pass undefined (packSpritesIntoByteArray will substitute it for spriteNotFound)
+            if(!found)
+                organizedSprites[nameIndex] = undefined;
+        })
+        console.log(organizedSprites);
+        const spriteData = packSpritesIntoByteArray(organizedSprites);
+        console.log(spriteData);
+}
+
 async function uploadSpriteData(){
     //open the port
     let port;
@@ -117,9 +146,11 @@ async function uploadSpriteData(){
     await writer.write(new Uint8Array([commands.WEBSERIAL_HELLO]));
     writer.releaseLock();
 
+    // await new Promise(resolve => setTimeout(resolve, 1000)); // give ATtiny time to respond
+
     console.log("getting tamo response...")
     let value = await readBytes(port,1);
-    console.log(value);
+
     // console.log(commands.TAMO_HELLO);
     if(value[0] == commands.TAMO_HELLO){
         console.log(value);
@@ -130,7 +161,7 @@ async function uploadSpriteData(){
         presetSpriteNames.map((name,nameIndex) => {
             let found = false;
             for(let sprite of sprites){
-                if(sprite.fileName.contains(name)){
+                if(sprite.fileName.includes(name)){
                     found = true;
                     organizedSprites[nameIndex] = sprite;
                     break;
@@ -140,9 +171,22 @@ async function uploadSpriteData(){
             if(!found)
                 organizedSprites[nameIndex] = undefined;
         })
+        console.log(organizedSprites);
         const spriteData = packSpritesIntoByteArray(organizedSprites);
-        const success = await transmitDataInPackets(spriteData);
+        const success = await transmitDataInPackets(spriteData,port);
+        if(success){
+            console.log("wrote all data to tamo!");
+        }
+        else{
+            console.log("error!");
+        }
+        console.log("closing serial port");
         await port.close();
     }
-    console.log("port closed");
+    else{
+        console.log("tamo didn't say hey! Received:");
+        console.log(...value);
+        console.log("closing serial port");
+        await port.close();
+    }
 }

@@ -14,34 +14,39 @@ enum WEBCOMMANDS:uint8_t{
 };
 
 #define TAMO_SERIAL_BUFFER_SIZE 64
-
+#define SERIAL_IDLE_TIME 1000 //1s
 extern Tamo tamo;
 uint8_t spriteDataBuffer[TAMO_SERIAL_BUFFER_SIZE] = {0};
 
-void idleSerial(){
-    while(!Serial.available() && !itsbeen(4000)){}
-    if(itsbeen(4000))
-        return;
+bool idleSerial(){
+    uint32_t time = millis();
+    while(!Serial.available()){
+        if((millis() - time) > SERIAL_IDLE_TIME)
+            return false;
+    }
+    return true;
 }
 
-void awaitBytes(uint16_t size, uint8_t * buffer){
+bool awaitBytes(uint16_t size, uint8_t * buffer){
     //wait for web response
     lastTime = millis();
-    idleSerial();
+    if(!idleSerial())
+        return false;
 
     //read in the sprite data
     Serial.readBytes(buffer,size);
-    //...and repeat!
+    return true;
 }
 
 // downloads a packet and writes 
-bool downloadSpritePacket(uint16_t size, uint16_t &EEPROM_write_location, uint8_t * buffer){
+PACKET_STATUS downloadSpritePacket(uint16_t size, uint16_t &EEPROM_write_location, uint8_t * buffer){
     
     //request the next data packet
     Serial.write(REQUEST_NEXT_SPRITE_PACKET);
     //ask for this many bytes
     Serial.write(size);
-    awaitBytes(size,buffer);
+    if(!awaitBytes(size,buffer))
+        return NO_DATA_RECEIVED;
 
     //write this chunk of sprite data to eeprom
     for(uint8_t j = 0; j<size; j++){
@@ -49,20 +54,18 @@ bool downloadSpritePacket(uint16_t size, uint16_t &EEPROM_write_location, uint8_
         EEPROM_write_location++;
         if(EEPROM_write_location == (EEPROM_SIZE - 1)){
             Serial.write(TAMO_DISCONNECT);
-            return false;
+            return EEPROM_FULL;
         }
     }
-    return true;
+    return READY_TO_CONTINUE;
 }
 
 // main receiving function for saying hello & grabbing data
-void receiveSpriteOverSerial(){
-
-    //send hello to web
-    Serial.write(TAMO_HELLO);
+bool receiveSpriteOverSerial(){
 
     //wait for web response
-    idleSerial();
+    if(!idleSerial())
+        return false;
     
     //get the size of the sprite data
     uint8_t spriteDataSize[2] = {0};
@@ -77,17 +80,34 @@ void receiveSpriteOverSerial(){
     //get sprite data in 64-byte packets, since that's the Serial buffer's size
     for(uint8_t i = 0; i<numberOfPacketsNeeded; i++){
         //if you run out of space, get outta here
-        if(!downloadSpritePacket(TAMO_SERIAL_BUFFER_SIZE,EEPROM_write_location,spriteDataBuffer))
-            return;
+        PACKET_STATUS status = downloadSpritePacket(TAMO_SERIAL_BUFFER_SIZE,EEPROM_write_location,spriteDataBuffer);
+        switch(status){
+            case READY_TO_CONTINUE:
+                continue;
+            case EEPROM_FULL:
+                return true;
+            case NO_DATA_RECEIVED:
+            default:
+                return false;
+        }
     }
     //if it's not a clean multiple of 64, grab the rest of it
     if(spriteDataSize[0]%TAMO_SERIAL_BUFFER_SIZE){
         //and if you run out of space here, get outta here
-        if(!downloadSpritePacket(spriteDataSize[0]%TAMO_SERIAL_BUFFER_SIZE,EEPROM_write_location,spriteDataBuffer))
-            return;
+        PACKET_STATUS status = downloadSpritePacket(TAMO_SERIAL_BUFFER_SIZE,EEPROM_write_location,spriteDataBuffer);
+        switch(status){
+            case READY_TO_CONTINUE:
+                break;
+            case EEPROM_FULL:
+                return true;
+            case NO_DATA_RECEIVED:
+            default:
+                return false;
+        }
     }
 
     Serial.write(TAMO_DISCONNECT);
+    return true;
 }
 
 //checks to see if board is connected
@@ -100,14 +120,37 @@ bool checkSerialConnection(){
     Serial.readBytes(firstByte,1);
 
     if(firstByte[0] == WEBSERIAL_HELLO){
-        receiveSpriteOverSerial();
-        //set tamo's identity to the custom sprite
-        EEPROM.update(EEPROM_IDENTITY_ADDR,CUSTOM_SPRITE);
-        tamo.identity = CUSTOM_SPRITE;
-        delay(1000);
-        //reset the system (NOT WORKING RN)
-        _PROTECTED_WRITE(RSTCTRL.SWRR,1);
-        return true;
+        
+        digitalWrite(LED_A,HIGH);
+
+        //send hello to web
+        Serial.write(TAMO_HELLO);
+
+        if(receiveSpriteOverSerial()){
+            Serial.write(TAMO_DISCONNECT);
+
+            //set tamo's identity to the custom sprite
+            EEPROM.update(EEPROM_IDENTITY_ADDR,CUSTOM_SPRITE);
+            tamo.identity = CUSTOM_SPRITE;
+            tamo.mood = MOOD_BIRTH;
+
+            //reset the system (NOT WORKING RN)
+            uint16_t i = 0;
+            while(i < 10){
+                digitalWrite(LED_A,i%2);
+                digitalWrite(LED_B,!(i%2));
+                delay(200);
+                i++;
+            }
+            digitalWrite(LED_A,LOW);
+            digitalWrite(LED_B,LOW);
+            delay(1000);
+
+            _PROTECTED_WRITE(RSTCTRL.SWRR,1);
+            return true;
+        }
     }
-    else return false;
+    digitalWrite(LED_A,LOW);
+    digitalWrite(LED_B,LOW);
+    return false;
 }
