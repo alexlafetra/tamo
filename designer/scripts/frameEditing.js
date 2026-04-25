@@ -44,7 +44,7 @@ function addNewFrame(){
     sprite.frames = [...sprite.frames,PixelFrame(sprite.width, sprite.height, 0)];
     sprite.currentFrame = sprite.frames.length-1;
     //trigger rerender to remake previews
-    updateFrames();
+    updateFramePreviews();
 }
 
 function moveCurrentFrameBack(){
@@ -53,7 +53,7 @@ function moveCurrentFrameBack(){
         pushUndoState();
         [sprites[currentSprite].frames[index],sprites[currentSprite].frames[index-1]] = [sprites[currentSprite].frames[index-1],sprites[currentSprite].frames[index]];
         sprites[currentSprite].currentFrame = index-1;
-        updateFrames();
+        updateFramePreviews();
     }
 }
 function moveCurrentFrameForward(){
@@ -62,7 +62,7 @@ function moveCurrentFrameForward(){
         pushUndoState();
         [sprites[currentSprite].frames[index],sprites[currentSprite].frames[index+1]] = [sprites[currentSprite].frames[index+1],sprites[currentSprite].frames[index]];
         sprites[currentSprite].currentFrame = index+1;
-        updateFrames();
+        updateFramePreviews();
     }
 }
 function duplicateCurrentFrame(){
@@ -79,7 +79,7 @@ function duplicateCurrentFrame(){
     sprite.currentFrame = sprite.currentFrame+1;
     sprite.frames = newFrames;
     //trigger rerender to recreate previews
-    updateFrames();
+    updateFramePreviews();
 
 }
 function copyFrameToNextFrame(){
@@ -90,7 +90,7 @@ function copyFrameToNextFrame(){
         sprite.currentFrame = sprite.currentFrame+1;
         sprite.frames[sprite.currentFrame] = newFrame;
         //trigger rerender to recreate previews
-        updateFrames();
+        updateFramePreviews();
     }
 }
 function deleteCurrentFrame(){
@@ -102,11 +102,11 @@ function deleteCurrentFrame(){
         sprite.frames = newFrames;
         sprite.currentFrame = Math.min(sprite.currentFrame,sprite.frames.length-1);
         //trigger rerender to recreate previews
-        updateFrames();
+        updateFramePreviews();
     }
 }
 function reverseFrames(){
     pushUndoState();
     sprites[currentSprite].frames.reverse();
-    updateFrames();
+    updateFramePreviews();
 }

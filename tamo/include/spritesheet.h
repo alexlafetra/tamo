@@ -106,7 +106,7 @@ compiled with:
 python3 compile_bitmaps.py
 */
 
-const unsigned char spritesheet[2291] = {
+const unsigned char spritesheet[2291]  __attribute__((section(".bitmap_data"))) = {
 	
 //dead_sprite_1 @ 0: 16x16
 	0x2, 0xf0, 0xfc, 0x1e, 0x6, 0x62, 0x92, 0x12, 0x22, 0x12, 0x92, 0x62, 0x4, 0x18, 0xe0, 0x4, 

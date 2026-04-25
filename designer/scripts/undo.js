@@ -45,7 +45,7 @@
     selectionBox.started = state.selectionBox.started;
     selectionBox.active = state.selectionBox.active;
     selectionBox.updateCSS();
-    updateFrames();
+    updateFramePreviews();
   }
 
   function undo(){

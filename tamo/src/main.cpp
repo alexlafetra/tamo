@@ -9,6 +9,21 @@
 // GPIO4 (Pin 6)	UART1 TX
 // GPIO5 (Pin 7)	UART1 RX
 
+/*
+
+ok some really convoluded upload stuff:
+burning fuses/bootloader needs to be done with UDPI?
+CLOCK needs to be 10MHz to communicate with arduino IDE, dunno why
+
+SUPER annoying highkey annoying vibes
+ --> flashing fuses/initial upload needs to use UPDI friend (dunno why it won't work with pi pico)
+ --> Subsequent UART uploads need to be done within 8s of a power cycle, which means plug/unplug attiny (or connect a lil button)
+ ^^THIS is important for the new board designs, bc the user shouldn't have to power cycle the board!
+ ==> Test w the 1sec timeout and see if that works. Figure out how to "Reset"/power cycle Attiny via the USB-->UART bridge
+ ^^Actually, i guess this isn't important for the board design since you don't need to "enter bootloader" unless you're actually
+ uploading new code, at which point yeah you'll need to reset the tamo
+*/
+
 
 #define BUTTON_PIN PIN_PB3
 #define LED_A PIN_PA6
@@ -38,7 +53,7 @@ using namespace std;
 #include <EEPROM.h>
 #include "utils.h"
 #include "spriteLoader.h"
-// #include "flash.cpp"
+#include "flash.cpp"
 
 //this stores the active graphics area! which is half-res of the screen, sprites are drawn 2x
 #include "FrameBuffer.h"
@@ -170,31 +185,26 @@ void setup(){
   //initialize UART
   Serial.begin(115200);
 
-  tamo.identity = EEPROM.read(EEPROM_IDENTITY_ADDR);
+  // tamo.identity = EEPROM.read(EEPROM_IDENTITY_ADDR);
+  tamo.identity = TAMO;
+  // testOverwriteSprites();
+  // testUpdateFlashPage();
 }
 
-void writeFrameToSerial(){
-  // Serial.println("*--------------------------*");
-  // for(uint8_t y = 0; y<fbo.height; y++){
-  //   for(uint8_t x = 0; x<fbo.width; x++){
-  //     uint8_t val = fbo.getPixel(x,y);
-  //     if(val)
-  //       Serial.print("0");
-  //     else
-  //       Serial.print(" ");
-  //   }
-  //   Serial.print('\n');
-  // }
-}
-
-void debugDumpEEPROM(){
-  // Serial.println("*-----------*");
-  // for(uint8_t i = 0; i<64; i++){
-  //   Serial.print(EEPROM.read(i+CUSTOM_SPRITE_DATA_ADDR));
-  // }
+//trying to set the IVSEL register, so the vectors are placed in BOOT instead of APPCODE
+//which happens automatically when BOOT isn't 0x00
+//src: https://www.microchip.com/content/dam/mchp/documents/OTH/ApplicationNotes/ApplicationNotes/AN1983WritingtoFlashandEEPROMonthetinyAVR1-series40001983A.pdf
+//sec 2.2
+void onBeforeInit(){
+  CCP = CCP_IOREG_gc;           // unlock protected register, 4-cycle window
+  CPUINT.CTRLA = CPUINT_IVSEL_bm; // set IVSEL=1: vectors at start of BOOT (0x0000)
 }
 
 void loop() {
   tamo.live();
+  // digitalWrite(LED_A,CHANGE);
+  // digitalWrite(LED_B,CHANGE);
+  // delay(1000);
+  // testOverwriteSprites(); 
 }
 

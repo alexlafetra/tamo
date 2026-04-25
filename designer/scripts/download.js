@@ -27,7 +27,7 @@ async function zipAllFrames(){
             tempCanvas.width = frame.width;
             tempCanvas.height = frame.height;
             //draw frame to the canvas
-            renderFrame(tempCanvas.getContext('2d'),sprite,frame,settings.outputColors);
+            renderFrame(tempCanvas.getContext('2d'),frame,settings.outputColors);
             //compile a .bmp file
             await window.CanvasToBMP.toBlob(tempCanvas,(blob) => {
                 const filename = spriteName+'_'+sprite.fileName+'_'+(frameIndex+1)+'.bmp';
@@ -49,7 +49,7 @@ async function saveGIF(){
         const tempCanvas = document.createElement('canvas');
         tempCanvas.width = sprite.width;
         tempCanvas.height = sprite.height;
-        renderFrame(tempCanvas.getContext('2d'),sprite,frame,settings.outputColors);
+        renderFrame(tempCanvas.getContext('2d'),frame,settings.outputColors);
         canvases.push(tempCanvas);
     });
     await canvasesToGif(canvases, settings.frameSpeed,);

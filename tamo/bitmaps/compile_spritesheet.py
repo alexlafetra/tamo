@@ -218,13 +218,11 @@ customSpriteNames = [
 definesString += "\n//Custom sprite EEPROM locations (after being offset)\n"
 for i in range(0,len(customSpriteNames),1):
     definesString += "#define "+str(customSpriteNames[i])+" "+str(i*32)+"\n"
-# for i in range(0,len(spritesThatWontFit),1):
-#     definesString += "#define "+str(spritesThatWontFit[i])+" custom_sprite_idle_1\n"
 
 outfile.write(definesString)
 
-headerString = "\n\n/* BITMAPS\ncompiled with:\npython3 compile_bitmaps.py\n*/\n\nconst unsigned char spritesheet["+str(totalByteCount)+"] = {\n\t"
-# headerString = "\n\n/* BITMAPS\ncompiled with:\npython3 compile_bitmaps.py\n*/\n\nconst unsigned char spritesheet["+str(totalByteCount)+"] __attribute__((section(\".bitmap_data\"), used)) = {\n\t"
+# headerString = "\n\n/* BITMAPS\ncompiled with:\npython3 compile_bitmaps.py\n*/\n\nconst unsigned char spritesheet["+str(totalByteCount)+"] = {\n\t"
+headerString = "\n\n/* BITMAPS\ncompiled with:\npython3 compile_bitmaps.py\n*/\n\nconst unsigned char spritesheet["+str(totalByteCount)+"]  __attribute__((section(\".bitmap_data\"))) = {\n\t"
 outfile.write(headerString)
 outfile.write(dataString)
 outfile.close()

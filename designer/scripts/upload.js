@@ -167,7 +167,7 @@ function loadFiles(files) {
                 }
             }
             if (!foundMatchingName) {
-                file.spriteName = "misc.";
+                file.spriteName = spriteName;
                 unorderedFiles.push(file);
             }
         }

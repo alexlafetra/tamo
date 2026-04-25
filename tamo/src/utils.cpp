@@ -31,11 +31,11 @@ extern uint8_t customSpriteData[64];
 
 uint8_t get_sprite_data(uint16_t offset){
   // super hacky
-  if(tamo.identity == CUSTOM_SPRITE){
-    return customSpriteData[offset%64];
-  }
-  else
-    return spritesheet[offset];
+  // if(tamo.identity == CUSTOM_SPRITE){
+  //   return customSpriteData[offset%64];
+  // }
+  // else
+  return spritesheet[offset];
 }
 
 bool itsbeen(uint32_t time){

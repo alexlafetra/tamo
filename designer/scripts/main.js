@@ -7,6 +7,25 @@ let sprites = [
   // Sprite('eating')
 ];
 
+function loadDefaultSpritesFromJSON(){
+  //rebuild sprites object from json
+  sprites = [];
+  defaultSprites.map(raw => {
+    const sprite = Sprite();
+    sprite.width = raw.width;
+    sprite.height = raw.height;
+    sprite.fileName = raw.fileName;
+    sprite.currentFrame = raw.currentFrame;
+    sprite.frames = [];
+    raw.frames.map(frame => {
+      sprite.frames.push(PixelFrame(frame.width,frame.height,frame.data));
+    });
+    sprites.push(sprite);
+  });
+  reloadSpritePreviews();
+  updateFramePreviews();
+}
+
 let presetSpriteNames = [
   'idle',
   'happy',
@@ -179,7 +198,7 @@ function loadTemplate(template) {
   document.documentElement.style.setProperty('--background-width', `${100 / template.width}%`);
   document.documentElement.style.setProperty('--background-height', `${100 / template.height}%`);
   reloadSpritePreviews();
-  updateFrames();
+  updateFramePreviews();
 }
 
 function loadSelectedTemplate(event) {
@@ -329,13 +348,13 @@ function handleKeyDown(e) {
       case 'X':
       case 'x':
         if (e.metaKey || e.ctrlKey) {
-          cut();
+          copyBuffer.cut();
         }
         break;
       case 'C':
       case 'c':
         if (e.metaKey || e.ctrlKey) {
-          copy();
+          copyBuffer.copy();
         }
         break;
       case 'Z':
@@ -363,7 +382,7 @@ function handleKeyDown(e) {
         const newVal = parseInt(e.key) - 1;
         if (newVal < sprite.frames.length) {
           sprite.currentFrame = newVal;
-          updateFrames();
+          updateFramePreviews();
         }
         break;
       case '+':
@@ -396,20 +415,20 @@ function handleKeyDown(e) {
       case 'v':
       case 'V':
         if (e.metaKey || e.ctrlKey) {
-          paste(e);
+          copyBuffer.paste(e);
           return;
         }
       case 'ArrowLeft':
         e.preventDefault();
         e.stopImmediatePropagation();
         sprite.previousFrame();
-        updateFrames();
+        updateFramePreviews();
         break;
       case 'ArrowRight':
         e.preventDefault();
         e.stopImmediatePropagation();
         sprite.nextFrame();
-        updateFrames();
+        updateFramePreviews();
         break;
       case 'ArrowUp':
         e.preventDefault();
@@ -418,7 +437,7 @@ function handleKeyDown(e) {
           currentSprite--;
         else
           currentSprite = sprites.length-1;
-        updateFrames();
+        updateFramePreviews();
         reloadSpritePreviews();
         break;
       case 'ArrowDown':
@@ -428,7 +447,7 @@ function handleKeyDown(e) {
           currentSprite++;
         else
           currentSprite = 0;
-        updateFrames();
+        updateFramePreviews();
         reloadSpritePreviews();
         break;
       case ' ':
@@ -541,7 +560,6 @@ function setTool(tool, domElement) {
 
 function setMouseCoordDisplay(e) {
   let coords = getClickCoords(e);
-  // console.log(coords);
   document.documentElement.style.setProperty('--cursor-x', `${coords.x}px`);
   document.documentElement.style.setProperty('--cursor-y', `${coords.y}px`);
   setTooltip(`{${coords.x},${coords.y}}`);
@@ -559,7 +577,7 @@ function blendColor(c1, c2) {
 
 function playNextFrame() {
   sprites[currentSprite].nextFrame();
-  updateFrames();
+  updateFramePreviews();
   timeoutID = window.setTimeout(playNextFrame, settings.frameSpeed);
 }
 function togglePlayback() {
@@ -595,18 +613,18 @@ function createNewSprite(title, setToCurrent = true) {
   if (setToCurrent) {
     currentSprite = sprites.length - 1;
     reloadSpritePreviews();
-    updateFrames();
+    updateFramePreviews();
   }
   else {
     reloadSpritePreviews();
   }
 }
 
-//draws the sprite to the main canvas
+//draws the current sprite to the main canvas, and updates the preview for the current frame
 function updateCanvas(updatePreview = true) {
   //if you're editing the first frame, update the sprite preview for this sprite to match
   if (sprites[currentSprite].currentFrame == 0) {
-    renderFrame(document.getElementById(`sprite_preview_${currentSprite}`).getContext('2d'), sprites[currentSprite], sprites[currentSprite].frames[0]);
+    renderFrame(document.getElementById(`sprite_preview_${currentSprite}`).getContext('2d'), sprites[currentSprite].frames[0]);
   }
   const canvas = document.getElementById("main_canvas");
   if (!canvas)
@@ -634,10 +652,6 @@ function updateCanvas(updatePreview = true) {
   //draw over each pixel
   for (let x = 0; x < sprite.width; x++) {
     for (let y = 0; y < sprite.height; y++) {
-
-      // if(currentMouseCoordsRef.current != null && currentMouseCoordsRef.current.x == x && currentMouseCoordsRef.current.y == y)
-      //   context.fillStyle = '#008b00ff';
-
       //if there's a pixel there, draw foreground color
       if (sprite.frames[sprite.currentFrame].getPixel(x, y)) {
         context.fillStyle = settings.foregroundColor;
@@ -658,10 +672,10 @@ function updateCanvas(updatePreview = true) {
     updateActivePreview(sprite.currentFrame);
 }
 
-function renderFrame(context, sprite, frame, palette = {foregroundColor : settings.foregroundColor,backgroundColor : settings.backgroundColor}) {
+function renderFrame(context, frame, palette = {foregroundColor : settings.foregroundColor,backgroundColor : settings.backgroundColor}) {
   //draw over each pixel
-  for (let x = 0; x < sprite.width; x++) {
-    for (let y = 0; y < sprite.height; y++) {
+  for (let x = 0; x < frame.width; x++) {
+    for (let y = 0; y < frame.height; y++) {
       context.fillStyle = frame.getPixel(x, y) ? (palette.foregroundColor ==  'transparent'?(palette.backgroundColor == '#000000'?'#ffffff':'#000000'):palette.foregroundColor):(palette.backgroundColor ==  'transparent'?(palette.foregroundColor == '#000000'?'#ffffff':'#000000'):palette.backgroundColor);
       context.fillRect(x, y, 1, 1);
     }
@@ -670,7 +684,7 @@ function renderFrame(context, sprite, frame, palette = {foregroundColor : settin
 
 function updateActivePreview(index) {
   const canv = document.getElementById(`frame_${index}_preview`);
-  renderFrame(canv.getContext('2d'), sprites[currentSprite], sprites[currentSprite].frames[index]);
+  renderFrame(canv.getContext('2d'),sprites[currentSprite].frames[index]);
 }
 
 //recreates preview canvases
@@ -703,8 +717,8 @@ function reloadFramePreviews() {
     newCanvas.style.width = scaledWidth + 'px';
     newCanvas.style.height = scaledHeight + 'px';
 
-    newCanvas.addEventListener('click', () => { sprites[currentSprite].currentFrame = f; updateFrames(); })
-    renderFrame(newCanvas.getContext('2d'), sprites[currentSprite], sprites[currentSprite].frames[f]);
+    newCanvas.addEventListener('click', () => { sprites[currentSprite].currentFrame = f; updateFramePreviews(); })
+    renderFrame(newCanvas.getContext('2d'),sprites[currentSprite].frames[f]);
     frames.push(newCanvas);
   }
   // if (frames.length < settings.maxFrames) {
@@ -718,7 +732,9 @@ function reloadFramePreviews() {
   frameHolder.replaceChildren(...frames);
 }
 
-function updateFrames() {
+//reloads frame previews AND sets the frame counter text
+//AND updates the main canvas, so that you don't need to call "updateCanvas()" (which in turn updates the active frame preview...this is kinda convoluted but prevents double-updating the active frame preview)
+function updateFramePreviews() {
   reloadFramePreviews();
   updateCanvas(false);
   document.getElementById('frame_counter_label').innerText = `frame -- ${sprites[currentSprite].currentFrame + 1} / ${sprites[currentSprite].frames.length}`
@@ -749,9 +765,9 @@ function createSpritePreview(domElement,index){
   domElement.addEventListener('click', () => {
     currentSprite = index;
     reloadSpritePreviews();
-    updateFrames();
+    updateFramePreviews();
   })
-  renderFrame(canv.getContext('2d'), sprites[index], sprites[index].frames[0]);
+  renderFrame(canv.getContext('2d'),sprites[index].frames[0]);
   domElement.appendChild(canv);
 }
 
@@ -772,6 +788,7 @@ function spriteWithName(name){
   return undefined;
 }
 
+//clears out and rebuilds the "sprite slots" previews
 function reloadSpritePreviews() {
   //clear out old previews
   const previewHolder = document.getElementById('sprite_previews');
@@ -819,5 +836,4 @@ function factoryResetSprites() {
 
 window.addEventListener("keydown", handleKeyDown);
 window.addEventListener("keyup", handleKeyUp);
-reloadSpritePreviews();
-updateFrames();
+loadDefaultSpritesFromJSON();

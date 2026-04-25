@@ -1,74 +1,98 @@
 
 let offscreenBuffer = PixelFrame(16, 16, 0);
+
 const line = {
   started: false,
   ended: false,
-  start: { x: 0, y: 0 },
-  end: { x: 0, y: 0 }
+  startCoord: { x: 0, y: 0 },
+  endCoord: { x: 0, y: 0 },
+  start : function(coords){
+    const sprite = sprites[currentSprite];
+    pushUndoState();
+    this.startCoord = { ...coords };
+    //make a backup of the line
+    offscreenBuffer = PixelFrame(sprite.width, sprite.height, sprite.frames[sprite.currentFrame].data);
+    this.started = true;
+  },
+  continue : function(coords){
+    const sprite = sprites[currentSprite];
+    sprite.frames[sprite.currentFrame] = PixelFrame(offscreenBuffer.width, offscreenBuffer.height, offscreenBuffer.data);
+    sprite.frames[sprite.currentFrame].drawLine(this.startCoord.x, this.startCoord.y, coords.x, coords.y, settings.currentColor);
+    updateCanvas();
+  },
+  end: function(coords){
+    const sprite = sprites[currentSprite];
+    sprite.frames[sprite.currentFrame] = PixelFrame(offscreenBuffer.width, offscreenBuffer.height, offscreenBuffer.data);
+    sprite.frames[sprite.currentFrame].drawLine(this.startCoord.x, this.startCoord.y, coords.x, coords.y, settings.currentColor);
+    this.started = false;
+    updateCanvas();
+  },
+  cancel : function(){
+    const sprite = sprites[currentSprite];
+    sprite.frames[sprite.currentFrame] = PixelFrame(offscreenBuffer.width, offscreenBuffer.height, offscreenBuffer.data);
+    this.started = false;
+    updateCanvas();
+  }
 }
 const copyBuffer = {
   pixels : undefined,
   bounds : {
     start : {x:0,y:0},
     end : {x:0,y:0}
-  }
-};
-
-function copy(cut = false){
-  if(selectionBox.active){
-    if(cut)
-      pushUndoState();
-    const sprite = sprites[currentSprite];
-    copyBuffer.bounds = {
-      start: { x: Math.min(selectionBox.startCoord.x, selectionBox.endCoord.x), y: Math.min(selectionBox.startCoord.y, selectionBox.endCoord.y) },
-      end: { x: Math.max(selectionBox.startCoord.x, selectionBox.endCoord.x), y: Math.max(selectionBox.startCoord.y, selectionBox.endCoord.y) }
-    };
-    copyBuffer.pixels = PixelFrame(selectionBox.getWidth(),selectionBox.getHeight(),0);
-    for(let x = 0; x<copyBuffer.pixels.width; x++){
-      for(let y = 0; y<copyBuffer.pixels.height; y++){
-        copyBuffer.pixels.setPixel(x,y,sprite.frames[sprite.currentFrame].getPixel(x + copyBuffer.bounds.start.x, y + copyBuffer.bounds.start.y));
-        if(cut){
-          sprite.frames[sprite.currentFrame].setPixel(x + copyBuffer.bounds.start.x, y + copyBuffer.bounds.start.y,0);
+  },
+  copy : function(cut = false){
+    if(selectionBox.active){
+      if(cut)
+        pushUndoState();
+      const sprite = sprites[currentSprite];
+      this.bounds = {
+        start: { x: Math.min(selectionBox.startCoord.x, selectionBox.endCoord.x), y: Math.min(selectionBox.startCoord.y, selectionBox.endCoord.y) },
+        end: { x: Math.max(selectionBox.startCoord.x, selectionBox.endCoord.x), y: Math.max(selectionBox.startCoord.y, selectionBox.endCoord.y) }
+      };
+      this.pixels = PixelFrame(selectionBox.getWidth(),selectionBox.getHeight(),0);
+      for(let x = 0; x<this.pixels.width; x++){
+        for(let y = 0; y<this.pixels.height; y++){
+          this.pixels.setPixel(x,y,sprite.frames[sprite.currentFrame].getPixel(x + this.bounds.start.x, y + this.bounds.start.y));
+          if(cut){
+            sprite.frames[sprite.currentFrame].setPixel(x + this.bounds.start.x, y + this.bounds.start.y,0);
+          }
         }
       }
+      if(cut)
+        updateCanvas();
     }
-    if(cut)
-      updateCanvas();
-  }
-}
-
-function cut(){
-  copy(true);
-}
-
-function paste(){
-  if(copyBuffer.pixels && currentMouseCoords){
-
-    const sprite = sprites[currentSprite];
-    pushUndoState();
-    for(let x = 0; x<copyBuffer.pixels.width; x++){
-      for(let y = 0; y<copyBuffer.pixels.height; y++){
-        const pixelVal = copyBuffer.pixels.getPixel(x,y) || sprite.frames[sprite.currentFrame].getPixel(x +currentMouseCoords.x, y + currentMouseCoords.y);
-        sprite.frames[sprite.currentFrame].setPixel(x + currentMouseCoords.x, y + currentMouseCoords.y,pixelVal);
+  },
+  cut : function(){
+    this.copy(true);
+  },
+  paste : function(){
+    if(this.pixels && currentMouseCoords){
+      const sprite = sprites[currentSprite];
+      pushUndoState();
+      for(let x = 0; x<this.pixels.width; x++){
+        for(let y = 0; y<this.pixels.height; y++){
+          const pixelVal = this.pixels.getPixel(x,y) || sprite.frames[sprite.currentFrame].getPixel(x +currentMouseCoords.x, y + currentMouseCoords.y);
+          sprite.frames[sprite.currentFrame].setPixel(x + currentMouseCoords.x, y + currentMouseCoords.y,pixelVal);
+        }
       }
+      const w = Math.abs(this.bounds.start.x - this.bounds.end.x);
+      const h = Math.abs(this.bounds.start.y - this.bounds.end.y);
+      //set selection box
+      selectionBox.active = true;
+      selectionBox.started = true;
+      selectionBox.startCoord = {
+        x:currentMouseCoords.x,
+        y:currentMouseCoords.y,
+      };
+      selectionBox.endCoord = {
+        x:currentMouseCoords.x + w,
+        y:currentMouseCoords.y + h,
+      };
+      selectionBox.updateCSS();
+      updateCanvas();
     }
-    const w = Math.abs(copyBuffer.bounds.start.x - copyBuffer.bounds.end.x);
-    const h = Math.abs(copyBuffer.bounds.start.y - copyBuffer.bounds.end.y);
-    //set selection box
-    selectionBox.active = true;
-    selectionBox.started = true;
-    selectionBox.startCoord = {
-      x:currentMouseCoords.x,
-      y:currentMouseCoords.y,
-    };
-    selectionBox.endCoord = {
-      x:currentMouseCoords.x + w,
-      y:currentMouseCoords.y + h,
-    };
-    selectionBox.updateCSS();
-    updateCanvas();
   }
-}
+};
 
 const selectionBox = {
   startCoord:{x:0,y:0},
@@ -236,35 +260,6 @@ function handleMouseOut(e) {
       break;
   }
 }
-
-function startLine(coords){
-  const sprite = sprites[currentSprite];
-  pushUndoState();
-  line.start = { ...coords };
-  //make a backup of the line
-  offscreenBuffer = PixelFrame(sprite.width, sprite.height, sprite.frames[sprite.currentFrame].data);
-  line.started = true;
-}
-function continueLine(coords){
-  const sprite = sprites[currentSprite];
-  sprite.frames[sprite.currentFrame] = PixelFrame(offscreenBuffer.width, offscreenBuffer.height, offscreenBuffer.data);
-  sprite.frames[sprite.currentFrame].drawLine(line.start.x, line.start.y, coords.x, coords.y, settings.currentColor);
-  updateCanvas();
-}
-function endLine(coords){
-  const sprite = sprites[currentSprite];
-  sprite.frames[sprite.currentFrame] = PixelFrame(offscreenBuffer.width, offscreenBuffer.height, offscreenBuffer.data);
-  sprite.frames[sprite.currentFrame].drawLine(line.start.x, line.start.y, coords.x, coords.y, settings.currentColor);
-  line.started = false;
-  updateCanvas();
-}
-function cancelLine(){
-  const sprite = sprites[currentSprite];
-  sprite.frames[sprite.currentFrame] = PixelFrame(offscreenBuffer.width, offscreenBuffer.height, offscreenBuffer.data);
-  line.started = false;
-  updateCanvas();
-}
-
 function handleMouseDown(e) {
   const coords = getClickCoords(e);
   e.preventDefault();
@@ -272,22 +267,20 @@ function handleMouseDown(e) {
   switch (settings.currentTool) {
     case 'pixel': {
       pushUndoState();
-      const newFrames = sprite.frames;
-      newFrames[sprite.currentFrame].setPixel(coords.x, coords.y, settings.currentColor);
+      sprite.frames[sprite.currentFrame].setPixel(coords.x, coords.y, settings.currentColor);
       updateCanvas();
       break;
     }
     case 'fill': {
       pushUndoState();
-      const newFrames = sprite.frames;
-      newFrames[sprite.currentFrame].fill(coords.x, coords.y, settings.currentColor);
+      sprite.frames[sprite.currentFrame].fill(coords.x, coords.y, settings.currentColor);
       updateCanvas();
       break;
     }
     case 'line':
       //if you haven't started drawing a line yet
       if (!line.started) {
-        startLine(coords);
+        line.start(coords);
       }
       break;
     case 'move':
@@ -320,10 +313,10 @@ function handleMouseMove(e) {
       case 'line':
         //if you've already started a line, draw it
         if (line.started) {
-          continueLine(coords);
+          line.continue(coords);
         }
         else{
-          startLine(coords);
+          line.start(coords);
         }
         break;
       case 'fill': {
@@ -353,7 +346,7 @@ function handleMouseUp(e) {
   switch (settings.currentTool) {
     case 'line':
       if(line.started){
-        endLine(coords);
+        line.end(coords);
       }
       break;
     case 'move':
@@ -365,6 +358,8 @@ function handleMouseUp(e) {
       if (selectionBox.started && !selectionBox.active) {
         selectionBox.end(coords);
       }
+      break;
+    case 'pixel':
       break;
   }
 }

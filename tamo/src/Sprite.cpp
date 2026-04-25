@@ -19,12 +19,27 @@ bool Sprite::isNextFrameReady(){
   }
 }
 
+
+void printScreenToSerial(){
+  Serial.println("*--------------*");
+  for(uint8_t y = 0; y<16; y++){
+    for(uint8_t x = 0; x<16; x++){
+      uint8_t val = fbo.getPixel(x+8,y);
+      Serial.print(val?"#":".");
+    }
+    Serial.println(" ");
+  }
+  Serial.println("*--------------*");
+}
+
 void Sprite::showCurrentFrame(bool clearScreen,bool updateDisplay){
   if(clearScreen)
     fbo.clear();
   fbo.bitmap_from_spritesheet(xCoord,yCoord,width,height,frames[currentFrame]);
-  if(updateDisplay)
+  if(updateDisplay){
+    // printScreenToSerial();
     oled.renderFBO2x(4,0,36,3,fbo.buffer);
+  }
 }
 void Sprite::showCurrentFrame(){
   showCurrentFrame(true,true);
@@ -41,8 +56,9 @@ void Sprite::update(bool clearScreen, bool updateDisplay){
   if(isNextFrameReady()){
     nextFrame();
     timeLastFramePlayed = millis();
+    showCurrentFrame(clearScreen,updateDisplay);
   }
-  showCurrentFrame(clearScreen,updateDisplay);
+  // showCurrentFrame(clearScreen,updateDisplay);
 }
 void Sprite::update(){
   update(true,true);

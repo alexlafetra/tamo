@@ -183,7 +183,6 @@ SECTIONS
      PROVIDE (__data_end = .) ;
   }  > data AT> text
   /* VMA is explicitly pinned to the 0x8000-offset alias of the LMA */
-  /*
   .bitmap_data  0xE000 : AT(0x6000)
   {
     __bitmap_start = . ;
@@ -191,7 +190,6 @@ SECTIONS
     . = ALIGN(64);
     __bitmap_end = . ;
   }
-  */
   .bss  ADDR(.data) + SIZEOF (.data)   : AT (ADDR (.bss))
   {
      PROVIDE (__bss_start = .) ;
