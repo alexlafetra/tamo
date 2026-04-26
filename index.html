@@ -22,7 +22,7 @@
   <script src="designer/scripts/defaultSprites.js"></script>
   <script src="designer/scripts/main.js" defer></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>tamo flipbook</title>
+  <title>tamo</title>
 </head>
 
 <body>
@@ -197,9 +197,23 @@
             <img id = "upload_icon" src = "designer/images/icons/upload_icon.gif"> 
             <div class="button tool_button" id="upload_sprites_button" onclick="uploadSpriteData()">send to tamo</div>
             <div id = "upload_progress_bar_container">
-              <div id = "upload_progress_bar"></div>
-            </div>
+            <div id = "upload_progress_bar"></div>
           </div>
+          <div style = "display:flex; flex-direction:row;">
+            <div style = "display:flex; flex-direction:column;">
+              <label class="ui_label" for="set_identity" style = "color:white;mix-blend-mode: difference;">set identity:</label>
+              <select class="button" name="set_identity" id="set_identity_select" onchange="setUploadIdentity(event)">
+                <option value="CUSTOM_SPRITE">custom</option>
+                <option value="TAMO">tamo</option>
+                <option value="PORCINI">porcini</option>
+                <option value="BUG">bug</option>
+                <option value="BOTO">boto</option>
+                <option value="NO_IDENTITY">none</option>
+              </select>
+            </div>
+            <div class = "button" onclick = "writeTamoIdentity()">write</div>
+          </div>
+        </div>
           <div id = "download_controls">
             <div class = "ui_label">save to...</div>
             <div style = "display:flex;flex-direction: row;">

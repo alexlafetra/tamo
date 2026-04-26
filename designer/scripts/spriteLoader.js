@@ -2,11 +2,11 @@
 //due to conflicts with the p5 webserial library getting it to clear out the read buffer
 //and wait for a specific number of bytes to be received
 const commands = {
-    WEBSERIAL_HELLO : 0x01,
+    WEBSERIAL_SPRITE_UPLOAD : 0x01,
     TAMO_HELLO : 0x02,
     REQUEST_NEXT_SPRITE_PACKET : 0x03,
     SET_IDENTITY : 0x04,
-    TAMO_DISCONNECT : 0x05
+    TAMO_DISCONNECT : 0x05,
 }
 
 //digests everything in the input buffer
@@ -125,6 +125,47 @@ function debugSendSprites(){
         console.log(spriteData);
 }
 
+const identities = {
+    TAMO : 0,
+    NO_IDENTITY : 255,
+    PORCINI : 1,
+    BUG :2,
+    BOTO : 3,
+    CUSTOM_SPRITE : 4
+};
+
+let uploadIdentity = identities.CUSTOM_SPRITE;
+function setUploadIdentity(event){
+    uploadIdentity = event.target.value;
+    console.log(uploadIdentity);
+    console.log(identities[uploadIdentity]);
+}
+
+async function writeTamoIdentity(){
+//open the port
+    let port;
+    try{
+        port = await navigator.serial.requestPort();
+    }
+    catch(error){
+        console.log(error);
+        return;
+    }
+
+
+    await port.open({ baudRate: 115200 });
+    //clear buffer
+    await clearReadBuffer(port);
+
+    //say hello to tamo
+    console.log("setting identity!");
+    let writer = port.writable.getWriter();
+    await writer.write(new Uint8Array([commands.SET_IDENTITY,identities[uploadIdentity]]));
+    writer.releaseLock();
+    console.log("closing serial port");
+    await port.close();
+}
+
 async function uploadSpriteData(){
     //open the port
     let port;
@@ -143,7 +184,7 @@ async function uploadSpriteData(){
     //say hello to tamo
     console.log("hello tamo!");
     let writer = port.writable.getWriter();
-    await writer.write(new Uint8Array([commands.WEBSERIAL_HELLO]));
+    await writer.write(new Uint8Array([commands.WEBSERIAL_SPRITE_UPLOAD]));
     writer.releaseLock();
 
     // await new Promise(resolve => setTimeout(resolve, 1000)); // give ATtiny time to respond

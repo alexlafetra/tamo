@@ -65,6 +65,7 @@
                 "UARTBAUD5V",
                 "NDEBUG",
                 "F_CPU=20000000L",
+                "F_CPU=20000000L",
                 "ARDUINO_ARCH_MEGAAVR",
                 "ARDUINO=10808",
                 "CLOCK_SOURCE=0",

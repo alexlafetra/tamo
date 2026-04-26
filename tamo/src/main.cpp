@@ -53,7 +53,6 @@ using namespace std;
 #include <EEPROM.h>
 #include "utils.h"
 #include "spriteLoader.h"
-#include "flash.cpp"
 
 //this stores the active graphics area! which is half-res of the screen, sprites are drawn 2x
 #include "FrameBuffer.h"
@@ -185,10 +184,7 @@ void setup(){
   //initialize UART
   Serial.begin(115200);
 
-  // tamo.identity = EEPROM.read(EEPROM_IDENTITY_ADDR);
-  tamo.identity = TAMO;
-  // testOverwriteSprites();
-  // testUpdateFlashPage();
+  tamo.identity = EEPROM.read(EEPROM_IDENTITY_ADDR);
 }
 
 //trying to set the IVSEL register, so the vectors are placed in BOOT instead of APPCODE
@@ -200,11 +196,9 @@ void onBeforeInit(){
   CPUINT.CTRLA = CPUINT_IVSEL_bm; // set IVSEL=1: vectors at start of BOOT (0x0000)
 }
 
+
 void loop() {
   tamo.live();
-  // digitalWrite(LED_A,CHANGE);
-  // digitalWrite(LED_B,CHANGE);
-  // delay(1000);
-  // testOverwriteSprites(); 
+  // tamo.debugCheckMoodSprites();
 }
 

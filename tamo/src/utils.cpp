@@ -27,7 +27,7 @@ volatile uint32_t timeOfLastButtonPress = 0;
 uint32_t lastTime = 0;
 
 extern Tamo tamo;
-extern uint8_t customSpriteData[64];
+// extern uint8_t customSpriteData[64];
 
 uint8_t get_sprite_data(uint16_t offset){
   // super hacky
@@ -54,7 +54,7 @@ uint16_t readVcc() {
 }
 
 //reading inputs
-void readButton(){
+void checkInput(){
   checkSerialConnection();
   uint8_t val = digitalRead(BUTTON_PIN);
   // uint8_t val = (PINB & (1<<PB1));//check the value from the PB1 register

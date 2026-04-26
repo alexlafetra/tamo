@@ -24,7 +24,7 @@ uint8_t randomInt(uint8_t range);
 uint16_t readVcc();
 
 //reading inputs
-void readButton();
+void checkInput();
 
 //time (ms) before tamo sleeps
 // #define TIME_BEFORE_SLEEP 60000

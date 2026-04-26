@@ -3,6 +3,7 @@
 enum PACKET_STATUS:uint8_t{
     NO_DATA_RECEIVED,
     EEPROM_FULL,
+    FLASH_FULL,
     READY_TO_CONTINUE
 };
 

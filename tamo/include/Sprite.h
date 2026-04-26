@@ -63,6 +63,7 @@ class Sprite{
       yCoord = y1;
       width = w;
       height = h;
+      showCurrentFrame();
     } __attribute__((noinline));
 };
 

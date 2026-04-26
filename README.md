@@ -1,8 +1,9 @@
-# (* _*) hello tamo ! (^ _^)
+<img src="designer/images/logo_animated_white.gif" style = "width:100%;image-rendering:pixelated;mix-blend-mode:difference;">
 
-![GIF of Tamo in its case](assets/tamo_rotating_small.gif)
+<img src="designer/images/icons/tamo_rotate_optimized_cropped.gif" style = "width:100%;margin:auto;">
 
-This is an art project I started to explore forming connections between digital and tactile objects. The hardware and software for Tamo is open source, although not well documented, so please feel free to reach out with questions!
+This is an art project I started to explore forming connections between digital and tactile objects. The hardware and software for Tamo is open source, although not well documented yet.
+
 
 ## Infodump
 

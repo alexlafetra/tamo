@@ -45,25 +45,25 @@ void Tamo::sleep(){
 }
 
 //array to hold custom sprite data
-uint8_t customSpriteData[64] = {0};
-const uint16_t customSpriteOffsets[2] = {0,32};
-const uint8_t spriteNotFound[64] = {
-  219, 0, 121, 129, 248, 1, 241, 8, 9, 241, 0, 121, 129, 248, 1, 109, 182, 128, 0, 128, 159, 0, 143, 144, 16, 143, 128, 0, 128, 159, 0, 219,
-  109, 1, 124, 129, 253, 0, 249, 5, 4, 249, 1, 124, 129, 253, 0, 219, 219, 0, 128, 128, 63, 128, 159, 32, 160, 159, 0, 128, 128, 63, 128, 182
-};
+// uint8_t customSpriteData[64] = {0};
+// const uint16_t customSpriteOffsets[2] = {0,32};
+// const uint8_t spriteNotFound[64] = {
+//   219, 0, 121, 129, 248, 1, 241, 8, 9, 241, 0, 121, 129, 248, 1, 109, 182, 128, 0, 128, 159, 0, 143, 144, 16, 143, 128, 0, 128, 159, 0, 219,
+//   109, 1, 124, 129, 253, 0, 249, 5, 4, 249, 1, 124, 129, 253, 0, 219, 219, 0, 128, 128, 63, 128, 159, 32, 160, 159, 0, 128, 128, 63, 128, 182
+// };
 
-void loadCustomSpriteIntoRAM(uint8_t whichSprite){
-  // load the two frames into RAM
-  for(uint8_t frame = 0; frame<2; frame++){
-    for(uint8_t j = 0; j<32; j++){
-      uint16_t addr = custom_spritesheet[whichSprite][frame]+j;
-      if((addr+CUSTOM_SPRITE_DATA_ADDR) >= EEPROM_SIZE)
-        customSpriteData[frame * 32 + j] = spriteNotFound[frame * 32 + j];
-      else
-        customSpriteData[frame * 32 + j] = EEPROM.read(addr+CUSTOM_SPRITE_DATA_ADDR);
-    }
-  }
-}
+// void loadCustomSpriteIntoRAM(uint8_t whichSprite){
+//   // load the two frames into RAM
+//   for(uint8_t frame = 0; frame<2; frame++){
+//     for(uint8_t j = 0; j<32; j++){
+//       uint16_t addr = custom_spritesheet[whichSprite][frame]+j;
+//       if((addr+CUSTOM_SPRITE_DATA_ADDR) >= EEPROM_SIZE)
+//         customSpriteData[frame * 32 + j] = spriteNotFound[frame * 32 + j];
+//       else
+//         customSpriteData[frame * 32 + j] = EEPROM.read(addr+CUSTOM_SPRITE_DATA_ADDR);
+//     }
+//   }
+// }
 
 const uint16_t * Tamo::getSprite(uint8_t whichSprite){
   switch(identity){
@@ -76,8 +76,9 @@ const uint16_t * Tamo::getSprite(uint8_t whichSprite){
     case BOTO:
       return boto_spritesheet[whichSprite];
     case CUSTOM_SPRITE:
-      loadCustomSpriteIntoRAM(whichSprite);
-      return customSpriteOffsets;
+      // loadCustomSpriteIntoRAM(whichSprite);
+      // return customSpriteOffsets;
+      return custom_spritesheet[whichSprite];
     default:
       return tamo_spritesheet[whichSprite];
   }
@@ -144,6 +145,7 @@ void Tamo::debugCheckMoodSprites(){
   for(uint8_t currentSprite = 0; currentSprite<sizeof(sprites); currentSprite++){
     sprite = Sprite(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(sprites[currentSprite]),2,VFAST);
     while(sprite.loopCount < 3){
+      checkInput();
       sprite.update();
     }
   }
@@ -152,7 +154,7 @@ void Tamo::debugCheckMoodSprites(){
 void Tamo::baby(){
   // sprite = Sprite(SPRITESTARTX+3,8,10,8,baby_idle_sprite,2,MEDIUM);
   // while(true){
-  //   readButton();
+  //   checkInput();
   //   if(LONG_PRESS && itsbeen(200)){
 
   //     break;
@@ -178,7 +180,7 @@ void Tamo::smokeBreak(){
     //update and show the current sprite
     sprite.update();
     lastTime = millis();
-    readButton();
+    checkInput();
     //interrupting the smoke break
     if(SINGLE_CLICK){
       timeSinceLastCig = 0;
@@ -209,7 +211,7 @@ void Tamo::basicEmotion(){
     //count down the mood timer
     moodTime--;
     //read inputs
-    readButton();
+    checkInput();
     //feed tamo!
     if(LONG_PRESS){
       lastTime = millis();
@@ -271,7 +273,7 @@ void Tamo::eat(){
     }
     drawReticle(counter>48);
     oled.renderFBO2x(4,0,36,3,fbo.buffer);
-    readButton();
+    checkInput();
     sleepCheck();
     if(itsbeen(500)){
       // on
@@ -403,7 +405,7 @@ void Tamo::waitAndBlink(uint16_t speed){
       digitalWrite(LED_B,on?1:0);
     }
     sleepCheck();
-    readButton();
+    checkInput();
   }
   digitalWrite(LED_B,0);
   //turn off LED
@@ -456,7 +458,7 @@ void Tamo::birth(){
     // waitAndBlink(VFAST);
     uint8_t counter;
     while(!SINGLE_CLICK && !isAsleep()){
-      readButton();
+      checkInput();
       sleepCheck();
       sprite.showCurrentFrame(true,false);
       drawReticle(counter>48);
@@ -503,7 +505,7 @@ void Tamo::dead(){
   setStatusBit(IS_ASLEEP_BIT,false);
   lastTime = millis();
   while(!isAsleep()){
-    readButton();
+    checkInput();
     sleepCheck();
     sprite.update();
     if(SINGLE_CLICK && itsbeen(200)){
@@ -558,7 +560,7 @@ void Tamo::talk(uint8_t t){
     talkingSprite.update();
     sprite.update(false,true);
     if(itsbeen(200)){
-      readButton();
+      checkInput();
     }
   }
 
@@ -596,7 +598,7 @@ void Tamo::poop(){
   sprite = Sprite(SPRITESTARTX,SPRITESTARTY,16,16,poopAnim,2,VFAST);
   lastTime = millis();
   while(!isAsleep()){
-    readButton();
+    checkInput();
     if(SINGLE_CLICK && itsbeen(800)){
       lastTime = millis();
       fbo.clear();
@@ -783,7 +785,7 @@ void Tamo::game(){
     // ssd1306_send_stop();
 
     // //read inputs
-    // readButton();
+    // checkInput();
 
     // //if it's a hit, break!
     // if(SINGLE_CLICK){
