@@ -196,9 +196,22 @@ void onBeforeInit(){
   CPUINT.CTRLA = CPUINT_IVSEL_bm; // set IVSEL=1: vectors at start of BOOT (0x0000)
 }
 
+enum TamoMode:uint8_t{
+  NORMAL_TAMO,
+  SLIDESHOW,
+  TEXT
+};
+
+TamoMode mode;
 
 void loop() {
-  tamo.live();
+  switch(mode){
+    case NORMAL_TAMO:
+      tamo.live();
+      break;
+    case SLIDESHOW:
+      break;
+  }
   // tamo.debugCheckMoodSprites();
 }
 

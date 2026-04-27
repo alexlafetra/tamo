@@ -1,60 +1,63 @@
-<img src="designer/images/logo_animated_white.gif" style = "width:100%;image-rendering:pixelated;mix-blend-mode:difference;">
+<div style = "display:flex">
+<img src="designer/images/logo_animated_white.gif" style = "width:100%;margin:auto;max-width:400px;justify-self:center;image-rendering:pixelated;mix-blend-mode:difference;">
+</div>
 
-<img src="designer/images/icons/tamo_rotate_optimized_cropped.gif" style = "width:100%;margin:auto;">
+<div style = "display:flex">
+<img src="designer/images/icons/tamo_rotate_optimized_cropped.gif" style = "width:100%;margin:auto;max-width:400px;justify-self:center;">
+</div>
 
-This is an art project I started to explore forming connections between digital and tactile objects. The hardware and software for Tamo is open source, although not well documented yet.
+# About
+
+This is an open source project I started to explore forming connections between digital and tactile objects. The hardware and software for Tamo is open source, although not well documented yet.
+
+# Tamo Website
+
+New creatures, foods, thoughts, & random art can be flashed to Tamo over USB using [Tamo's website](https://alexlafetra.github.io/tamo/).
+
+![screenshot of the Web Designer](readme_assets/tamo_designer_screenshot.png)
+
+TBD: Make a video tutorial walking through the site on youtube
+
+# Firmware
+
+Tamo's firmware is a PlatformIO project built around Spence Konde's [megaTinyCore](https://github.com/SpenceKonde/megaTinyCore) and the Arduino framework, with a modified build process to allow for in-system flash reprogramming so ***the Tamo source code can't be compiled/uploaded using the Arduino IDE!*** This project uses [PlatformIO](https://platformio.org/) for compiling with a [custom linker script](/tamo/linker/sprites.ld), running a few python scripts to export the EEPROM and bitmap data, and uploading to Tamo.
 
 
-## Infodump
+###### NOTE: I think there's a way to get this to work with the Arduino IDE by modifying the default linker scripts or creating a custom board, but it's not something I've experimented with.
 
-The source code for Tamo is built using the [PlatformIO extension for VSCode](https://platformio.org/) and requires an ISP programmer to upload the code to the Tamo PCB.
+The code for the display was originally based on Datacute's [SSD1306 OLED Library](https://github.com/datacute/Tiny4kOLED), but has been stripped down *and* augmented for this project.
 
-### Programming Over ISP
+To compile the bitmap .bmp's into C++ byte arrays, a python script iterates over all the .bmp's in the `/bitmaps` folder and writes a single large byte array to `spritesheet.h` along with preprocessor `#define's` marking the byte offset of each spritesheet. This is clunky, but space-efficient and works okay for right now.
 
-By default, the PlatformIO project is configured to use an [Arduino board as the ISP programmer](https://docs.arduino.cc/built-in-examples/arduino-isp/ArduinoISP/) (more info [here](https://www.instructables.com/Turn-Your-Arduino-Into-an-ISP/) too), but any ISP programmer can work as long as the programming pins can be attached to 2.54mm pinheaders (or, soldered directly onto the Tamo PCB).
 
-![Image of the ISP Port on the Tamo PCB](assets/ISP_Pinout.png)
+# Uploading firmware
 
-*layout of the ISP pins on the main board*
+The Attiny3217 firmware is uploaded via a UPDI interface exposed on the motherboard. To upload, I use a tool called [pymcuprog](https://pypi.org/project/pymcuprog/) and any USB --> UPDI uploader (I use a Pi Pico running this [Pico UART Bridge](https://github.com/Noltari/pico-uart-bridge) project).
 
-The programming pins of the ATTiny85 are broken out to a 2.54mm header on the side of the board. You can solder headers into this port, or just leave these unsoldered and gently press and hold the programming pins into the holes of the header while programming.
-
-![Image of an example ISP Programmer](assets/Arduino_ISP_example.jpeg)
-
-*The Arduino ISP Programmer I use, with the ISP pins broken out to a 2.54mm 6-pin header*
-
-![Image of an example ISP Programmer connected to the Tamo PCB](assets/ISP_programming_example.jpeg)
-
-Pressing the pins into the programming port and tilting the connector a little usually gives enough electrical contact to program the board.
-
-### Sprites
-The sprite artwork is stored as .bmp images in the '/bitmaps' directory, which can be edited using an image editor (new bitmaps can also be added, but you might run out of space!). 
-
-![GIF running through all the Tamo sprites](assets/tamo_animations.gif)
-
-The 'bitmaps/compile_bitmaps.py' script iterates over each .bmp file and converts it toa PROGMEM byte array every time the code is compiled, so that the bitmap graphics are automatically updated with any changes made to images in the '/bitmaps' directory.
-
-**Note: *every* '.bmp' file in the bitmaps directory will be added to the source code 'bitmaps.h' file, but bitmaps won't be included in the firmware by the compiler unless they're referenced in your code.**
-
-### EEPROM
-
-The EEPROM is used to store Tamo's identity so the same creature is retained when power is lost. When Tamo dies from malnutrition, though, its identity is reset and the EEPROM identity is rewritten. There isn't really a reason to modify this data, unless you wanted to start Tamo with a specific creature identity instead of getting one via the egg hatching process, or to add custom data into the EEPROM for other purposes.
+In order to overwrite bitmap data, the Attiny3217 needs to store the data in the `APPCODE` section in memory and run the main code from the `BOOT` section. To do this, the BOOTEND and APPEND fuses have to be written to demarcate where the BOOT/APP boundary is in memory (and our custom linker script needs to place the spritesheet[] array into a region past BOOTEND). Setting the fuses happens separately from the UPDI uploaded process. To set them, run:
 
 ```
-BYTE 0 : CREATURE IDENTITY
-0 == TAMO
-1 == PORCINI
-2 == BUG
-3 == BOTO
-255 == UNSET/NO IDENTITY
+pymcuprog write --tool uart --device attiny3217 --uart {USB DEVICE PORT} --clk 230400 --memory fuses --offset 7 --literal 0x00 0x5E 
+```
+###### On Mac: The USB device will be something like ```/dev/cu.usbmodem14101```. Run ```ls /dev/tty.*``` in a terminal window to get a list of connected USB devices.
+
+
+
+This will write the BOOTEND fuse (byte 8) to `0x5E` and the APPEND fuse (byte 7) to `0x00`, creating an APPCODE section starting at `0x5E` and filling up the rest of flash. To check that these fuses were written correctly, run:
+
+```
+pymcuprog read --tool uart --device attiny3217 --uart {USB DEVICE PORT} --clk 230400 --memory fuses
 ```
 
-To modify the data that gets written to the ATTiny's EEPROM, overwrite/change the byte(s) inside 'eeprom_data.bin'. The EEPROM file is created from the '.bin' file using the custom 'eeprom/build_eeprom.py' script called by the PlatformIO build process, and the ATTiny EEPROM is written to during the upload process.
+The last two bytes should be `0x00` and `0x5E`; `BOOTEND = 0x5E` allows code placed beyond the `0x5E` address to be overwritten by functions called from the BOOT section, and `APPEND = 0x00` sets all memory after BOOTEND to be in the APPCODE section.
 
-### BOM
+Once these fuses written & checked you can upload code to the Attiny3217 as you normally would using PlatformIO and your UPDI programmer of choice!
+
+## BOM
+
+The PCBs for this project were designed in [KiCad](https://www.kicad.org/). The battery charging schematic is based on the schematic for Adafruit's [MicroLipo Battery Charger](https://github.com/adafruit/Adafruit-MicroLipo-PCB).
 
 If you're assembling Tamo from scratch, you'll need:
-
 
 |Component|Quantity|Footprint|Link|
 |---------|:------:|---------|----|
@@ -82,9 +85,3 @@ If you're assembling Tamo from scratch, you'll need:
 |Back Shell|1|
 |3mm 2M screws|2|
 |6mm 2M screws|2|
-
-### Sources
-
-The code for the display is a modified version of Datacute's [SSD1306 OLED Library](https://github.com/datacute/Tiny4kOLED) and uses the [Adafruit TinyWireM library](https://github.com/adafruit/TinyWireM) to communicate via I2C.
-
-The PCBs for this project were designed in [KiCad](https://www.kicad.org/). The battery charging schematic is based on the schematic for Adafruit's [MicroLipo Battery Charger](https://github.com/adafruit/Adafruit-MicroLipo-PCB).

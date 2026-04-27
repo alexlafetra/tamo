@@ -80,7 +80,7 @@ let currentMouseCoords = {
 
 let currentSprite = 0;
 let timeoutID = undefined;
-let spriteName = "tamo";
+let spriteName = "excalibur";
 let settingsShown = true;
 let resizeDimensions = {
   width : sprites[currentSprite].width,
@@ -182,6 +182,7 @@ const settings = {
 
 
 function loadTemplate(template) {
+  pushUndoState();
   spriteName = template.defaultName;
   document.getElementById("sprite_name_static").innerHTML = spriteName;
   presetSpriteNames = [...template.presetSpriteNames];
@@ -209,11 +210,16 @@ function loadSelectedTemplate(event) {
 function setAnimationSpeed(event) {
   //set new speed
   settings.frameSpeed = parseInt(event.target.value);
+  document.getElementById("frame_speed_label").innerText = `${settings.frameSpeed}ms`;
   //clear old timeout ID, if there was one then the sequence was playing
   if (timeoutID) {
     window.clearTimeout(timeoutID);
     timeoutID = window.setTimeout(playNextFrame, settings.frameSpeed);
   }
+}
+
+function setCanvasScale(event){
+  document.documentElement.style.setProperty('--canvas-scale', event.target.value);
 }
 
 function toggleExtraSettingsVisibility(domElement){
@@ -270,7 +276,7 @@ function togglePreviousFrameOverlay(domElement) {
 function editName() {
   //remove static name
   document.getElementById("sprite_name_static").remove();
-  const nameArea = document.getElementById("sprite_name");
+  const nameArea = document.getElementById("sprite_name_container");
   //add textarea name
   const newTextArea = document.createElement('textarea');
   newTextArea.id = "sprite_name_textarea";
@@ -287,7 +293,7 @@ function editName() {
       finishEditingName();
     }
   });
-  nameArea.appendChild(newTextArea);
+  nameArea.insertAdjacentElement('afterbegin',newTextArea);
 }
 
 function finishEditingName() {
@@ -298,9 +304,8 @@ function finishEditingName() {
   staticText.id = "sprite_name_static";
   staticText.innerText = spriteName;
   staticText.addEventListener('dblclick', editName);
-  const nameArea = document.getElementById("sprite_name");
-  nameArea.appendChild(staticText);
-  reloadSpritePreviews();
+  const nameArea = document.getElementById("sprite_name_container");
+  nameArea.insertAdjacentElement('afterbegin',staticText);
 }
 
 function getClickCoords(e) {

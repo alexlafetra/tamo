@@ -41,7 +41,7 @@
             style="left:-70px;top:40px;"></img>
           <img id="gif_4" class="title_gif " src='designer/images/sprites/boto_sad.gif'
             style="left:210px;top:40px;"></img>
-          <img class = "title_gif" src = "designer/images/icons/tamo_rotate_optimized.gif" id = "tamo_image"> 
+          <img class="title_gif" src="designer/images/icons/tamo_rotate_optimized.gif" id="tamo_image">
         </div>
         <!-- {/* ui */} -->
         <!-- <div id = "ui_container"> -->
@@ -93,7 +93,8 @@
           <div class="button_holder">
             <div class="tool_button button" id="select_tool_button" onmouseenter="setTooltip('select [S]')"
               onclick="setTool('select',this);"><img src="designer/images/icons/select_icon.gif"></div>
-            <div class="tool_button button" id="move_tool_button" onmouseenter="setTooltip('move pixels [M]')" onclick="setTool('move',this);">
+            <div class="tool_button button" id="move_tool_button" onmouseenter="setTooltip('move pixels [M]')"
+              onclick="setTool('move',this);">
               <img src="designer/images/icons/move_icon.gif">
             </div>
             <div class="tool_button button" onmouseenter="setTooltip('clear frame')" onclick="clearFrame()"><img
@@ -113,39 +114,45 @@
         </div>
         <!-- extra settings -->
         <div id="extra_settings_container">
-          <div id="extra_settings_button" style = "background:blue;color:yellow;padding:5px;"class="button" onclick="toggleExtraSettingsVisibility(this)"><img id = "settings_icon" src = "designer/images/icons/settings_icon.gif">settings</div>
+          <div id="extra_settings_button" style="background:blue;color:yellow;padding:5px;" class="button"
+            onclick="toggleExtraSettingsVisibility(this)"><img id="settings_icon"
+              src="designer/images/icons/settings_icon.gif">settings</div>
           <div id="canvas_appearance_settings" class="button_holder">
             <div class="button_holder" id="resize_controls" onmouseover="showResizePreview()"
               onmouseleave="hideResizePreview()">
               <!-- resizing =  -->
-              <div class="ui_label">resize sprite:</div>
+              <div class="ui_label">resize sprite...</div>
               <div class="button_holder" style="align-items: center;">
-                W:<input inputmode="numeric" type="number" class="dimension_input" id="width_input" name="width" min="1"
+                W :<input inputmode="numeric" type="number" class="dimension_input" id="width_input" name="width" min="1"
                   max="128" oninput="setResizeDimensionWidth(event);showResizePreview();" value="16"
                   onmouseenter="setTooltip('sprite width')" />
-                H:<input inputmode="numeric" type="number" class="dimension_input" id="height_input" name="height"
+                H :<input inputmode="numeric" type="number" class="dimension_input" id="height_input" name="height"
                   min="1" max="128" oninput="setResizeDimensionHeight(event);showResizePreview();" value="16"
                   onmouseenter="setTooltip('sprite height')" />
               </div>
               <div class="button_holder">
-                <div class="button" onclick="resizeAllSprites()">apply</div>
                 <div id="resize_alignment_settings">
-                  <label class="ui_label" for="resize">align to:</label>
+                  <label class="ui_label" for="resize">align with...</label>
                   <select class="button" name="resize" id="resize_select" onchange="setResizeAlignment(event)">
                     <option value="center">center</option>
                     <option value="top left">top left</option>
                   </select>
                 </div>
+                <div class="button" onclick="resizeAllSprites()">apply</div>
               </div>
             </div>
             <!-- {/* playback speed slider */} -->
-            <!-- <div class="button_holder" style="flex-direction:column;width:fit-content;">
-              <div style="font-style:italic;margin:auto;padding-top:6px;">frame delay</div>
-              <div class='button_holder'>
+            <div class="button_holder" style="flex-direction:column;width:100%;">
+              <div style="margin:auto;padding-top:6px;justify-self: left;">--anim. speed--</div>
+              <div class='button_holder' style = "align-items: center;">
                 <input type="range" class="control_slider" id="frame_speed_slider" name="ms" min="100" max="1000"
-                  step="100" oninput="setAnimationSpeed(event)">
+                  step="100" oninput="setAnimationSpeed(event)"><div id = "frame_speed_label" style = "padding-left:10px;">600ms</div>
               </div>
-            </div> -->
+                <div style="margin:auto;padding-top:6px;justify-self: left;">--canv. scale--</div>
+                <div class = "button_holder" style = "flex-direction:column; justify-content: center; width:100%;">
+                  <input type="range" onmouseenter = "setTooltip('canvas size')" class = "control_slider" id="canvas_scale_slider" name="ms" min="1" max="32" step="1" value = "15" oninput="setCanvasScale(event)"/>
+                </div>
+            </div>
             <!-- <div class = "button_holder">
               <div class = "button_holder">
                 <div>zoom</div>
@@ -161,16 +168,27 @@
               grid</div>
             <div class="button" style="background-color:blue;color:yellow;" onclick="togglePreviousFrameOverlay(this);">
               disable overlay</div>
-            <div id = "output_color_settings">
+            <div id="output_color_settings">
+              <div style = "width:fit-content;margin:auto;">
               --foreground--
-              <div id = "output_foreground_settings" class = "color_settings"><div class = "button" id = "foreground_white" onclick = "setOutputForeground(this)" style = "color:yellow;background:blue;">white</div>
-                <div class = "button" id = "foreground_black" style = "color:white; background:black;" onclick = "setOutputForeground(this)">black</div>
-                <div class = "button" id = "foreground_transparent" style = "color:gray; border:1px dashed gray;" onclick = "setOutputForeground(this)">transparent</div>
               </div>
+              <div id="output_foreground_settings" class="color_settings">
+                <div class="button" id="foreground_white" onclick="setOutputForeground(this)"
+                  style="color:yellow;background:blue;">white</div>
+                <div class="button" id="foreground_black" style="color:white; background:black;"
+                  onclick="setOutputForeground(this)">black</div>
+                <div class="button" id="foreground_transparent" style="color:gray; border:1px dashed gray;"
+                  onclick="setOutputForeground(this)">transparent</div>
+              </div>
+              <div style = "width:fit-content;margin:auto;">
               --background--
-              <div id = "output_background_settings" class = "color_settings"><div class = "button" id = "background_white" onclick = "setOutputBackground(this)">white</div>
-                <div class = "button" id = "background_black" style = "color:yellow; background:blue;" onclick = "setOutputBackground(this)">black</div>
-                <div class = "button" id = "background_transparent" style = "color:gray; border:1px dashed gray;" onclick = "setOutputBackground(this)">transparent</div>
+              </div>
+              <div id="output_background_settings" class="color_settings">
+                <div class="button" id="background_white" onclick="setOutputBackground(this)">white</div>
+                <div class="button" id="background_black" style="color:yellow; background:blue;"
+                  onclick="setOutputBackground(this)">black</div>
+                <div class="button" id="background_transparent" style="color:gray; border:1px dashed gray;"
+                  onclick="setOutputBackground(this)">transparent</div>
               </div>
             </div>
           </div>
@@ -179,11 +197,11 @@
         <!-- sprite previews/checklist -->
         <div id="sprite_preview_container">
           <!-- name -->
-          <div style = "padding:10px;">spritesheet:</div>
+          <div style="padding:10px;">~spritesheet~</div>
           <div id="sprite_previews"></div>
           <!-- templates -->
           <div id="template_controls">
-            <label class="ui_label" for="templates">template:</label>
+            <label class="ui_label" for="templates">create new...</label>
             <select class="button" name="templates" id="template_select" onchange="loadSelectedTemplate(event);">
               <option value="creature">creature</option>
               <option value="food">food</option>
@@ -191,46 +209,49 @@
             </select>
           </div>
         </div>
-        <!-- upload/load controls -->
-        <div id="file_controls" class="button_holder" style="flex-direction: column;">
-          <div id = "sprite_loader_controls" class = "button_holder">
-            <img id = "upload_icon" src = "designer/images/icons/upload_icon.gif"> 
-            <div class="button tool_button" id="upload_sprites_button" onclick="uploadSpriteData()">send to tamo</div>
-            <div id = "upload_progress_bar_container">
-            <div id = "upload_progress_bar"></div>
-          </div>
-          <div style = "display:flex; flex-direction:row;">
-            <div style = "display:flex; flex-direction:column;">
-              <label class="ui_label" for="set_identity" style = "color:white;mix-blend-mode: difference;">set identity:</label>
+        <div id = "set_identity_controls" class = "button">
+          <label class="ui_label" for="set_identity">set identity to...</label>
+          <div style="display:flex; flex-direction:row; align-items:center;">
+            <div class = "button_holder" style="display:flex; flex-direction:column;width:fit-content;align-items: center;">
+              <img id = "identity_preview_image" src = "designer/images/preview_sprites/egg.gif" style = "justify-self:center;mix-blend-mode: difference;image-rendering: pixelated;height:40px;width:fit-content;">
               <select class="button" name="set_identity" id="set_identity_select" onchange="setUploadIdentity(event)">
+                <option value="NO_IDENTITY">none</option>
                 <option value="CUSTOM_SPRITE">custom</option>
                 <option value="TAMO">tamo</option>
                 <option value="PORCINI">porcini</option>
                 <option value="BUG">bug</option>
                 <option value="BOTO">boto</option>
-                <option value="NO_IDENTITY">none</option>
               </select>
             </div>
-            <div class = "button" onclick = "writeTamoIdentity()">write</div>
+            <div class="button" onclick="writeTamoIdentity()">send</div>
           </div>
         </div>
-          <div id = "download_controls">
-            <div class = "ui_label">save to...</div>
-            <div style = "display:flex;flex-direction: row;">
-               <div id = "download_icon_holder">
+        <!-- upload/load controls -->
+        <div id="file_controls" class="button_holder" style="flex-direction: column;">
+          <div id="sprite_loader_controls" class="button_holder">
+            <img id="upload_icon" src="designer/images/icons/upload_icon.gif">
+            <div class="button tool_button" id="upload_sprites_button" onclick="uploadSpriteData()">send to tamo</div>
+            <div id="upload_progress_bar_container">
+              <div id="upload_progress_bar"></div>
+            </div>
+          </div>
+          <div id="download_controls">
+            <div class="ui_label">save to...</div>
+            <div style="display:flex;flex-direction: row;">
+              <div id="download_icon_holder">
                 <img id="download_icon" src="designer/images/icons/download.gif">
               </div>
               <div>
-                <div class="button" onclick="saveGIF();" style = "background:#69baae;">.gif</div>
-                <div class="button" onclick="zipAllFrames();" style = "background:#ffd79f;">.bmp</div>
-                <div class="button" onclick="zipAllFrames();" style = "background:#ea10cc;">.zip</div>
+                <div class="button" onclick="saveGIF();" style="background:#69baae;">.gif</div>
+                <div class="button" onclick="zipAllFrames();" style="background:#ffd79f;">.bmp</div>
+                <div class="button" onclick="zipAllFrames();" style="background:#ea10cc;">.zip</div>
               </div>
             </div>
           </div>
           <div id="upload_controls">
             <label id="drop-zone" class="button">
               <img id="file_icon" src="designer/images/icons/file.gif">
-              <div class = "ui_label">upload (gif/image)</div>
+              <div class="ui_label">upload (gif/image)</div>
               <input type="file" id="file-input" multiple accept="image/*" style="display:none;"
                 oninput="handleFileInput(event)">
             </label>
@@ -239,8 +260,11 @@
 
         <!-- sprite name -->
         <div id="sprite_name">
-          hello:
-          <div id="sprite_name_static" ondblclick="editName()">tamo</div>
+          hello...
+          <div id = "sprite_name_container" style = "height:fit-content;display:flex;flex-direction: row; align-content:center;">
+            <div id="sprite_name_static" ondblclick="editName()">excalibur</div>
+            <div id = "name_exclamation_mark" style = "display:flex;align-items:center;font-size:18px;white-space: pre;">!</div>
+          </div>
         </div>
 
         <!-- canvas -->
