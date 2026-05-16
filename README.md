@@ -10,7 +10,7 @@
 
 This is an open source project I started to explore forming connections between digital and tactile objects. The hardware and software for Tamo is open source, although not well documented yet.
 
-# Tamo Website
+# Sprites
 
 New creatures, foods, thoughts, & random art can be flashed to Tamo over USB using [Tamo's website](https://alexlafetra.github.io/tamo/).
 
@@ -32,7 +32,7 @@ To compile the bitmap .bmp's into C++ byte arrays, a python script iterates over
 
 # Uploading firmware
 
-The Attiny3217 firmware is uploaded via a UPDI interface exposed on the motherboard. To upload, I use a tool called [pymcuprog](https://pypi.org/project/pymcuprog/) and any USB --> UPDI uploader (I use a Pi Pico running this [Pico UART Bridge](https://github.com/Noltari/pico-uart-bridge) project).
+The Attiny3217 firmware is uploaded via a UPDI interface exposed on the motherboard. To upload, I use a tool called [pymcuprog](https://pypi.org/project/pymcuprog/) and a USB --> UPDI uploader.
 
 In order to overwrite bitmap data, the Attiny3217 needs to store the data in the `APPCODE` section in memory and run the main code from the `BOOT` section. To do this, the BOOTEND and APPEND fuses have to be written to demarcate where the BOOT/APP boundary is in memory (and our custom linker script needs to place the spritesheet[] array into a region past BOOTEND). Setting the fuses happens separately from the UPDI uploaded process. To set them, run:
 
@@ -40,8 +40,6 @@ In order to overwrite bitmap data, the Attiny3217 needs to store the data in the
 pymcuprog write --tool uart --device attiny3217 --uart {USB DEVICE PORT} --clk 230400 --memory fuses --offset 7 --literal 0x00 0x5E 
 ```
 ###### On Mac: The USB device will be something like ```/dev/cu.usbmodem14101```. Run ```ls /dev/tty.*``` in a terminal window to get a list of connected USB devices.
-
-
 
 This will write the BOOTEND fuse (byte 8) to `0x5E` and the APPEND fuse (byte 7) to `0x00`, creating an APPCODE section starting at `0x5E` and filling up the rest of flash. To check that these fuses were written correctly, run:
 
@@ -51,7 +49,9 @@ pymcuprog read --tool uart --device attiny3217 --uart {USB DEVICE PORT} --clk 23
 
 The last two bytes should be `0x00` and `0x5E`; `BOOTEND = 0x5E` allows code placed beyond the `0x5E` address to be overwritten by functions called from the BOOT section, and `APPEND = 0x00` sets all memory after BOOTEND to be in the APPCODE section.
 
-Once these fuses written & checked you can upload code to the Attiny3217 as you normally would using PlatformIO and your UPDI programmer of choice!
+Once these fuses written & checked you can upload code to the Attiny3217 as you normally would using PlatformIO and your UPDI programmer of choice. I use a Pi Pico running this [Pico UART Bridge](https://github.com/Noltari/pico-uart-bridge) project:
+
+![Image of Tamo with UPDI programmer](readme_assets/UPDI_programmer.jpeg)
 
 ## BOM
 

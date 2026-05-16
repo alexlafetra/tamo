@@ -3,11 +3,12 @@
 #include <Wire.h>
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
+#include "Display.h"
 #include "utils.h"
 #include "Tamo.h"
 #include "spriteLoader.h"
 
-#define BUTTON_PIN PIN_PB3
+#define BUTTON_PIN PIN_PA2
 #define LED_A PIN_PA6
 #define LED_B PIN_PC0
 #define BATTERY_PIN PIN_PA7
@@ -27,6 +28,8 @@ volatile uint32_t timeOfLastButtonPress = 0;
 uint32_t lastTime = 0;
 
 extern Tamo tamo;
+extern SSD1306Device oled;
+
 // extern uint8_t customSpriteData[64];
 
 uint8_t get_sprite_data(uint16_t offset){
@@ -48,9 +51,12 @@ uint8_t randomInt(uint8_t range){
 }
 
 uint16_t readVcc() {
-  // uint16_t result = analogRead(BATTERY_PIN);
-  // return result;
-  return 0;
+
+  // from: https://github.com/SpenceKonde/megaTinyCore/blob/master/megaavr/extras/Ref_Analog.md
+  analogReference(INTERNAL1V1); // set reference to the desired voltage, and set that as the ADC reference.
+  analogReference(VDD); // Set the ADC reference to VDD. Voltage selected previously is still the selected, just not set as the ADC reference.
+  uint16_t val =  analogRead(ADC_INTREF); // proceed to measure the analog reference.
+  return val;
 }
 
 //reading inputs
@@ -79,11 +85,13 @@ void checkInput(){
     if((millis() - timeOfLastButtonPress) > (LONG_PRESS_TIME) ){
       LONG_PRESS = true;
     }
+    // else{
+    // SINGLE_CLICK = true;
+    // }
   }
   //if the button is released
   else{
     //turn off the LED
-    // PORTB &= ~(1<<BOTTOM_LED_PIN);
     digitalWrite(LED_A,false);
     //if the button *was* held, then you just released it
     if(BUTTON){
@@ -91,10 +99,12 @@ void checkInput(){
       if((millis() - timeOfLastButtonPress) > (LONG_PRESS_TIME) ){
         LONG_PRESS = true;
         DOUBLE_CLICK = false;
+        SINGLE_CLICK = false;
       }
       //if it wasn't, then it's a single click
       else{
         SINGLE_CLICK = true;
+        LONG_PRESS = false;
         DOUBLE_CLICK = false;
       }
     }
@@ -109,20 +119,29 @@ void checkInput(){
 }
 
 void sleepHardware(){
+  //set pin change interrupt on the button pin
+  //from: https://github.com/SpenceKonde/megaTinyCore/blob/master/megaavr/extras/Ref_PinInterrupts.md
+  PORTA.PIN2CTRL|= PORT_ISC_FALLING_gc;
+
+  //turn off ADC
+  ADC0.CTRLA &= ~ADC_ENABLE_bm;
   //turn off OLED, LEDs
-  // oled.off();
+  oled.off();
   digitalWrite(LED_A,false);
   digitalWrite(LED_B,false);
 }
 
 void wakeHardware(){
   sleep_disable();                       // first thing after waking from sleep: disable sleep
+  //turn off interrupt
+  PORTA.PIN2CTRL &= (0b11111000 | PORT_ISC_INTDISABLE_gc);
   
   //reset button states, so wakeup doesn't trigger anything
   SINGLE_CLICK = false;
   LONG_PRESS = false;
+  //turn on ADC
   lastTime = millis();
+  ADC0.CTRLA |= ADC_ENABLE_bm;
 
-  // oled.on();//turn screen back on
-  digitalWrite(LED_A,true);
+  oled.on();//turn screen back on
 }

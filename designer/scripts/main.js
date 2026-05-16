@@ -22,6 +22,25 @@ function loadDefaultSpritesFromJSON(){
     });
     sprites.push(sprite);
   });
+}
+
+function loadApp(){
+  // let spritesJSON = localStorage.getItem("saveState");
+  // if(spritesJSON != undefined){
+  //   sprites = parseAppStateJSON(spritesJSON);
+  // }
+  // else{
+    loadDefaultSpritesFromJSON();
+  // }
+  reloadSpritePreviews();
+  updateFramePreviews();
+}
+
+//resets the full app
+function resetSprites(){
+  pushUndoState();
+  sprites = [Sprite('idle', 16, 16)];
+  currentSprite = 0;
   reloadSpritePreviews();
   updateFramePreviews();
 }
@@ -70,6 +89,17 @@ const templates = {
     height: 13,
     frames: 5,
     maxFrames: 5
+  },
+  slideshow : {
+    defaultName : 'slideshow',
+    presetSpriteNames : [
+      'slideshow'
+    ],
+    width:64,
+    height:32,
+    frames: 1,
+    maxFrames : 10,
+    defaultCanvasScale : 6
   }
 }
 
@@ -111,6 +141,11 @@ function updateResizePreview(){
   document.documentElement.style.setProperty('--resize-box-start-y', `${y}px`); 
 }
 
+function updateResizeSliders(){
+  document.getElementById("width_input").value = sprites[currentSprite].width;
+  document.getElementById("height_input").value = sprites[currentSprite].height;
+}
+
 function setResizeDimensionWidth(e){
   const val = e.target.value;
   if(val == undefined || val == null)
@@ -118,7 +153,6 @@ function setResizeDimensionWidth(e){
   resizeDimensions.width = val;
   updateResizePreview();
 }
-
 function setResizeDimensionHeight(e){
   const val = e.target.value;
   if(val == undefined || val == null)
@@ -134,9 +168,52 @@ function resizeAllSprites(){
   for(let sprite of sprites){
     sprite.resize(Math.max(resizeDimensions.width,1),Math.max(resizeDimensions.height,1),resizeDimensions.alignment);
   }
+  updateResizeSliders();
   reloadFramePreviews();
   reloadSpritePreviews();
   updateCanvas();
+}
+
+const imageUploadSettings = {
+  type : 'sprite', //'sprite' or 'image'
+  fit : 'width',
+  render : 'atkinson',
+  brightness : 1.0,
+  dataURL : null
+}
+
+function setImageUploadType(e){
+  e.stopImmediatePropagation();
+  e.preventDefault();
+
+  const val = e.target.innerText;
+  const old = document.getElementById(`${imageUploadSettings.type}_upload_type_button`);
+  imageUploadSettings.type = val;
+  const newButton = document.getElementById(`${imageUploadSettings.type}_upload_type_button`);
+  old.style.color = null;
+  old.style.backgroundColor = null;
+  newButton.style.color = 'yellow';
+  newButton.style.backgroundColor = 'blue';
+}
+
+function setUploadFit(fit){
+  const old = document.getElementById(`upload_fit_${imageUploadSettings.fit}`);
+  old.style.backgroundColor = null;
+  old.style.color = null;
+  imageUploadSettings.fit = fit;
+  const newElement = document.getElementById(`upload_fit_${imageUploadSettings.fit}`);
+  newElement.style.backgroundColor = 'blue';
+  newElement.style.color = "yellow";
+  renderPreviewImage();
+}
+
+function setRenderAlgorithm(event){
+  imageUploadSettings.render = event.target.value;
+  renderPreviewImage();
+}
+function setRenderBrightness(event){
+  imageUploadSettings.brightness = parseFloat(event.target.value);
+  renderPreviewImage();
 }
 
 function updateUploadProgressBar(percent,dotCounter){
@@ -198,6 +275,8 @@ function loadTemplate(template) {
   document.documentElement.style.setProperty('--sprite-height', `${template.height}px`);
   document.documentElement.style.setProperty('--background-width', `${100 / template.width}%`);
   document.documentElement.style.setProperty('--background-height', `${100 / template.height}%`);
+  if(template.defaultCanvasScale)
+    document.documentElement.style.setProperty('--canvas-scale', `${template.defaultCanvasScale}`);
   reloadSpritePreviews();
   updateFramePreviews();
 }
@@ -607,6 +686,20 @@ function toggleColor(domElement) {
   settings.currentColor = 1 - settings.currentColor;
   domElement.style.backgroundColor = settings.currentColor ? 'white' : 'black';
 }
+function deleteSprite(index){
+  if(sprites.length <= 1)
+    return;
+  pushUndoState();
+  sprites.splice(index,1);
+  if(currentSprite >= sprites.length){
+    currentSprite = sprites.length - 1;
+  }
+  else if(currentSprite > index){
+    currentSprite--;
+  }
+  reloadSpritePreviews();
+  updateFramePreviews();
+}
 
 function createNewSprite(title, setToCurrent = true) {
   pushUndoState();
@@ -772,6 +865,10 @@ function createSpritePreview(domElement,index){
     reloadSpritePreviews();
     updateFramePreviews();
   })
+  domElement.addEventListener('mouseenter', () => {
+    setTooltip(`edit ${sprites[index].fileName} sprite`)
+  });
+
   renderFrame(canv.getContext('2d'),sprites[index].frames[0]);
   domElement.appendChild(canv);
 }
@@ -813,6 +910,14 @@ function reloadSpritePreviews() {
     const text = document.createElement('div');
     text.innerText = sprites[i].fileName;
     slot.appendChild(text);
+    const deleteButton = document.createElement('img');
+    deleteButton.className = "tool_icon";
+    deleteButton.src = "designer/images/icons/clear_icon.gif";
+    deleteButton.addEventListener('click', (event) => {
+      event.stopImmediatePropagation();
+      deleteSprite(i);
+    });
+    slot.appendChild(deleteButton);
     previewHolder.appendChild(slot);
   }
   //draw empty slots for sprites that are still needed
@@ -841,4 +946,4 @@ function factoryResetSprites() {
 
 window.addEventListener("keydown", handleKeyDown);
 window.addEventListener("keyup", handleKeyUp);
-loadDefaultSpritesFromJSON();
+loadApp();

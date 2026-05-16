@@ -58,7 +58,8 @@ void Sprite::update(bool clearScreen, bool updateDisplay){
     timeLastFramePlayed = millis();
     showCurrentFrame(clearScreen,updateDisplay);
   }
-  // showCurrentFrame(clearScreen,updateDisplay);
+  else
+    showCurrentFrame(clearScreen,updateDisplay);
 }
 void Sprite::update(){
   update(true,true);
@@ -69,7 +70,7 @@ void TalkingSprite::showCurrentFrame(){
     if(currentFrame){
       fbo.clear();
       fbo.bitmap_from_spritesheet(xCoord,yCoord,width,height,frames[0]);
-      fbo.bitmap_from_spritesheet(xCoord+3,yCoord+1,8,8,frames[currentFrame]);
+      fbo.bitmap_from_spritesheet(xCoord+3,yCoord+1,8,7,frames[currentFrame]);
     }
     //if it's the first frame, just send it normally (it'll always be the empty talking sprite)
     else

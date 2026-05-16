@@ -72,13 +72,11 @@ html{
     gap:10px;
     /* grid-template-rows: 200px min-content min-content calc(var(--sprite-height) * var(--canvas-scale)) min-content min-content; */
     grid-template-columns: min-content;
-    grid-template-areas:"title title title title"
-                        "frame_controls frame_controls sprite_name tamo_image"
-                        "frame_controls frame_controls canvas sprite_slots"
-                        "edit_controls edit_controls canvas sprite_slots"
-                        "file_controls file_controls canvas sprite_slots"
-                        "file_controls file_controls canvas sprite_slots"
-                        "file_controls file_controls extra_settings set_identity";
+    grid-template-areas:"title title title title title"
+                        "frame_controls frame_controls sprite_name sprite_name tamo_image"
+                        "frame_controls frame_controls canvas canvas sprite_slots"
+                        "edit_controls edit_controls canvas canvas sprite_slots"
+                        "file_controls file_controls file_controls extra_settings extra_settings";
 }
 #set_identity_controls{
     height:fit-content;
@@ -99,6 +97,19 @@ html{
     width:fit-content;
     margin:auto 0xp;
     height:fit-content;
+}
+#uploaded_image_settings{
+    max-width:200px;
+    align-items: center;
+    justify-items: center;
+    background-color: white;
+    border-radius: 10px;
+    padding:10px;
+    color:black;
+    cursor:auto;
+}
+#render_algorithm_select{
+    justify-self: center;
 }
 #canvas_appearance_settings{
     display: var(--extra-settings-display);
@@ -123,6 +134,7 @@ html{
 }
 #sprite_loader_controls:hover{
     background:blue;
+    color:yellow;
 }
 #upload_progress_bar_container{
     display:var(--progress-bar-display);
@@ -152,6 +164,7 @@ html{
     grid-area: file_controls;
     /* padding:10px; */
     margin-bottom:0px;
+    flex-direction: row;
 }
 #set_identity_controls{
     flex-direction: column;
@@ -353,6 +366,7 @@ html{
     padding:4px;
     gap:10px;
     transition:0.1s;
+    background:white;
 }
 .sprite_preview_holder{
     cursor:pointer;
@@ -370,6 +384,7 @@ html{
 }
 .sprite_blank_preview_holder:hover .new_frame_button{
     background:var(--button-highlight-color);
+    color:yellow;
 }
 
 
@@ -392,7 +407,12 @@ html{
 }
 .ui_label{
     font-weight:bold;
-    padding-bottom:10px;
+    padding:4px;
+    /* padding-bottom:10px; */
+}
+.cursive_label{
+    font-family:chopin;
+    font-size:30px;
 }
 #file_icon{
     image-rendering: pixelated;
@@ -407,6 +427,7 @@ html{
     border:1px solid black;
     border-radius: 10px;
     width:fit-content;
+    height:fit-content;
     padding:10px;
     background-color: white;
 }
@@ -441,6 +462,16 @@ html{
     width:20px;
     mix-blend-mode:difference;
     padding-right:5px;
+}
+#image_preview{
+    image-rendering: pixelated;
+    display:none;
+    filter:drop-shadow(4px 4px 2px var(--drop-shadow-color));
+    padding-bottom:10px;
+}
+.tool_icon{
+    image-rendering: pixelated;
+    mix-blend-mode: difference;
 }
 .tool_button{
     background-color: white;
@@ -628,6 +659,30 @@ html{
     /* grid-area:upload_controls; */
 }
 
+#upload_controls{
+    color:black;
+    width:fit-content;
+    height:fit-content;
+    display:flex;
+    cursor:pointer;
+    border-radius: 10px;
+    border:1px solid;
+    margin:2px;
+    padding:4px;
+    transition:0.1s;
+    background-color: white;
+    flex-direction: column;
+    gap:10px;
+}
+#upload_controls:hover{
+    background-color:var(--button-highlight-color);
+    color:yellow;
+    border: 1px solid var(--button-highlight-color);
+}
+#upload_controls img{
+    margin:auto;
+}
+
 #big_undo_buttons{
     display:none;
     grid-area:undo_buttons;
@@ -677,13 +732,15 @@ html{
                             "canvas canvas sprite_slots"
                             /* "edit_controls undo_buttons sprite_slots" */
                             "edit_controls undo_buttons file_controls"
-                            "extra_settings extra_settings file_controls"
-                            "extra_settings extra_settings set_identity"
+                            "extra_settings extra_settings file_controls";
     }
     #tamo_image{
         left:150px;
         top:120px;
         width:150px;
+    }
+    #file_controls{
+        flex-direction: column;
     }
     #big_undo_buttons{
         display:flex;

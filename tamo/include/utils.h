@@ -5,7 +5,7 @@
 #include <avr/sleep.h>
 #include <avr/interrupt.h>
 
-#define BUTTON_PIN PIN_PB3
+#define BUTTON_PIN PIN_PA2
 #define LED_A PIN_PA6
 #define LED_B PIN_PC0
 #define BATTERY_PIN PIN_PA7

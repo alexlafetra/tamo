@@ -26,7 +26,7 @@ void Tamo::setStatusBit(uint8_t which, bool state){
 }
 
 void Tamo::sleepCheck(){
-  // setStatusBit(IS_ASLEEP_BIT,itsbeen(TIME_BEFORE_SLEEP));
+  setStatusBit(IS_ASLEEP_BIT,itsbeen(TIME_BEFORE_SLEEP));
 }
 
 void Tamo::sleep(){
@@ -43,27 +43,6 @@ void Tamo::sleep(){
 
   wakeHardware();
 }
-
-//array to hold custom sprite data
-// uint8_t customSpriteData[64] = {0};
-// const uint16_t customSpriteOffsets[2] = {0,32};
-// const uint8_t spriteNotFound[64] = {
-//   219, 0, 121, 129, 248, 1, 241, 8, 9, 241, 0, 121, 129, 248, 1, 109, 182, 128, 0, 128, 159, 0, 143, 144, 16, 143, 128, 0, 128, 159, 0, 219,
-//   109, 1, 124, 129, 253, 0, 249, 5, 4, 249, 1, 124, 129, 253, 0, 219, 219, 0, 128, 128, 63, 128, 159, 32, 160, 159, 0, 128, 128, 63, 128, 182
-// };
-
-// void loadCustomSpriteIntoRAM(uint8_t whichSprite){
-//   // load the two frames into RAM
-//   for(uint8_t frame = 0; frame<2; frame++){
-//     for(uint8_t j = 0; j<32; j++){
-//       uint16_t addr = custom_spritesheet[whichSprite][frame]+j;
-//       if((addr+CUSTOM_SPRITE_DATA_ADDR) >= EEPROM_SIZE)
-//         customSpriteData[frame * 32 + j] = spriteNotFound[frame * 32 + j];
-//       else
-//         customSpriteData[frame * 32 + j] = EEPROM.read(addr+CUSTOM_SPRITE_DATA_ADDR);
-//     }
-//   }
-// }
 
 const uint16_t * Tamo::getSprite(uint8_t whichSprite){
   switch(identity){
@@ -90,22 +69,6 @@ bool Tamo::isFeeling(){
   return ((moodTime>0 || !(sprite.isNextFrameReady() && sprite.hasPlayedAtLeastOnce())) && !getStatusBit(IS_DEAD_BIT));
 }
 void Tamo::body(){
-
-  // talk to other tamo!
-  // timeSinceLastTalk+=100;
-  // if(timeSinceLastTalk > 10*(millis()%4)){
-  //   PORTB |= (1<<BOTTOM_LED_PIN);
-  //   timeSinceLastTalk = 0;
-  //   //1/10 chance you long press
-  //   if((millis()%10)){
-  //     delay(200);
-  //     PORTB &= ~(1<<BOTTOM_LED_PIN);
-  //   }
-  // }
-  // else{
-  //   PORTB &= ~(1<<BOTTOM_LED_PIN);
-  // }
-
   if(mood ==  MOOD_BIRTH || mood == MOOD_DEAD)
     return;
 
@@ -257,34 +220,25 @@ void Tamo::eat(){
   sprite = Sprite(SPRITESTARTX,SPRITESTARTY,16,16,foodAnimations[currentFood],5,SLOW);
   //counter goes from 0-64, when it's 0-16 the sprite moves in, when it's 48-64 the sprite moves out
   int16_t counter = 0;
-
   do{
     if(counter < 16){
       sprite.yCoord = counter-16+1;
-      sprite.showCurrentFrame(true,false);
     }
     else if(counter > 80){
       sprite.yCoord = counter-80+1;
-      sprite.showCurrentFrame(true,false);
     }
     else{
       sprite.yCoord = 1;
-      sprite.showCurrentFrame(true,false);
     }
+    sprite.showCurrentFrame(true,false);
     drawReticle(counter>48);
     oled.renderFBO2x(4,0,36,3,fbo.buffer);
     checkInput();
     sleepCheck();
-    if(itsbeen(500)){
-      // on
-      digitalWrite(LED_B,true);
-    }
-    else{
-      // off
-      digitalWrite(LED_B,false);
-    }
-    counter = (counter+2)%96;
-    if(!counter){
+    digitalWrite(LED_B,(counter/24)%2);
+    counter = (counter+2);
+    if(counter == 96){
+      counter = 0;
       currentFood = (currentFood + 1)%4;
       sprite = Sprite(SPRITESTARTX,SPRITESTARTY,16,16,foodAnimations[currentFood],5,SLOW);
     }
@@ -292,6 +246,7 @@ void Tamo::eat(){
   while(!SINGLE_CLICK && !isAsleep());
 
   lastTime = millis();
+  digitalWrite(LED_B,false);
 
   if(isAsleep()){
     return;
@@ -323,6 +278,7 @@ void Tamo::eat(){
       lastTime = millis();
       offset = 2; 
       currentFrame = foodSprite.currentFrame;
+      digitalWrite(LED_A,CHANGE);
     }
     else{
       offset = 0;
@@ -340,10 +296,12 @@ void Tamo::eat(){
   sprite.loopCount = 0;
   foodSprite.currentFrame = 4;
   foodSprite.xCoord = 0;
-  while(sprite.loopCount < 2){
+  while(sprite.loopCount < 1){
     foodSprite.showCurrentFrame(true,false);
     sprite.update(false,true);
   }
+
+  digitalWrite(LED_A,LOW);
 
   //determine if tamo liked it or not
   uint8_t foodPreference;
@@ -367,25 +325,19 @@ void Tamo::eat(){
 
   //if it's not the right kind of food, tamo gets mad
   if(currentFood != foodPreference){
-    sprite = Sprite(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(MAD_SPRITE),2,VVFAST);
+    mood = MOOD_ANGRY;
   }
   //if it is, he's happy
   else{
-    sprite = Sprite(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(HAPPY_SPRITE),2,VVFAST);
     //reset hunger counter
     hunger = 0;
     //reset health counter
     health = 65535;
     //tamo needs to poop!
     setStatusBit(NEEDS_TO_POOP_BIT,true);
+    mood = MOOD_HAPPY;
   }
-
-  while(sprite.loopCount < 4){
-    sprite.update();
-  }
-
   lastTime = millis();
-  mood = MOOD_NEUTRAL;
 }
 
 void Tamo::waitAndBlink(uint16_t speed){
@@ -396,20 +348,13 @@ void Tamo::waitAndBlink(uint16_t speed){
     if((millis() - lastBlink)>speed){
       lastBlink = millis();
       on = !on;
-      // on
-      // if(on)
-        // PORTB |= (1 << TOP_LED_PIN);
-      //off
-      // else
-        // PORTB &= ~(1<<TOP_LED_PIN);
-      digitalWrite(LED_B,on?1:0);
+      digitalWrite(LED_B,on);
     }
     sleepCheck();
     checkInput();
   }
-  digitalWrite(LED_B,0);
   //turn off LED
-  // PORTB &= ~(1<<TOP_LED_PIN);
+  digitalWrite(LED_B,0);
 }
 
 void Tamo::waitAndPlayThruSprite(uint16_t speed,bool bounce){
@@ -683,8 +628,7 @@ void Tamo::feel(){
 
 // function selecting which mood tamo is in based on battery & health & needing to poop
 void Tamo::vibeCheck(){
-  mood = MOOD_NEUTRAL;
-  return;
+
   //check batt voltage
   batteryCheck();
 

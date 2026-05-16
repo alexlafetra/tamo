@@ -1,13 +1,31 @@
-//this is written with just regular webserial API calls
+//this is written with just regular webserial API calls!
 //due to conflicts with the p5 webserial library getting it to clear out the read buffer
-//and wait for a specific number of bytes to be received
 const commands = {
     WEBSERIAL_SPRITE_UPLOAD : 0x01,
     TAMO_HELLO : 0x02,
     REQUEST_NEXT_SPRITE_PACKET : 0x03,
     SET_IDENTITY : 0x04,
     TAMO_DISCONNECT : 0x05,
+    SET_MODE : 0x06,
 }
+
+//constants that are stored in EEPROM, define which identity Tamo has when it boots
+const identities = {
+    TAMO : 0,
+    NO_IDENTITY : 255,
+    PORCINI : 1,
+    BUG : 2,
+    BOTO : 3,
+    CUSTOM_SPRITE : 4
+};
+
+const modes = {
+    NORMAL_MODE: 0,
+    SLIDESHOW_MODE: 1
+}
+
+let uploadIdentity = identities.CUSTOM_SPRITE;
+let uploadMode = modes.NORMAL_MODE;
 
 //digests everything in the input buffer
 async function clearReadBuffer(port) {
@@ -104,37 +122,6 @@ async function transmitDataInPackets(data,port){
     }
 }
 
-function debugSendSprites(){
-        //quickly filter sprites to only send the relevant 5
-        const organizedSprites = [];
-        presetSpriteNames.map((name,nameIndex) => {
-            let found = false;
-            for(let sprite of sprites){
-                if(sprite.fileName.includes(name)){
-                    found = true;
-                    organizedSprites[nameIndex] = sprite;
-                    break;
-                }
-            }
-            //if there isn't one, pass undefined (packSpritesIntoByteArray will substitute it for spriteNotFound)
-            if(!found)
-                organizedSprites[nameIndex] = undefined;
-        })
-        console.log(organizedSprites);
-        const spriteData = packSpritesIntoByteArray(organizedSprites);
-        console.log(spriteData);
-}
-
-const identities = {
-    TAMO : 0,
-    NO_IDENTITY : 255,
-    PORCINI : 1,
-    BUG :2,
-    BOTO : 3,
-    CUSTOM_SPRITE : 4
-};
-let uploadIdentity = identities.CUSTOM_SPRITE;
-
 function setUploadIdentity(event){
     uploadIdentity = event.target.value;
     let src;
@@ -151,6 +138,17 @@ function setUploadIdentity(event){
     else if(uploadIdentity == 'NO_IDENTITY')
             src = "designer/images/preview_sprites/egg.gif";
     document.getElementById("identity_preview_image").src = src;
+}
+
+
+function setUploadMode(event){
+    uploadMode = event.target.value;
+    let src;
+    if(uploadIdentity == 'NORMAL_MODE')
+        src = "designer/images/preview_sprites/tamo.gif";
+    else if(uploadIdentity == 'SLIDESHOW_MODE')
+            src = "designer/images/preview_sprites/porcini.gif";
+    // document.getElementById("identity_preview_image").src = src;
 }
 
 async function writeTamoIdentity(){

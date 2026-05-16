@@ -5,9 +5,9 @@
 
 //Speeds for Sprites
 #define VVVFAST 200
-#define VVFAST 600
+#define VVFAST 400
 #define VFAST 800
-#define FAST 1600
+#define FAST 1200
 #define MEDIUM 2400
 #define SLOW 9600
 
@@ -105,11 +105,7 @@ class Tamo{
     Tamo();
     Sprite sprite;
     // default: birth sequence
-    // uint8_t mood = MOOD_BIRTH;
-    // for quick testing animations
-    uint8_t mood = MOOD_HAPPY;
-    // for testing the first sprite in memory
-    // uint8_t mood = MOOD_DEAD;
+    uint8_t mood = MOOD_BIRTH;
     uint8_t thought = THOUGHT_OF_LOVE;
     int16_t moodTime = 0;
     uint8_t timeSinceLastCig = 0;

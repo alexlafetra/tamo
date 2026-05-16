@@ -25,7 +25,7 @@ SUPER annoying highkey annoying vibes
 */
 
 
-#define BUTTON_PIN PIN_PB3
+#define BUTTON_PIN PIN_PA2
 #define LED_A PIN_PA6
 #define LED_B PIN_PC0
 #define BATTERY_PIN PIN_PA7
@@ -66,8 +66,8 @@ SSD1306Device oled;
 Tamo tamo;
 
 //Interrupt callback to wake Attiny back up
-ISR(PORTB_PORT_vect) {
-  PORTB.INTFLAGS = PIN3_bm; // Clear interrupt flag for PIN 2
+ISR(PORTA_PORT_vect) {
+  PORTA.INTFLAGS = PIN2_bm; // Clear interrupt flag for PIN 2
   tamo.setStatusBit(IS_ASLEEP_BIT,false);
 }
 
@@ -106,7 +106,6 @@ void disconnectUnusedPins(){
     PB0
     PB1
     PB2
-    PB3
     PA6
     PC0
   */
@@ -114,8 +113,8 @@ void disconnectUnusedPins(){
     //updi pin, doesn't need to be disconnected
     // PIN_PA0,
     PIN_PA1,
-    PIN_PA2,
-    // PIN_PA_3,
+    // PIN_PA2,
+    // PIN_PA3,
     PIN_PA4,
     PIN_PA5,
     // PIN_PA6,
@@ -123,7 +122,7 @@ void disconnectUnusedPins(){
     // PIN_PB0,
     // PIN_PB1,
     // PIN_PB2,
-    // PIN_PB3,
+    PIN_PB3,
     PIN_PB4,
     PIN_PB5,
     PIN_PB6,
@@ -155,15 +154,8 @@ void setup(){
   */
   pinMode(BUTTON_PIN,INPUT_PULLUP);
 
-  //set pin change interrupt on the button pin
-  //from: https://github.com/SpenceKonde/megaTinyCore/blob/master/megaavr/extras/Ref_PinInterrupts.md
-  PORTB.PIN3CTRL|= 0x01; //ISC = 1 trigger both          <--- Change if no PORTB
-
   //set floating pins to OUTPUT (to save power during sleep)
   disconnectUnusedPins();
-
-  //disabling ADC (it's enabled whenever tamo measures battery VCC, then disabled again)
-  // ADCSRA &= ~_BV(ADEN);
 
   //this sleep mode only leaves the RTC running, and it's the one that saves the most energy
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
@@ -202,9 +194,12 @@ enum TamoMode:uint8_t{
   TEXT
 };
 
-TamoMode mode;
+TamoMode mode = NORMAL_TAMO;
 
 void loop() {
+  // uint16_t vcc = readVcc();
+  // Serial.println(vcc);
+  // delay(1000);
   switch(mode){
     case NORMAL_TAMO:
       tamo.live();
@@ -212,6 +207,5 @@ void loop() {
     case SLIDESHOW:
       break;
   }
-  // tamo.debugCheckMoodSprites();
 }
 

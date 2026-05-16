@@ -21,8 +21,6 @@ function gifToSprite(file, frameCallback) {
                 //loop over each frame, build & fill a new PixelFrame object with its data
                 gifFrames.map((frame, frameIndex) => {
                     spriteFrames.push(PixelFrame(gif.lsd.width, gif.lsd.height, 0));
-                    console.log(frame.pixels);
-                    console.log(frame);
                     //this is inefficient, but consistent
                     let containsTransparentPixels = false;
                     //check for any transparent pixels!
@@ -56,49 +54,53 @@ function gifToSprite(file, frameCallback) {
     // })
 }
 
+function drawDataURLToCanvas(url,sprite,startFrame,index,resolve){
+    //make an image, draw it to canvas
+    const img = new Image();
+    img.onload = function () {
+        if (settings.resizeCanvasToImage) {
+            const aspectRatio = img.width / img.height;
+            if (img.width > img.height) {
+                if (img.width > settings.maxCanvasDimension) {
+                    img.width = settings.maxCanvasDimension;
+                    img.height = img.width / aspectRatio;
+                }
+            }
+            else if (img.height >= img.width) {
+                if (img.height > settings.maxCanvasDimension) {
+                    img.height = settings.maxCanvasDimension;
+                    img.width = img.height * aspectRatio;
+                }
+            }
+            sprite.resize(img.width, img.height);
+            const newScale = Math.min(Math.trunc(350 / img.width), 12);
+            settings.canvasScale = newScale;
+        }
+        // draw image to main canvas
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = sprite.width;
+        tempCanvas.height = sprite.height;
+        const ctx = tempCanvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+
+        //make new frames as needed
+        while (index >= sprite.frames.length) {
+            sprite.frames.push(PixelFrame(sprite.width, sprite.height, 0));
+        }
+        //copy canvas data
+        sprite.frames[startFrame ? (index + startFrame) : index].copyCanvas(tempCanvas, settings.useAlphaAsBackground);
+        tempCanvas.remove();
+        resolve();
+    }
+    img.src = url;
+}
+
 function drawFileToCanvas(file, sprite, startFrame, index) {
     return new Promise((resolve) => {
         const reader = new FileReader();
         //callback once the file is read
         reader.onload = function () {
-            //make an image, draw it to canvas
-            const img = new Image();
-            img.onload = function () {
-                if (settings.resizeCanvasToImage) {
-                    const aspectRatio = img.width / img.height;
-                    if (img.width > img.height) {
-                        if (img.width > settings.maxCanvasDimension) {
-                            img.width = settings.maxCanvasDimension;
-                            img.height = img.width / aspectRatio;
-                        }
-                    }
-                    else if (img.height >= img.width) {
-                        if (img.height > settings.maxCanvasDimension) {
-                            img.height = settings.maxCanvasDimension;
-                            img.width = img.height * aspectRatio;
-                        }
-                    }
-                    sprite.resize(img.width, img.height);
-                    const newScale = Math.min(Math.trunc(350 / img.width), 12);
-                    settings.canvasScale = newScale;
-                }
-                // draw image to main canvas
-                const tempCanvas = document.createElement('canvas');
-                tempCanvas.width = sprite.width;
-                tempCanvas.height = sprite.height;
-                const ctx = tempCanvas.getContext('2d');
-                ctx.drawImage(img, 0, 0);
-
-                //make new frames as needed
-                while (index >= sprite.frames.length) {
-                    sprite.frames.push(PixelFrame(sprite.width, sprite.height, 0));
-                }
-                //copy canvas data
-                sprite.frames[startFrame ? (index + startFrame) : index].copyCanvas(tempCanvas, settings.useAlphaAsBackground);
-                tempCanvas.remove();
-                resolve();
-            }
-            img.src = reader.result;
+            drawDataURLToCanvas(reader.result,sprite,startFrame,index,resolve);
         }
         reader.readAsDataURL(file);
     });
@@ -110,9 +112,9 @@ async function processLoadedFiles(fileList, sprite, startFrame) {
     if (fileList.length === 1) {
         fileList = [fileList[0]];
     }
-    const promises = fileList.map((file, index) => {
+    const promises = imageUploadSettings.type == 'sprite'?(fileList.map((file, index) => {
         //grabbing sprite frames from a gif
-        if (file.type === 'image/gif') {
+        if (file.type == 'image/gif') {
             return gifToSprite(file, (frames) => {
                 const sprite = sprites[currentSprite + index];
                 sprite.frames = frames;
@@ -127,9 +129,33 @@ async function processLoadedFiles(fileList, sprite, startFrame) {
         else {
             return drawFileToCanvas(file, sprite, startFrame, index);
         }
-    });
+    })):(fileList.map((file, index) => {
+        return new Promise((resolve) => {
+            //for dithering/processing normal images
+
+            //skip if it's a gif
+            if (file.type == 'image/gif') {
+                resolve();
+            }
+            else{
+                const reader = new FileReader();
+                //callback once the file is read
+                reader.onload = function () {
+                    imageUploadSettings.dataURL = reader.result;
+                    renderPreviewImage();
+                    resolve();
+                }
+                reader.readAsDataURL(file);
+            }
+        })
+    }));
 
     await Promise.all(promises);
+    console.log(imageUploadSettings.type);
+    if(imageUploadSettings.type == 'image'){
+        document.getElementById("uploaded_image_settings").style.display = "block";
+    }
+    updateResizeSliders();
     reloadFramePreviews();
     reloadSpritePreviews();
     updateCanvas();
@@ -196,9 +222,6 @@ function loadFiles(files) {
     else {
         //load files like normal, into the current sprite
         processLoadedFiles(files, sprites[currentSprite], sprites[currentSprite].currentFrame);
-        reloadSpritePreviews();
-        reloadFramePreviews();
-        updateCanvas();
     }
 }
 function handleFileInput(e){
