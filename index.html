@@ -21,55 +21,54 @@
   <script src="designer/scripts/frameEditing.js"></script>
   <script src="designer/scripts/pixelEditing.js"></script>
   <script src="designer/scripts/defaultSprites.js"></script>
-  <script src="designer/scripts/main.js" defer></script>
+  <script src = "designer/scripts/buildCylinder.js" defer></script>
+  <!-- <script src="designer/scripts/main.js" defer></script> -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>tamo</title>
 </head>
 
 <body>
     <!-- {/* title image, gifs */} -->
-    <div id="title_container" style = "margin-top:100px;">
-        <img id="title_image" class="transparent_img_drop_shadow" style="width:200px;"
-        src='designer/images/logo_animated.gif' />
-        <img id="gif_1" class="title_gif " src='designer/images/sprites/tamo_idle.gif'
-        style="left:-55px;top:-40px;"></img>
-        <img id="gif_2" class="title_gif " src='designer/images/sprites/porcini_happy.gif'
-        style="left:195px;top:-40px;"></img>
-        <img id="gif_3" class="title_gif " src='designer/images/sprites/bug_angry.gif'
-        style="left:-70px;top:40px;"></img>
-        <img id="gif_4" class="title_gif " src='designer/images/sprites/boto_sad.gif'
-        style="left:210px;top:40px;"></img>
-        <img class="title_gif" src="designer/images/icons/tamo_rotate_optimized.gif" id="tamo_image">
+    <div id="title_container" style = "margin-top:80px;">
+        <div id="title_gif" class="transparent_img_drop_shadow title_image"></div>
+        <div id = "tamo_gif" class = "title_image"></div>
+        <div id = "porcini_gif" class = "title_image"></div>
+        <div id = "bug_gif" class = "title_image"></div>
+        <div id = "boto_gif" class = "title_image"></div>
     </div>
-    <!-- <img class="title_gif" src="manual/images/xray.png" id="xray_image"> -->
-    <div id = "main_menu_buttons">
-    </div>
-    <a href = "designer.html">~~upload a sprite~~</a>
-    <div id = "set_identity_controls" class = "button">
-        <label class="ui_label" for="set_identity">set identity to...</label>
-        <div style="display:flex; flex-direction:row; align-items:center;">
-        <div class = "button_holder" style="display:flex; flex-direction:column;width:fit-content;align-items: center;">
-            <img id = "identity_preview_image" src = "designer/images/preview_sprites/egg.gif" style = "justify-self:center;mix-blend-mode: difference;image-rendering: pixelated;height:40px;width:fit-content;">
-            <select class="button" name="set_identity" id="set_identity_select" onchange="setUploadIdentity(event)">
-            <option value="NO_IDENTITY">none</option>
-            <option value="CUSTOM_SPRITE">custom</option>
-            <option value="TAMO">tamo</option>
-            <option value="PORCINI">porcini</option>
-            <option value="BUG">bug</option>
-            <option value="BOTO">boto</option>
-            </select>
+    <div id = "main_menu">
+        <!-- experimenting w cylinder idea! -->
+        <div class="scene" id = "cylinder_container">
+            <div class="foreground">
+                <img id = "main_menu_hardware_gif" src= "designer/images/icons/tamo_rotate_optimized_cropped.gif">
+            </div>
         </div>
-        <div class="button" onclick="writeTamoIdentity()">apply</div>
+        <div id = "manual_button" class = "main_menu_button" style = "color:red;">
+            //user guide
         </div>
-        <label class="ui_label" for="set_mode">set mode to...</label>
-        <div style="display:flex; flex-direction:row; align-items:center;">
-        <div class = "button_holder" style="display:flex; flex-direction:column;width:fit-content;align-items: center;">
-            <select class="button" name="set_identity" id="set_mode_select" onchange="setUploadMode(event)">
-            <option value="NORMAL_MODE">normal</option>
-            <option value="SLIDESHOW_MODE">slideshow</option>
-            </select>
+        <div id = "designer_controls">
+            <a href = "designer.html" class = "main_menu_button">//design a sprite</a>
+            <img src="manual/images/xray_alpha.png" id="xray_image">
         </div>
-        <div class="button" onclick="writeTamoIdentity()">apply</div>
+        <div id = "set_identity_controls">
+            <div class="main_menu_button">//change identity</div>
+            <div style="display:flex; flex-direction:column;width:fit-content;">
+                <img class = "sprite_gif" id = "TAMO_identity" src = "designer/images/preview_sprites/tamo.gif" onclick = "setUploadIdentity('TAMO')">
+                <img class = "sprite_gif" id = "PORCINI_identity" src = "designer/images/preview_sprites/porcini.gif" onclick = "setUploadIdentity('PORCINI')">
+                <img class = "sprite_gif" id = "BUG_identity" src = "designer/images/preview_sprites/bug.gif" onclick = "setUploadIdentity('BUG')">
+                <img class = "sprite_gif" id = "BOTO_identity" src = "designer/images/preview_sprites/boto.gif" onclick = "setUploadIdentity('BOTO')">
+                <img class = "sprite_gif" id = "CUSTOM_SPRITE_identity" src = "designer/images/preview_sprites/custom.gif" onclick = "setUploadIdentity('CUSTOM_SPRITE')">
+                <img class = "sprite_gif" id = "NO_IDENTITY_identity" src = "designer/images/preview_sprites/egg.gif" onclick = "setUploadIdentity('NO_IDENTITY')">
+            </div>
+            <div class="button" onclick="writeTamoIdentity()">upload</div>
+        </div>
+        <div id = "set_mode_controls">
+            <div class="main_menu_button">//change mode</div>
+            <div>
+                <div>normal</div>
+                <div>video</div>
+                <div class="button" onclick="writeTamoIdentity()">upload</div>
+            </div>
         </div>
     </div>
 </body>

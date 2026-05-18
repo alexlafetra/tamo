@@ -500,10 +500,16 @@ void SSD1306Device::disableFadeOutAndBlinking(void) {
 }
 
 void SSD1306Device::enableZoomIn(void) {
+	if(zoomed)
+		return;
+	zoomed = true;
 	ssd1306_send_command2(0xD6, 0x01);
 }
 
 void SSD1306Device::disableZoomIn(void) {
+	if(!zoomed)
+		return;
+	zoomed = false;
 	ssd1306_send_command2(0xD6, 0x00);
 }
 

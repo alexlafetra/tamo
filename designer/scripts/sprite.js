@@ -82,6 +82,48 @@ const PixelFrame = (w,h,fill) => {
                 }
             }
         },
+        drawRectangle : function(x0,y0,x1,y1,val){
+            const topL = {x:Math.min(x0,x1),y:Math.min(y0,y1)};
+            const bottomR = {x:Math.max(x0,x1),y:Math.max(y0,y1)};
+            const w = bottomR.x - topL.x;
+            const h = bottomR.y - topL.y;
+            this.drawLine(topL.x,topL.y,bottomR.x,topL.y,val);//top
+            this.drawLine(bottomR.x,topL.y,bottomR.x,bottomR.y,val);//right
+            this.drawLine(topL.x,bottomR.y,bottomR.x,bottomR.y,val);//bottom
+            this.drawLine(topL.x,bottomR.y,topL.x,topL.y,val);//left
+        },
+        drawCircle : function(x0,y0,r,color) {
+            let f = 1 - r;
+            let ddF_x = 1;
+            let ddF_y = -2 * r;
+            let x = 0;
+            let y = r;
+
+            this.setPixel(x0, y0 + r, color);
+            this.setPixel(x0, y0 - r, color);
+            this.setPixel(x0 + r, y0, color);
+            this.setPixel(x0 - r, y0, color);
+
+            while (x < y) {
+                if (f >= 0) {
+                y--;
+                ddF_y += 2;
+                f += ddF_y;
+                }
+                x++;
+                ddF_x += 2;
+                f += ddF_x;
+
+                this.setPixel(x0 + x, y0 + y, color);
+                this.setPixel(x0 - x, y0 + y, color);
+                this.setPixel(x0 + x, y0 - y, color);
+                this.setPixel(x0 - x, y0 - y, color);
+                this.setPixel(x0 + y, y0 + x, color);
+                this.setPixel(x0 - y, y0 + x, color);
+                this.setPixel(x0 + y, y0 - x, color);
+                this.setPixel(x0 - y, y0 - x, color);
+            }
+        },
         // https://codeheir.com/blog/2022/08/21/comparing-flood-fill-algorithms-in-javascript/
         fill : function(x,y,fillColor){
 

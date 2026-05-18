@@ -123,6 +123,8 @@ class SSD1306Device {
 
 		void enableChargePump(uint8_t voltage = SSD1306_VOLTAGE_7_5);
 		void disableChargePump(void);
+
+		bool zoomed = false;
 };
 
 // ----------------------------------------------------------------------------

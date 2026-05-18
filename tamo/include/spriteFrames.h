@@ -1,7 +1,6 @@
-#include "spritesheet.h"
 
 #pragma once
-
+#include "spritesheet.h"
 #include <stdint.h>
 
 /*

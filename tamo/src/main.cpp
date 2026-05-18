@@ -53,10 +53,11 @@ using namespace std;
 #include <EEPROM.h>
 #include "utils.h"
 #include "spriteLoader.h"
+#include "spritesheet.h"
 
 //this stores the active graphics area! which is half-res of the screen, sprites are drawn 2x
 #include "FrameBuffer.h"
-FrameBuffer fbo(36,24);
+// FrameBuffer fbo(36,24);
 
 #include <Wire.h>
 #include "Display.h"
@@ -92,7 +93,7 @@ void RTC_init(void)
 
   RTC.PITINTCTRL = RTC_PI_bm;           /* PIT Interrupt: enabled */
 
-  RTC.PITCTRLA = RTC_PERIOD_CYC32768_gc; /* 4Hz
+  RTC.PITCTRLA = RTC_PERIOD_CYC32768_gc /* 4Hz */
   | RTC_PITEN_bm;                       /* Enable PIT counter: enabled */
 }
 
@@ -113,21 +114,21 @@ void disconnectUnusedPins(){
     //updi pin, doesn't need to be disconnected
     // PIN_PA0,
     PIN_PA1,
-    // PIN_PA2,
-    // PIN_PA3,
+    // PIN_PA2, //Button
+    PIN_PA3,
     PIN_PA4,
     PIN_PA5,
-    // PIN_PA6,
-    // PIN_PA7,
-    // PIN_PB0,
-    // PIN_PB1,
-    // PIN_PB2,
-    PIN_PB3,
+    // PIN_PA6, //LED A
+    PIN_PA7,
+    // PIN_PB0, //SCL
+    // PIN_PB1, //SDA
+    // PIN_PB2, //RX
+    // PIN_PB3, //TX
     PIN_PB4,
     PIN_PB5,
     PIN_PB6,
     PIN_PB7,
-    // PIN_PC0,
+    // PIN_PC0, //LED B
     PIN_PC1,
     PIN_PC2,
     PIN_PC3,
@@ -139,7 +140,14 @@ void disconnectUnusedPins(){
   }
 }
 
-uint8_t debugIdentity = NO_IDENTITY;
+//trying to set the IVSEL register, so the vectors are placed in BOOT instead of APPCODE
+//which happens automatically when BOOT isn't 0x00
+//src: https://www.microchip.com/content/dam/mchp/documents/OTH/ApplicationNotes/ApplicationNotes/AN1983WritingtoFlashandEEPROMonthetinyAVR1-series40001983A.pdf
+//sec 2.2
+void onBeforeInit(){
+  CCP = CCP_IOREG_gc;           // unlock protected register, 4-cycle window
+  CPUINT.CTRLA = CPUINT_IVSEL_bm; // set IVSEL=1: vectors at start of BOOT (0x0000)
+}
 
 void setup(){
 
@@ -159,6 +167,7 @@ void setup(){
 
   //this sleep mode only leaves the RTC running, and it's the one that saves the most energy
   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+  
   //allows the CPU to go to sleep
   sleep_enable();
 
@@ -172,20 +181,12 @@ void setup(){
   
   //turn on/set up the screen
   oled.begin(72, 40);
-
+  
   //initialize UART
   Serial.begin(115200);
 
   tamo.identity = EEPROM.read(EEPROM_IDENTITY_ADDR);
-}
-
-//trying to set the IVSEL register, so the vectors are placed in BOOT instead of APPCODE
-//which happens automatically when BOOT isn't 0x00
-//src: https://www.microchip.com/content/dam/mchp/documents/OTH/ApplicationNotes/ApplicationNotes/AN1983WritingtoFlashandEEPROMonthetinyAVR1-series40001983A.pdf
-//sec 2.2
-void onBeforeInit(){
-  CCP = CCP_IOREG_gc;           // unlock protected register, 4-cycle window
-  CPUINT.CTRLA = CPUINT_IVSEL_bm; // set IVSEL=1: vectors at start of BOOT (0x0000)
+  oled.clear();
 }
 
 enum TamoMode:uint8_t{
@@ -196,10 +197,17 @@ enum TamoMode:uint8_t{
 
 TamoMode mode = NORMAL_TAMO;
 
+// FrameBuffer fbo(72,48);
+FrameBuffer fbo(36,24);
+
 void loop() {
-  // uint16_t vcc = readVcc();
-  // Serial.println(vcc);
+  // oled.disableZoomIn();
+  // fbo.clear();
+  // fbo.bitmap_from_spritesheet(0,0,16,16,tamo_sprite_idle_1);
+  // oled.renderFBO(4,0,72,3,fbo.buffer);
+  // digitalWrite(LED_A,CHANGE);
   // delay(1000);
+
   switch(mode){
     case NORMAL_TAMO:
       tamo.live();

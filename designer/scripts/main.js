@@ -30,10 +30,11 @@ function loadApp(){
   //   sprites = parseAppStateJSON(spritesJSON);
   // }
   // else{
-    loadDefaultSpritesFromJSON();
+    // loadDefaultSpritesFromJSON();
   // }
   reloadSpritePreviews();
   updateFramePreviews();
+  setTool('pixel');
 }
 
 //resets the full app
@@ -50,7 +51,7 @@ let presetSpriteNames = [
   'happy',
   'mad',
   'sad',
-  // 'eating',
+  'eating',
   // 'misc.'
 ];
 
@@ -110,8 +111,8 @@ let currentMouseCoords = {
 
 let currentSprite = 0;
 let timeoutID = undefined;
-let spriteName = "excalibur";
-let settingsShown = true;
+let spriteName = "new sprite";
+let settingsShown = false;
 let resizeDimensions = {
   width : sprites[currentSprite].width,
   height : sprites[currentSprite].height,
@@ -193,7 +194,7 @@ function setImageUploadType(e){
   old.style.color = null;
   old.style.backgroundColor = null;
   newButton.style.color = 'yellow';
-  newButton.style.backgroundColor = 'blue';
+  newButton.style.backgroundColor = 'var(--button-highlight-color)';
 }
 
 function setUploadFit(fit){
@@ -202,7 +203,7 @@ function setUploadFit(fit){
   old.style.color = null;
   imageUploadSettings.fit = fit;
   const newElement = document.getElementById(`upload_fit_${imageUploadSettings.fit}`);
-  newElement.style.backgroundColor = 'blue';
+  newElement.style.backgroundColor = 'var(--button-highlight-color)';
   newElement.style.color = "yellow";
   renderPreviewImage();
 }
@@ -218,7 +219,7 @@ function setRenderBrightness(event){
 
 function updateUploadProgressBar(percent,dotCounter){
   let text;
-  let color = 'blue';
+  let color = 'var(--button-highlight-color)';
   if(percent>=100){
     text = ' sent sprites!';
     color = 'green';
@@ -303,9 +304,9 @@ function setCanvasScale(event){
 
 function toggleExtraSettingsVisibility(domElement){
   settingsShown = !settingsShown;
-  document.documentElement.style.setProperty('--extra-settings-display', settingsShown?'block':'none');
+  document.documentElement.style.setProperty('--extra-settings-display', settingsShown?'flex':'none');
   if(domElement){
-    domElement.style.backgroundColor = settingsShown?"blue":null;
+    domElement.style.backgroundColor = settingsShown?"var(--button-highlight-color)":null;
     domElement.style.color = settingsShown?"yellow":null;
   }
 }
@@ -322,7 +323,7 @@ function toggleGridVisibility(domElement) {
 function showGrid(domElement){
   if(domElement){
     domElement.innerText = "hide grid";
-    domElement.style.backgroundColor = "blue";
+    domElement.style.backgroundColor = "var(--button-highlight-color)";
     domElement.style.color = "yellow";
   }
   document.documentElement.style.setProperty('--grid-visibility', 'visible');
@@ -341,7 +342,7 @@ function togglePreviousFrameOverlay(domElement) {
   settings.overlayGhosting = !settings.overlayGhosting;
   if (settings.overlayGhosting) {
     domElement.innerText = "disable overlay";
-    domElement.style.background = "blue";
+    domElement.style.background = "var(--button-highlight-color)";
     domElement.style.color = "yellow";
   }
   else {
@@ -440,6 +441,9 @@ function handleKeyDown(e) {
         if (e.metaKey || e.ctrlKey) {
           copyBuffer.copy();
         }
+        else{
+          setTool('circle');
+        }
         break;
       case 'Z':
       case 'z':
@@ -479,6 +483,10 @@ function handleKeyDown(e) {
       case 'p':
       case 'P':
         setTool('pixel');
+        break;
+      case 'r':
+      case 'R':
+        setTool('rectangle');
         break;
       case 's':
       case 'S':
@@ -582,7 +590,7 @@ function setOutputForeground(domElement){
       settings.outputColors.foregroundColor = 'transparent';
       break;
   }
-  domElement.style.backgroundColor = 'blue';
+  domElement.style.backgroundColor = 'var(--button-highlight-color)';
   domElement.style.color = 'yellow';
 }
 
@@ -612,7 +620,7 @@ function setOutputBackground(domElement){
       settings.outputColors.backgroundColor = 'transparent';
       break;
   }
-  domElement.style.backgroundColor = 'blue';
+  domElement.style.backgroundColor = 'var(--button-highlight-color)';
   domElement.style.color = 'yellow';
 }
 
@@ -620,8 +628,8 @@ function setTooltip(text) {
   document.getElementById("tooltip_text").innerText = text;
 }
 function setTool(tool, domElement) {
-  if(tool == settings.currentTool)
-    return;
+  // if(tool == settings.currentTool)
+  //   return;
   //logic to cancel active tools
   switch(settings.currentTool){
     case 'line':
@@ -639,7 +647,7 @@ function setTool(tool, domElement) {
   }
   if (!domElement)
     domElement = document.getElementById(`${tool}_tool_button`);
-  domElement.style.backgroundColor = 'blue';
+  domElement.style.backgroundColor = 'var(--button-highlight-color)';
 }
 
 function setMouseCoordDisplay(e) {
@@ -811,7 +819,7 @@ function reloadFramePreviews() {
     newCanvas.className = (f == sprites[currentSprite].currentFrame) ? 'active_canvas preview_canvas' : 'preview_canvas';
     newCanvas.id = `frame_${f}_preview`;
     // newCanvas.className = 'preview_canvas';
-    newCanvas.style.borderColor = (f == sprites[currentSprite].currentFrame) ? 'blue' : undefined;
+    newCanvas.style.borderColor = (f == sprites[currentSprite].currentFrame) ? 'var(--button-highlight-color)' : undefined;
     newCanvas.style.width = scaledWidth + 'px';
     newCanvas.style.height = scaledHeight + 'px';
 
@@ -835,7 +843,7 @@ function reloadFramePreviews() {
 function updateFramePreviews() {
   reloadFramePreviews();
   updateCanvas(false);
-  document.getElementById('frame_counter_label').innerText = `frame -- ${sprites[currentSprite].currentFrame + 1} / ${sprites[currentSprite].frames.length}`
+  document.getElementById('frame_counter_label').innerText = `Frame -- ${sprites[currentSprite].currentFrame + 1} / ${sprites[currentSprite].frames.length}`
 }
 
 function createSpritePreview(domElement,index){
@@ -900,7 +908,7 @@ function reloadSpritePreviews() {
   for(let i = 0; i<sprites.length; i++){
     const slot = document.createElement('div');
     if (i == currentSprite) {
-      slot.style.background = 'blue';
+      slot.style.background = 'var(--button-highlight-color)';
       slot.style.color = 'white';
     }
 

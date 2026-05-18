@@ -33,12 +33,11 @@ void Tamo::sleep(){
 
   //set tamo into sleep mode
   setStatusBit(IS_ASLEEP_BIT,true);
-  sleepHardware();
 
   //when the RTC interrupt finishes it goes to this line and tamo can go back to sleep
   while(isAsleep()){
     //put the attiny to sleep
-    sleep_cpu();
+    sleepHardware();
   }
 
   wakeHardware();

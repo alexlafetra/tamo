@@ -34,6 +34,89 @@ const line = {
     updateCanvas();
   }
 }
+const rectangle = {
+  started : false,
+  ended: false,
+  startCoord: { x: 0, y: 0 },
+  endCoord: { x: 0, y: 0 },
+  start : function(coords){
+    const sprite = sprites[currentSprite];
+    pushUndoState();
+    this.startCoord = { ...coords };
+    //make a backup of the line
+    offscreenBuffer = PixelFrame(sprite.width, sprite.height, sprite.frames[sprite.currentFrame].data);
+    this.started = true;
+  },
+  continue : function(coords){
+    const sprite = sprites[currentSprite];
+    sprite.frames[sprite.currentFrame] = PixelFrame(offscreenBuffer.width, offscreenBuffer.height, offscreenBuffer.data);
+    sprite.frames[sprite.currentFrame].drawRectangle(this.startCoord.x, this.startCoord.y, coords.x, coords.y, settings.currentColor);
+    updateCanvas();
+  },
+  end: function(coords){
+    const sprite = sprites[currentSprite];
+    sprite.frames[sprite.currentFrame] = PixelFrame(offscreenBuffer.width, offscreenBuffer.height, offscreenBuffer.data);
+    sprite.frames[sprite.currentFrame].drawRectangle(this.startCoord.x, this.startCoord.y, coords.x, coords.y, settings.currentColor);
+    this.started = false;
+    updateCanvas();
+  },
+  cancel : function(){
+    const sprite = sprites[currentSprite];
+    sprite.frames[sprite.currentFrame] = PixelFrame(offscreenBuffer.width, offscreenBuffer.height, offscreenBuffer.data);
+    this.started = false;
+    updateCanvas();
+  }
+};
+const circle = {
+  started : false,
+  ended: false,
+  mode : 'radius',//'radius' or 'corners
+  startCoord: { x: 0, y: 0 },
+  endCoord: { x: 0, y: 0 },
+  start : function(coords){
+    const sprite = sprites[currentSprite];
+    pushUndoState();
+    this.startCoord = { ...coords };
+    //make a backup of the line
+    offscreenBuffer = PixelFrame(sprite.width, sprite.height, sprite.frames[sprite.currentFrame].data);
+    this.started = true;
+  },
+  continue : function(coords){
+    const sprite = sprites[currentSprite];
+    sprite.frames[sprite.currentFrame] = PixelFrame(offscreenBuffer.width, offscreenBuffer.height, offscreenBuffer.data);
+    let r;
+    if(this.mode == 'radius'){
+      r = Math.sqrt(Math.pow(coords.x-this.startCoord.x,2)+Math.pow(coords.y-this.startCoord.y,2));
+      sprite.frames[sprite.currentFrame].drawCircle(this.startCoord.x, this.startCoord.y, Math.round(r), settings.currentColor);
+    }
+    else if(this.mode == 'corners'){
+      // r = Math.round(Math.sqrt(Math.pow(coords.x - this.startCoord.x,2) + Math.pow(coords.y - this.startCoord.y,2))/2);
+      // sprite.frames[sprite.currentFrame].drawCircle(this.startCoord.x+r, this.startCoord.y+r, Math.round(r), settings.currentColor);
+    }
+    updateCanvas();
+  },
+  end: function(coords){
+    const sprite = sprites[currentSprite];
+    sprite.frames[sprite.currentFrame] = PixelFrame(offscreenBuffer.width, offscreenBuffer.height, offscreenBuffer.data);
+    if(this.mode == 'radius'){
+      const r = Math.sqrt(Math.pow(coords.x-this.startCoord.x,2)+Math.pow(coords.y-this.startCoord.y,2));
+      sprite.frames[sprite.currentFrame].drawCircle(this.startCoord.x, this.startCoord.y, Math.round(r), settings.currentColor);
+    }
+    else if(this.mode == 'corners'){
+      // r = Math.sqrt(Math.pow(coords.x - this.startCoord.x,2) + Math.pow(coords.y - this.startCoord.y,2))/2;
+      // sprite.frames[sprite.currentFrame].drawCircle(Math.min(coords.x,this.startCoord.x)+r, Math.min(coords.y,this.startCoord.y)+r, Math.round(r), settings.currentColor);
+    }
+    this.started = false;
+    updateCanvas();
+  },
+  cancel : function(){
+    const sprite = sprites[currentSprite];
+    sprite.frames[sprite.currentFrame] = PixelFrame(offscreenBuffer.width, offscreenBuffer.height, offscreenBuffer.data);
+    this.started = false;
+    updateCanvas();
+  }
+};
+
 const copyBuffer = {
   pixels : undefined,
   bounds : {
@@ -283,6 +366,16 @@ function handleMouseDown(e) {
         line.start(coords);
       }
       break;
+    case 'rectangle':
+      if(!rectangle.started){
+        rectangle.start(coords);
+      }
+      break;
+    case 'circle':
+      if(!circle.started){
+        circle.start(coords);
+      }
+      break;
     case 'move':
       if (!move.started) {
         move.start(coords);
@@ -319,6 +412,24 @@ function handleMouseMove(e) {
           line.start(coords);
         }
         break;
+      case 'rectangle':
+        //if you've already started a line, draw it
+        if (rectangle.started) {
+          rectangle.continue(coords);
+        }
+        else{
+          rectangle.start(coords);
+        }
+        break;
+      case 'circle':
+        //if you've already started a line, draw it
+        if (circle.started) {
+          circle.continue(coords);
+        }
+        else{
+          circle.start(coords);
+        }
+        break;
       case 'fill': {
         sprite.frames[sprite.currentFrame].fill(coords.x, coords.y, settings.currentColor);
         updateCanvas();
@@ -347,6 +458,16 @@ function handleMouseUp(e) {
     case 'line':
       if(line.started){
         line.end(coords);
+      }
+      break;
+    case 'rectangle':
+      if(rectangle.started){
+        rectangle.end(coords);
+      }
+      break;
+    case 'circle':
+      if(circle.started){
+        circle.end(coords);
       }
       break;
     case 'move':

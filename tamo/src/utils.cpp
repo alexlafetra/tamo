@@ -129,6 +129,9 @@ void sleepHardware(){
   oled.off();
   digitalWrite(LED_A,false);
   digitalWrite(LED_B,false);
+  
+  sleep_enable();
+  sleep_cpu();
 }
 
 void wakeHardware(){
@@ -139,8 +142,9 @@ void wakeHardware(){
   //reset button states, so wakeup doesn't trigger anything
   SINGLE_CLICK = false;
   LONG_PRESS = false;
-  //turn on ADC
   lastTime = millis();
+
+  //turn on ADC
   ADC0.CTRLA |= ADC_ENABLE_bm;
 
   oled.on();//turn screen back on
