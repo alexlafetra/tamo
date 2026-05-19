@@ -80,7 +80,7 @@ select{
 .cylinder{
   position:absolute;
   width:400px;
-  height:100px;
+  height:0px;
 
   transform-style:preserve-3d;
 
@@ -94,21 +94,24 @@ select{
     background-color: blue;
     image-rendering: pixelated;
 
-    mask-image:url("/manual/images/ribbon.gif");
-    -webkit-mask-image:url("/manual/images/ribbon.gif");
+    mask-image:url("images/ribbon.gif");
+    -webkit-mask-image:url("images/ribbon.gif");
 
     -webkit-mask-size:cover;
     mask-size: cover;
+    /* mask-size:contain; */
+    /* mask-size:auto; */
 
     /* -webkit-mask-repeat:no-repeat; */
     /* mask-repeat:no-repeat; */
+    /* mask-repeat: repeat; */
     transition:0.2s;
 }
 
 #main_menu_hardware_gif{
     z-index:10;
     width:200px;
-    left:-20px;
+    /* left:-100px; */
 }
 
 
@@ -155,6 +158,7 @@ select{
 
 #set_identity_controls{
     grid-area: identity;
+    position:relative;
 }
 
 #set_identity_controls:hover .main_menu_button{
@@ -164,13 +168,40 @@ select{
 
 #set_identity_controls img{
     padding:10px;
-    border-radius: 10px;
+    border-radius: 20px;
     transition:0.2s;
+    position:absolute;
 }
 
 #set_identity_controls img:hover{
     cursor:pointer;
     background-color: blue;
+}
+
+
+.sprite_gif{
+    height:30px;
+    mix-blend-mode: difference;
+    image-rendering: pixelated;
+    opacity: 0%;
+    /* animation: move 1s ease forwards infinite; */
+}
+
+@keyframes move{
+    from{
+        transform:translate(0,0);
+        opacity: 0%;
+    }
+    to{
+        transform:translate(var(--x),var(--y));
+        opacity: 100%;
+    }
+}
+
+#sprite_gif_holder{
+    position:absolute;
+    left:-20px;
+    top:-20px;
 }
 
 #set_mode_controls{
@@ -189,12 +220,6 @@ select{
 }
 #xray_image{
     width:150px;
-}
-
-.sprite_gif{
-    height:50px;
-    mix-blend-mode: difference;
-    image-rendering: pixelated;
 }
 
 #center_align_container{

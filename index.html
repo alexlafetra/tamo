@@ -52,15 +52,15 @@
         </div>
         <div id = "set_identity_controls">
             <div class="main_menu_button">//change identity</div>
-            <div style="display:flex; flex-direction:column;width:fit-content;">
-                <img class = "sprite_gif" id = "TAMO_identity" src = "designer/images/preview_sprites/tamo.gif" onclick = "setUploadIdentity('TAMO')">
-                <img class = "sprite_gif" id = "PORCINI_identity" src = "designer/images/preview_sprites/porcini.gif" onclick = "setUploadIdentity('PORCINI')">
-                <img class = "sprite_gif" id = "BUG_identity" src = "designer/images/preview_sprites/bug.gif" onclick = "setUploadIdentity('BUG')">
-                <img class = "sprite_gif" id = "BOTO_identity" src = "designer/images/preview_sprites/boto.gif" onclick = "setUploadIdentity('BOTO')">
-                <img class = "sprite_gif" id = "CUSTOM_SPRITE_identity" src = "designer/images/preview_sprites/custom.gif" onclick = "setUploadIdentity('CUSTOM_SPRITE')">
-                <img class = "sprite_gif" id = "NO_IDENTITY_identity" src = "designer/images/preview_sprites/egg.gif" onclick = "setUploadIdentity('NO_IDENTITY')">
+            <div id = "sprite_gif_holder">
+                <img class = "sprite_gif" id = "TAMO_identity" style = "--x:-60px;--y:-40px;" src = "designer/images/preview_sprites/tamo.gif" onclick = "setUploadIdentity('TAMO')">
+                <img class = "sprite_gif" id = "PORCINI_identity" style = "--x:-80px;--y:20px;" src = "designer/images/preview_sprites/porcini.gif" onclick = "setUploadIdentity('PORCINI')">
+                <img class = "sprite_gif" id = "BUG_identity" style = "--x:-50px;--y:80px;" src = "designer/images/preview_sprites/bug.gif" onclick = "setUploadIdentity('BUG')">
+                <img class = "sprite_gif" id = "BOTO_identity" style = "--x:10px;--y:120px;" src = "designer/images/preview_sprites/boto.gif" onclick = "setUploadIdentity('BOTO')">
+                <img class = "sprite_gif" id = "CUSTOM_SPRITE_identity" style = "--x:80px;--y:120px;" src = "designer/images/preview_sprites/custom.gif" onclick = "setUploadIdentity('CUSTOM_SPRITE')">
+                <img class = "sprite_gif" id = "NO_IDENTITY_identity" style = "--x:130px;--y:80px;" src = "designer/images/preview_sprites/egg.gif" onclick = "setUploadIdentity('NO_IDENTITY')">
             </div>
-            <div class="button" onclick="writeTamoIdentity()">upload</div>
+            <!-- <div class="button" onclick="writeTamoIdentity()">upload</div> -->
         </div>
         <div id = "set_mode_controls">
             <div class="main_menu_button">//change mode</div>

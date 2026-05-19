@@ -10,7 +10,7 @@ function buildCylinder(){
     for(let i = 0; i<numberOfSlices; i++){
         const slice = document.createElement('div');
         slice.className = "slice";
-        slice.style.height = "40px";
+        slice.style.height = "30px";
         slice.style.width = `${sliceWidth+overlap}px`;
         slice.style.left = '200px';
         const angle = (360/numberOfSlices)*i;
@@ -20,6 +20,11 @@ function buildCylinder(){
     }
     cylinder.style.transform = `rotateZ(90deg)`;
     container.appendChild(cylinder);
+}
+
+function openIdentityPanel(){
+    // document.getE
+    // animation: move 0.5s ease forwards;
 }
 
 buildCylinder();
