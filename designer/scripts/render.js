@@ -132,5 +132,6 @@ async function copyPreviewToCanvas(){
     document.getElementById("uploaded_image_settings").style.display = "none";
     reloadFramePreviews();
     reloadSpritePreviews();
+    updateResizePreview();
     updateCanvas();
 }

@@ -151,8 +151,7 @@ async function processLoadedFiles(fileList, sprite, startFrame) {
     }));
 
     await Promise.all(promises);
-    console.log(imageUploadSettings.type);
-    if(imageUploadSettings.type == 'image'){
+    if(imageUploadSettings.type == 'slideshow'){
         document.getElementById("uploaded_image_settings").style.display = "block";
     }
     updateResizeSliders();

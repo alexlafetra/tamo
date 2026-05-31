@@ -8,7 +8,7 @@ function pushUndoState() {
     undoBuffer.shift();
   }
   const spritesJSON = JSON.stringify(sprites);
-  undoBuffer.push({
+  const state = {
     spritesJSON: spritesJSON,
     currentSprite: currentSprite,
     selectionBox: {
@@ -17,11 +17,12 @@ function pushUndoState() {
       startCoord: { ...selectionBox.startCoord },
       endCoord: { ...selectionBox.endCoord },
     }
-  });
+  }
+  undoBuffer.push(state);
   // pixelSaveState.current = PixelFrame(spritesRef.current[currentSpriteRef.current].width,spritesRef.current[currentSpriteRef.current].height,spritesRef.current[currentSpriteRef.current].frames[spritesRef.current[currentSpriteRef.current].currentFrame].data);
   //adding to the undo buffer resets the redo buffer
   redoBuffer = [];
-  localStorage.setItem("saveState", spritesJSON);
+  localStorage.setItem(settings.type, state);
 }
 
 function parseAppStateJSON(jsonString){
@@ -52,7 +53,7 @@ function restoreState(state){
   selectionBox.started = state.selectionBox.started;
   selectionBox.active = state.selectionBox.active;
   selectionBox.updateCSS();
-  localStorage.setItem("saveState", state.spritesJSON);
+  // localStorage.setItem(settings.type, state.spritesJSON);
   updateFramePreviews();
 }
 
@@ -60,7 +61,7 @@ function undo() {
   if (undoBuffer.length === 0)
     return;
   const previousState = undoBuffer.pop();
-  redoBuffer.push({
+  const state = {
     spritesJSON: JSON.stringify(sprites),
     currentSprite: currentSprite,
     selectionBox: {
@@ -69,7 +70,8 @@ function undo() {
       startCoord: { ...selectionBox.startCoord },
       endCoord: { ...selectionBox.endCoord },
     }
-  });
+  };
+  redoBuffer.push(state);
   restoreState(previousState);
 }
 
@@ -77,7 +79,7 @@ function redo() {
   if (redoBuffer.length === 0)
     return;
   const nextState = redoBuffer.pop();
-  undoBuffer.push({
+  const state = {
     spritesJSON: JSON.stringify(sprites),
     currentSprite: currentSprite,
     selectionBox: {
@@ -86,6 +88,7 @@ function redo() {
       startCoord: { ...selectionBox.startCoord },
       endCoord: { ...selectionBox.endCoord },
     }
-  });
+  };
+  undoBuffer.push(state);
   restoreState(nextState);
 }

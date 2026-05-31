@@ -206,8 +206,9 @@
         </div>
         <!-- upload/load controls -->
         <div id="file_controls" class="button_holder">
-          <div class="tool_button button" style = "height:fit-content;white-space: pre;" onmouseenter="setTooltip('reset sprite')" onclick="resetSprites()">
-            <img src="designer/images/icons/restart_icon.gif"> erase & reset </div>
+          <div class="tool_button button" style = "height:fit-content;padding:10px;" onmouseenter="setTooltip('reset sprite')" onclick="resetSprites()">
+            <img src="designer/images/icons/restart_icon.gif">reset
+          </div>
           <div id="download_controls">
             <div class="ui_label">save as a...</div>
             <div style="display:flex;flex-direction: row;">
@@ -225,14 +226,14 @@
             <label id="drop_zone" class = "button" style = "cursor:pointer;">
               <img id="file_icon" src="designer/images/icons/file.gif">
               <div class = "button_holder" style = "flex-direction:column;">
-                <div class="ui_label" style = "align-self: center;">import gif/image</div>
+                <div class="ui_label" style = "align-self: center;">import</div>
                 <input type="file" id="file-input" multiple accept="image/*" style="display:none;"
                 oninput="handleFileInput(event)">
               </div>
             </label>
             <div style = "display:flex;flex-direction:row;">
-              <div class = "button" id = "sprite_upload_type_button" style = "color:var(--button-highlight-text-color);background-color:var(--button-highlight-color);" onclick = "setImageUploadType(event)">sprite</div>
-              <div class = "button" id = "image_upload_type_button" onclick = "setImageUploadType(event)">image</div>
+              <div class = "button" id = "sprite_upload_type_button" style = "color:var(--button-highlight-text-color);background-color:var(--button-highlight-color);" onclick = "setImageUploadTypeEvent(event)">sprite</div>
+              <div class = "button" id = "slideshow_upload_type_button" onclick = "setImageUploadTypeEvent(event)">slideshow</div>
             </div>
             <div id = "uploaded_image_settings" style = "display:none;">
               <div id = "uploaded_image_preview">
@@ -241,11 +242,16 @@
               <!-- render algorithm-->
               <div>
                 dither:
-                <select class="button" name="set_render_algorithm" id="render_algorithm_select" onchange="setRenderAlgorithm(event)">
+                <!-- <select class="button" name="set_render_algorithm" id="render_algorithm_select" onchange="setRenderAlgorithm(event)">
                   <option value="atkinson">atkinson</option>
                   <option value="threshold">threshold</option>
                   <option value="bayer">bayer</option>
-                </select>
+                </select> -->
+                <div class = "button_holder">
+                  <div id = "atkinson_algorithm_button" class = "button tool_button" onclick = "setRenderAlgorithm('atkinson')" style = "flex-direction: column;"><img src = "designer/images/icons/atkinson.png">atkinson</div>
+                  <div id = "threshold_algorithm_button" class = "button tool_button" onclick = "setRenderAlgorithm('threshold')" style = "flex-direction: column;"><img src = "designer/images/icons/threshold.png">threshold</div>
+                  <div id = "bayer_algorithm_button" class = "button tool_button" onclick = "setRenderAlgorithm('bayer')" style = "flex-direction: column;"><img src = "designer/images/icons/bayer.png">bayer</div>
+                </div>
                 brightness:
                 <input type="range" class="control_slider" id="brightness_slider" min="0.01" max="4.0"
                   step="0.01" oninput="setRenderBrightness(event)">
@@ -265,7 +271,7 @@
         </div>
           <div id="sprite_loader_controls" class="button_holder">
             <img src="designer/images/icons/tamo_rotate_optimized_cropped.gif" id="hardware_gif">
-            <div style = "background:var(--button-highlight-color);flex-direction: column;" class = "button">
+            <div style = "padding:10px;border:none;background:var(--button-highlight-color);flex-direction: column; border-radius: 10px;">
               <img id="upload_icon" src="designer/images/icons/upload_icon.gif">
               <div class="button tool_button" id="upload_sprites_button" onclick="uploadSpriteData()"><div class = "ui_label">upload to Tamo</div></div>
               <div id="upload_progress_bar_container">

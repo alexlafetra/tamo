@@ -7,6 +7,30 @@ let sprites = [
   // Sprite('eating')
 ];
 
+
+const settings = {
+  currentTool: 'pixel',
+  currentColor: 1,
+  lineStarted: false,
+  moveStarted: false,
+  overlayGhosting: true,
+  foregroundColor: '#ffffff',
+  backgroundColor: '#000000',
+  frameSpeed: 500,
+  maxCanvasDimension: 128,
+  useAlphaAsBackground: false, //treat empty areas as though they're a color
+  resizeCanvasToImage: false,
+  createSpritesByFileName: true,
+  showGrid: true,
+  maxFrames: 2,
+  outputColors : {
+    foregroundColor:'#ffffff',
+    backgroundColor:'#000000'
+  },
+  type : 'sprite'
+};
+
+
 function loadDefaultSpritesFromJSON(){
   //rebuild sprites object from json
   sprites = [];
@@ -25,15 +49,39 @@ function loadDefaultSpritesFromJSON(){
 }
 
 function loadApp(){
-  // let spritesJSON = localStorage.getItem("saveState");
-  // if(spritesJSON != undefined){
-  //   sprites = parseAppStateJSON(spritesJSON);
-  // }
-  // else{
-    // loadDefaultSpritesFromJSON();
-  // }
-  reloadSpritePreviews();
-  updateFramePreviews();
+  //grabbing some visual settings from url
+  const urlParams = new URLSearchParams(window.location.search);//uses the ? string following the url
+  if(urlParams.has('sprite')){
+    settings.type = 'sprite';
+    // let spritesJSON = localStorage.getItem("sprite");
+    // console.log(spritesJSON);
+    // if(spritesJSON != undefined){
+    //   sprites = parseAppStateJSON(spritesJSON);
+    //   reloadSpritePreviews();
+    //   updateFramePreviews();
+    // }
+    // else{
+      loadTemplate(templates['creature'])
+    // }
+  }
+  else if(urlParams.has('slideshow')){
+    settings.type = 'slideshow';
+    // let spritesJSON = localStorage.getItem("slideshow");
+    // if(spritesJSON != undefined){
+    //   sprites = parseAppStateJSON(spritesJSON);
+    //   reloadSpritePreviews();
+    //   updateFramePreviews();
+    // }
+    // else{
+      loadTemplate(templates['slideshow'])
+      setImageUploadType('slideshow');
+    // }
+  }
+  else{
+    settings.type = 'sprite';
+    reloadSpritePreviews();
+    updateFramePreviews();
+  }
   setTool('pixel');
 }
 
@@ -119,6 +167,16 @@ let resizeDimensions = {
   alignment : 'center',
 }
 
+
+const imageUploadSettings = {
+  type : 'sprite', //'sprite' or 'image'
+  fit : 'width',
+  render : 'atkinson',
+  brightness : 1.0,
+  dataURL : null
+}
+
+
 function hideResizePreview(){
   document.documentElement.style.setProperty('--resize-box-visibility','hidden');
 }
@@ -145,6 +203,7 @@ function updateResizePreview(){
 function updateResizeSliders(){
   document.getElementById("width_input").value = sprites[currentSprite].width;
   document.getElementById("height_input").value = sprites[currentSprite].height;
+  updateResizePreview();
 }
 
 function setResizeDimensionWidth(e){
@@ -175,19 +234,14 @@ function resizeAllSprites(){
   updateCanvas();
 }
 
-const imageUploadSettings = {
-  type : 'sprite', //'sprite' or 'image'
-  fit : 'width',
-  render : 'atkinson',
-  brightness : 1.0,
-  dataURL : null
-}
-
-function setImageUploadType(e){
+function setImageUploadTypeEvent(e){
   e.stopImmediatePropagation();
   e.preventDefault();
 
-  const val = e.target.innerText;
+  setImageUploadType(e.target.innerText);
+}
+
+function setImageUploadType(val){
   const old = document.getElementById(`${imageUploadSettings.type}_upload_type_button`);
   imageUploadSettings.type = val;
   const newButton = document.getElementById(`${imageUploadSettings.type}_upload_type_button`);
@@ -208,8 +262,14 @@ function setUploadFit(fit){
   renderPreviewImage();
 }
 
-function setRenderAlgorithm(event){
-  imageUploadSettings.render = event.target.value;
+function setRenderAlgorithm(algo){
+  const old = document.getElementById(`${imageUploadSettings.render}_algorithm_button`);
+  old.style.background = null;
+  old.style.color = null
+  imageUploadSettings.render = algo;
+  const newButton = document.getElementById(`${imageUploadSettings.render}_algorithm_button`);
+  newButton.style.background = 'blue';
+  newButton.style.color = 'yellow';
   renderPreviewImage();
 }
 function setRenderBrightness(event){
@@ -235,29 +295,6 @@ function updateUploadProgressBar(percent,dotCounter){
   document.documentElement.style.setProperty('--progress-bar-color', color);
   document.documentElement.style.setProperty('--upload-progress', `${percent}%`);
 }
-
-
-const settings = {
-  currentTool: 'pixel',
-  currentColor: 1,
-  lineStarted: false,
-  moveStarted: false,
-  overlayGhosting: true,
-  foregroundColor: '#ffffff',
-  backgroundColor: '#000000',
-  frameSpeed: 500,
-  maxCanvasDimension: 128,
-  useAlphaAsBackground: false,
-  resizeCanvasToImage: true,
-  createSpritesByFileName: true,
-  showGrid: true,
-  maxFrames: 2,
-  outputColors : {
-    foregroundColor:'#ffffff',
-    backgroundColor:'#000000'
-  }
-};
-
 
 function loadTemplate(template) {
   pushUndoState();

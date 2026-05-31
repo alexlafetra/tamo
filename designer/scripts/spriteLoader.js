@@ -122,22 +122,9 @@ async function transmitDataInPackets(data,port){
     }
 }
 
-function setUploadIdentity(event){
-    uploadIdentity = event.target.value;
-    let src;
-    if(uploadIdentity == 'TAMO')
-        src = "designer/images/preview_sprites/tamo.gif";
-    else if(uploadIdentity == 'PORCINI')
-            src = "designer/images/preview_sprites/porcini.gif";
-    else if(uploadIdentity == 'BUG')
-            src = "designer/images/preview_sprites/bug.gif";
-    else if(uploadIdentity == 'BOTO')
-            src = "designer/images/preview_sprites/boto.gif";
-    else if(uploadIdentity == 'CUSTOM_SPRITE')
-            src = "designer/images/preview_sprites/custom.gif";
-    else if(uploadIdentity == 'NO_IDENTITY')
-            src = "designer/images/preview_sprites/egg.gif";
-    document.getElementById("identity_preview_image").src = src;
+function setUploadIdentity(val){
+    uploadIdentity = val;
+    writeTamoIdentity();
 }
 
 

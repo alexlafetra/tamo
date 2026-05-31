@@ -21,55 +21,143 @@
   <script src="designer/scripts/frameEditing.js"></script>
   <script src="designer/scripts/pixelEditing.js"></script>
   <script src="designer/scripts/defaultSprites.js"></script>
-  <script src = "designer/scripts/buildCylinder.js" defer></script>
+  <script src = "designer/scripts/mainMenu.js" defer></script>
   <!-- <script src="designer/scripts/main.js" defer></script> -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>tamo</title>
+    <svg>
+        <filter id="goo">
+            <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur" />
+            
+            <!-- threshold -->
+            <feColorMatrix
+            in="blur"
+            mode="matrix"
+            values="
+                1 0 0 0 0
+                0 1 0 0 0
+                0 0 1 0 0
+                0 0 0 24 -12
+            "
+            result="goo"
+            />
+
+            <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
+        </filter>
+    </svg>
 </head>
 
 <body>
     <!-- {/* title image, gifs */} -->
     <div id="title_container" style = "margin-top:80px;">
         <div id="title_gif" class="transparent_img_drop_shadow title_image"></div>
-        <div id = "tamo_gif" class = "title_image"></div>
-        <div id = "porcini_gif" class = "title_image"></div>
-        <div id = "bug_gif" class = "title_image"></div>
-        <div id = "boto_gif" class = "title_image"></div>
     </div>
     <div id = "main_menu">
+        <div id = "purchase_links_container">
+            <img src = "designer/images/icons/money.gif" class = "money_gif">
+            <a  style = "padding:4px;border-radius:0px;margin:auto;white-space: pre;" class = "main_menu_button">{{(($$ get one $$))}}</a>
+            <img src = "designer/images/icons/money.gif" class = "money_gif">
+        </div>
+        <div id = "about_container">
+            <!-- <div>
+                //about
+            </div> -->
+            <div>
+                Nonperformance tamo is a digital life
+            </div>
+        </div>
         <!-- experimenting w cylinder idea! -->
         <div class="scene" id = "cylinder_container">
             <div class="foreground">
-                <img id = "main_menu_hardware_gif" src= "designer/images/icons/tamo_rotate_optimized_cropped.gif">
+                <!-- <img id = "main_menu_hardware_gif" src= "designer/images/gif_optimized.gif"> -->
+                <img id = "main_menu_hardware_gif" src= "designer/images/combined_optimized.gif">
             </div>
-        </div>
-        <div id = "manual_button" class = "main_menu_button" style = "color:red;">
-            //user guide
         </div>
         <div id = "designer_controls">
-            <a href = "designer.html" class = "main_menu_button">//design a sprite</a>
-            <img src="manual/images/xray_alpha.png" id="xray_image">
+            <a href = "designer.html" style = "font-style: italic;padding:4px;border-radius:0px;text-decoration: none;">**~~>><span style = "text-decoration:underline;">sprite creator</span><<~~**</a>
+            <!-- <img style = "width:100px;margin:auto;" src= "designer/images/gif_optimized.gif"> -->
+            <!-- <img src="manual/images/xray_alpha.png" id="xray_image"> -->
         </div>
+        <img src = "designer/images/test.png" style = "width:100%;z-index:-1;grid-area:blank_1">
         <div id = "set_identity_controls">
-            <div class="main_menu_button">//change identity</div>
-            <div id = "sprite_gif_holder">
-                <img class = "sprite_gif" id = "TAMO_identity" style = "--x:-60px;--y:-40px;" src = "designer/images/preview_sprites/tamo.gif" onclick = "setUploadIdentity('TAMO')">
-                <img class = "sprite_gif" id = "PORCINI_identity" style = "--x:-80px;--y:20px;" src = "designer/images/preview_sprites/porcini.gif" onclick = "setUploadIdentity('PORCINI')">
-                <img class = "sprite_gif" id = "BUG_identity" style = "--x:-50px;--y:80px;" src = "designer/images/preview_sprites/bug.gif" onclick = "setUploadIdentity('BUG')">
-                <img class = "sprite_gif" id = "BOTO_identity" style = "--x:10px;--y:120px;" src = "designer/images/preview_sprites/boto.gif" onclick = "setUploadIdentity('BOTO')">
-                <img class = "sprite_gif" id = "CUSTOM_SPRITE_identity" style = "--x:80px;--y:120px;" src = "designer/images/preview_sprites/custom.gif" onclick = "setUploadIdentity('CUSTOM_SPRITE')">
-                <img class = "sprite_gif" id = "NO_IDENTITY_identity" style = "--x:130px;--y:80px;" src = "designer/images/preview_sprites/egg.gif" onclick = "setUploadIdentity('NO_IDENTITY')">
+            <div id = "identity_goo_container">
+                <div class="main_menu_button" id = "change_identity_button" onclick = "togglePanel('identity_sprite_gif_holder',this);">//set identity</div>
+                <div class = "identity_sprite_gif_holder">
+                    <div class = "sprite_gif" id = "TAMO_identity" style = "--x:-60px;--y:-40px;"onclick = "setUploadIdentity('TAMO')"><div class = "sprite_gif_bg"></div><img src = "designer/images/preview_sprites/tamo.gif"></div>
+                    <div class = "sprite_gif" id = "PORCINI_identity" style = "--x:-80px;--y:20px;" onclick = "setUploadIdentity('PORCINI')"><div class = "sprite_gif_bg"></div><img src = "designer/images/preview_sprites/porcini.gif"></div>
+                    <div class = "sprite_gif" id = "BUG_identity" style = "--x:-50px;--y:80px;" onclick = "setUploadIdentity('BUG')"><div class = "sprite_gif_bg"></div><img src = "designer/images/preview_sprites/bug.gif"></div>
+                    <div class = "sprite_gif" id = "BOTO_identity" style = "--x:10px;--y:120px;" onclick = "setUploadIdentity('BOTO')"><div class = "sprite_gif_bg"></div><img src = "designer/images/preview_sprites/boto.gif"></div>
+                    <div class = "sprite_gif" id = "CUSTOM_SPRITE_identity" style = "--x:80px;--y:120px;" onclick = "setUploadIdentity('CUSTOM_SPRITE')"><div class = "sprite_gif_bg"></div><img src = "designer/images/preview_sprites/custom.gif"></div>
+                    <div class = "sprite_gif" id = "NO_IDENTITY_identity" style = "--x:140px;--y:90px;" onclick = "setUploadIdentity('NO_IDENTITY')"><div class = "sprite_gif_bg"></div><img src = "designer/images/preview_sprites/egg.gif"></div>
+                </div>
             </div>
-            <!-- <div class="button" onclick="writeTamoIdentity()">upload</div> -->
+            <div id = "identity_text_labels_container" class = "identity_sprite_gif_holder">
+                <svg class = "menu_button_label" style = "--x:40px;--y:80px;" width="120" height="120" viewBox="0 0 120 120">
+                    <defs>
+                    <path
+                        id="custom_identity_path"
+                        fill="none"
+                        stroke="none"
+                        d="M 60 0 A 60 60 0 1 0 60 120 A 60 60 0 1 0 60 0"  />
+                    </defs>
+                    <text fill = "blue" class = "menu_button_label_text">
+                        <textPath startOffset="48%" href="#custom_identity_path">custom</textPath>
+                    </text>
+                </svg>
+                <svg class = "menu_button_label" style = "--x:90px;--y:30px;" width="120" height="120" direction="rtl" viewBox="0 0 120 120">
+                    <defs>
+                    <path
+                        id="default_mode_path"
+                        d="M 20 60 A 60 60 20 0 1 120 60"
+                    />
+                    </defs>
+                    <text fill = "blue" class = "menu_button_label_text">
+                        <textPath startOffset="90%" href="#default_mode_path">random creature</textPath>
+                    </text>
+                </svg>
+            </div>
         </div>
         <div id = "set_mode_controls">
-            <div class="main_menu_button">//change mode</div>
-            <div>
-                <div>normal</div>
-                <div>video</div>
-                <div class="button" onclick="writeTamoIdentity()">upload</div>
+            <div id = "mode_goo_container">
+                <div class="main_menu_button" id = "change_mode_button" onclick = "togglePanel('mode_gif_holder',this);">//mode</div>
+                <div class = "mode_gif_holder">
+                    <a class = "sprite_gif" style = "--x:70px;--y:10px;" href = "designer.html?sprite">
+                        <div class = "sprite_gif_bg"></div>
+                        <img src = "designer/images/icons/heart.gif">
+                    </a>
+                    <a class = "sprite_gif" style = "--x:120px;--y:80px;" href = "designer.html?slideshow">
+                        <img src = "designer/images/icons/slideshow.gif">
+                        <div class = "sprite_gif_bg"></div>
+                    </a>
+                </div>
+            </div>
+            <div id = "mode_text_labels_container" class = "mode_gif_holder">
+                <svg class = "menu_button_label" style = "--x:80px;--y:40px;" width="120" height="120" viewBox="0 0 120 120">
+                    <defs>
+                    <path
+                        id="slideshow_mode_path"
+                        fill="none"
+                        stroke="none"
+                        d="M 60 0 A 60 60 0 1 0 60 120 A 60 60 0 1 0 60 0"  />
+                    </defs>
+                    <text fill = "blue" class = "menu_button_label_text">
+                        <textPath startOffset="200" href="#slideshow_mode_path">slideshow</textPath>
+                    </text>
+                </svg>
+                <svg class = "menu_button_label" style = "--x:20px;--y:-50px;" width="120" height="120" direction="rtl" viewBox="0 0 120 120">
+                    <defs>
+                    <path
+                        id="default_mode_path"
+                        d="M 20 60 A 60 60 20 0 1 120 60"
+                    />
+                    </defs>
+                    <text fill = "blue" class = "menu_button_label_text">
+                        <textPath startOffset="80%" href="#default_mode_path">creature</textPath>
+                    </text>
+                </svg>
             </div>
         </div>
+        <img id = "bottom_image" src = "designer/images/tamo_drawing.jpg">
     </div>
 </body>
 </html>
