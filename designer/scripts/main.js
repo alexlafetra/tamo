@@ -9,11 +9,13 @@ let sprites = [
 
 
 const settings = {
+  canvasScale : 15,
   currentTool: 'pixel',
   currentColor: 1,
   lineStarted: false,
   moveStarted: false,
   overlayGhosting: true,
+  showGrid:true,
   foregroundColor: '#ffffff',
   backgroundColor: '#000000',
   frameSpeed: 500,
@@ -53,35 +55,20 @@ function loadApp(){
   const urlParams = new URLSearchParams(window.location.search);//uses the ? string following the url
   if(urlParams.has('sprite')){
     settings.type = 'sprite';
-    // let spritesJSON = localStorage.getItem("sprite");
-    // console.log(spritesJSON);
-    // if(spritesJSON != undefined){
-    //   sprites = parseAppStateJSON(spritesJSON);
-    //   reloadSpritePreviews();
-    //   updateFramePreviews();
-    // }
-    // else{
-      loadTemplate(templates['creature'])
-    // }
   }
   else if(urlParams.has('slideshow')){
     settings.type = 'slideshow';
-    // let spritesJSON = localStorage.getItem("slideshow");
-    // if(spritesJSON != undefined){
-    //   sprites = parseAppStateJSON(spritesJSON);
-    //   reloadSpritePreviews();
-    //   updateFramePreviews();
-    // }
-    // else{
-      loadTemplate(templates['slideshow'])
-      setImageUploadType('slideshow');
-    // }
+    setImageUploadType('image');
+  }
+  let spritesJSON = localStorage.getItem(settings.type);
+  if(spritesJSON != undefined){
+    sprites = parseAppStateJSON(spritesJSON);
   }
   else{
-    settings.type = 'sprite';
-    reloadSpritePreviews();
-    updateFramePreviews();
+    loadTemplate(templates[settings.type]);
   }
+  reloadSpritePreviews();
+  updateFramePreviews();
   setTool('pixel');
 }
 
@@ -104,7 +91,7 @@ let presetSpriteNames = [
 ];
 
 const templates = {
-  creature: {
+  sprite: {
     defaultName: 'tamo',
     presetSpriteNames: [
       'idle',
@@ -146,7 +133,7 @@ const templates = {
     ],
     width:64,
     height:32,
-    frames: 1,
+    frames: 2,
     maxFrames : 10,
     defaultCanvasScale : 6
   }
@@ -313,8 +300,10 @@ function loadTemplate(template) {
   document.documentElement.style.setProperty('--sprite-height', `${template.height}px`);
   document.documentElement.style.setProperty('--background-width', `${100 / template.width}%`);
   document.documentElement.style.setProperty('--background-height', `${100 / template.height}%`);
-  if(template.defaultCanvasScale)
+  if(template.defaultCanvasScale){
     document.documentElement.style.setProperty('--canvas-scale', `${template.defaultCanvasScale}`);
+    settings.canvasScale = template.defaultCanvasScale;
+  }
   reloadSpritePreviews();
   updateFramePreviews();
 }
@@ -337,6 +326,7 @@ function setAnimationSpeed(event) {
 
 function setCanvasScale(event){
   document.documentElement.style.setProperty('--canvas-scale', event.target.value);
+  settings.canvasScale = parseFloat(event.target.value);
 }
 
 function toggleExtraSettingsVisibility(domElement){
@@ -350,13 +340,9 @@ function toggleExtraSettingsVisibility(domElement){
 
 function toggleGridVisibility(domElement) {
   settings.showGrid = !settings.showGrid;
-  if (settings.showGrid) {
-    showGrid(domElement);
-  }
-  else {
-    hideGrid(domElement);
-  }
+  settings.showGrid?showGrid(domElement):hideGrid(domElement);
 }
+
 function showGrid(domElement){
   if(domElement){
     domElement.innerText = "hide grid";
@@ -709,17 +695,23 @@ function playNextFrame() {
   updateFramePreviews();
   timeoutID = window.setTimeout(playNextFrame, settings.frameSpeed);
 }
+const backupSettings = {
+  showGrid:settings.showGrid,
+  overlayGhosting:settings.overlayGhosting
+};
 function togglePlayback() {
   if (settings.playing) {
     settings.playing = false;
     window.clearTimeout(timeoutID);
     timeoutID = undefined;
-    settings.overlayGhosting = true;
-    showGrid();
+    settings.overlayGhosting = backupSettings.overlayGhosting;
+    backupSettings.showGrid?showGrid():hideGrid();
     updateCanvas(false);
   }
   else {
     settings.playing = true;
+    backupSettings.overlayGhosting = settings.overlayGhosting;
+    backupSettings.showGrid = settings.showGrid;
     hideGrid();
     settings.overlayGhosting = false;
     playNextFrame();
@@ -815,12 +807,12 @@ function updateCanvas(updatePreview = true) {
     updateActivePreview(sprite.currentFrame);
 }
 
-function renderFrame(context, frame, palette = {foregroundColor : settings.foregroundColor,backgroundColor : settings.backgroundColor}) {
+function renderFrame(context, frame, palette = {foregroundColor : settings.foregroundColor,backgroundColor : settings.backgroundColor}, offset = {x:0,y:0}) {
   //draw over each pixel
   for (let x = 0; x < frame.width; x++) {
     for (let y = 0; y < frame.height; y++) {
       context.fillStyle = frame.getPixel(x, y) ? (palette.foregroundColor ==  'transparent'?(palette.backgroundColor == '#000000'?'#ffffff':'#000000'):palette.foregroundColor):(palette.backgroundColor ==  'transparent'?(palette.foregroundColor == '#000000'?'#ffffff':'#000000'):palette.backgroundColor);
-      context.fillRect(x, y, 1, 1);
+      context.fillRect(x+offset.x, y+offset.y, 1, 1);
     }
   }
 }
@@ -830,8 +822,43 @@ function updateActivePreview(index) {
   renderFrame(canv.getContext('2d'),sprites[currentSprite].frames[index]);
 }
 
+let draggedFrame = null;
+function getDragAfterElement(container,e){
+  const draggableElements = [...container.querySelectorAll('.preview_canvas:not(.dragging)')];
+  return draggableElements.reduce((closest,child) => {
+    const box = child.getBoundingClientRect();
+    const offsetX = e.clientX-box.left-box.width/2;
+    const offsetY = e.clientY-box.top-box.height;
+    if(offsetX < 0  && offsetY < 0 && (offsetX > closest.offset)){
+      return {offset:offsetX,element:child};
+    }
+    else return closest;
+  },{offset:Number.NEGATIVE_INFINITY}).element;
+}
+
+function handleFrameHolderDragOver(e,frameHolder){
+  e.preventDefault();
+  const afterElement = getDragAfterElement(frameHolder,e);
+  //if it's the last element
+  if(afterElement === null || afterElement === undefined){
+    frameHolder.appendChild(draggedFrame.element);      
+    draggedFrame.newIndex = sprites[currentSprite].frames.length-1;
+  }
+  else{
+    frameHolder.insertBefore(draggedFrame.element,afterElement);
+    if(afterElement.key > draggedFrame.oldIndex)
+      draggedFrame.newIndex = afterElement.key-1;
+    else
+      draggedFrame.newIndex = afterElement.key;
+  }
+};
+
+
 //recreates preview canvases
 function reloadFramePreviews() {
+
+  const frameHolder = document.getElementById("preview_gallery_holder");
+
   //doing some bounds checking on the preview dimensions so they don't get huge or tiny
   const maxPreviewDim = 32;
   const aspectRatio = sprites[currentSprite].height / sprites[currentSprite].width;
@@ -855,23 +882,65 @@ function reloadFramePreviews() {
     //styling canvas
     newCanvas.className = (f == sprites[currentSprite].currentFrame) ? 'active_canvas preview_canvas' : 'preview_canvas';
     newCanvas.id = `frame_${f}_preview`;
-    // newCanvas.className = 'preview_canvas';
-    newCanvas.style.borderColor = (f == sprites[currentSprite].currentFrame) ? 'var(--button-highlight-color)' : undefined;
+    newCanvas.style.borderColor = (f == sprites[currentSprite].currentFrame) ? 'var(--button-highlight-color)' : null;
     newCanvas.style.width = scaledWidth + 'px';
     newCanvas.style.height = scaledHeight + 'px';
+    newCanvas.draggable = true;
+    newCanvas.key = f;
 
     newCanvas.addEventListener('click', () => { sprites[currentSprite].currentFrame = f; updateFramePreviews(); })
+    newCanvas.addEventListener('mouseenter', ()=>{setTooltip(`frame ${f+1}`)});
+
+    //adding drag listeners
+    //method from: https://www.youtube.com/watch?v=OWARn8lQbVE
+    newCanvas.addEventListener('dragstart', (event)=>{
+      draggedFrame = {
+        element:newCanvas,
+        oldIndex:f,
+        newIndex:null
+      };
+      newCanvas.classList.add('dragging');
+      document.getElementById('new_canvas_button').style.display = 'none';
+    });
+    newCanvas.addEventListener('dragend', (e)=>{
+
+      //reorder frames
+      const sprite = sprites[currentSprite];
+      //remove item from old loc
+      const [targetFrame] = sprite.frames.splice(draggedFrame.oldIndex,1);
+      //put it in new loc
+      sprite.frames.splice(draggedFrame.newIndex,0,targetFrame);
+      
+      //check and see if you need to change the currentFrame val to stay consistent
+      if(draggedFrame.oldIndex < sprite.currentFrame && draggedFrame.newIndex >= sprite.currentFrame)
+        sprite.currentFrame--;
+      else if(draggedFrame.oldIndex > sprite.currentFrame && draggedFrame.newIndex <= sprite.currentFrame)
+        sprite.currentFrame++;
+      else if(draggedFrame.oldIndex == sprite.currentFrame)
+        sprite.currentFrame = draggedFrame.newIndex;
+
+      draggedFrame = null;
+      updateCanvas(false);//a ~little~ redundant...u don't always need to update depending on which frames are moved
+      reloadFramePreviews();
+    });
+
+    //draw frame to canvas
     renderFrame(newCanvas.getContext('2d'),sprites[currentSprite].frames[f]);
+
+    //add it to the list of children
     frames.push(newCanvas);
   }
-  // if (frames.length < settings.maxFrames) {
-    const newCanvButton = document.createElement('div');
-    newCanvButton.addEventListener('click', addNewFrame);
-    newCanvButton.innerText = ' + ';
-    newCanvButton.className = "button";
-    frames.push(newCanvButton)
-  // }
-  const frameHolder = document.getElementById("preview_gallery_holder");
+  // new frame button
+  const newCanvButton = document.createElement('div');
+  newCanvButton.addEventListener('click', addNewFrame);
+  newCanvButton.addEventListener('mouseenter', ()=>{setTooltip('new frame')});
+  const newImg = document.createElement('img');
+  newImg.src = "designer/images/icons/plus_icon.gif";
+  newCanvButton.appendChild(newImg);
+  newCanvButton.className = "button";
+  newCanvButton.id = "new_canvas_button";
+  frames.push(newCanvButton)
+
   frameHolder.replaceChildren(...frames);
 }
 
@@ -911,7 +980,7 @@ function createSpritePreview(domElement,index){
     updateFramePreviews();
   })
   domElement.addEventListener('mouseenter', () => {
-    setTooltip(`edit ${sprites[index].fileName} sprite`)
+    setTooltip(`${sprites[index].fileName} sprite`)
   });
 
   renderFrame(canv.getContext('2d'),sprites[index].frames[0]);
@@ -921,9 +990,12 @@ function createSpritePreview(domElement,index){
 function createBlankPreview(domElement,name){
   domElement.className = "sprite_blank_preview_holder";
   const blank = document.createElement('div');
-  blank.className = "button new_frame_button";
-  blank.innerText = " + ";
+  const blankImg = document.createElement('img');
+  blankImg.src = "designer/images/icons/plus_icon.gif";
+  blank.appendChild(blankImg);
+  blank.className = "new_sprite_button";
   blank.addEventListener('click', () => createNewSprite(name,true));
+  blank.addEventListener('mouseenter', () => setTooltip(`create ${name} sprite`));
   domElement.appendChild(blank);
 }
 
@@ -956,12 +1028,14 @@ function reloadSpritePreviews() {
     text.innerText = sprites[i].fileName;
     slot.appendChild(text);
     const deleteButton = document.createElement('img');
-    deleteButton.className = "tool_icon";
+    deleteButton.className = "tool_icon delete_sprite_button";
+    deleteButton.style.paddingRight = '5px';
     deleteButton.src = "designer/images/icons/clear_icon.gif";
     deleteButton.addEventListener('click', (event) => {
       event.stopImmediatePropagation();
       deleteSprite(i);
     });
+    deleteButton.addEventListener('mouseenter', () => setTooltip(`delete ${sprites[i].fileName} sprite`));
     slot.appendChild(deleteButton);
     previewHolder.appendChild(slot);
   }
@@ -987,6 +1061,19 @@ function reloadSpritePreviews() {
 
 function factoryResetSprites() {
   alert("WARNING: you are about to reset all artwork on Tamo! You will lose any custom sprites.")
+}
+
+function checkCanvasOverflowBounds(){
+  const element = document.getElementById('canvas_container_container');
+  const margin = 8;
+  const active = '3px dashed var(--button-highlight-color)';
+  const inactive = '3px dashed transparent';
+  document.documentElement.style.setProperty('--canvas-border-left',(element.scrollLeft > margin)?active:inactive);
+  document.documentElement.style.setProperty('--canvas-border-right',((element.clientWidth) < (element.scrollWidth - element.scrollLeft - margin))?active:inactive);
+  document.documentElement.style.setProperty('--canvas-border-top',(element.scrollTop > margin)?active:inactive);
+  document.documentElement.style.setProperty('--canvas-border-bottom',((element.clientHeight) < (element.scrollHeight - element.scrollTop - margin))?active:inactive);
+
+
 }
 
 window.addEventListener("keydown", handleKeyDown);

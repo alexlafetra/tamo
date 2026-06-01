@@ -1,3 +1,46 @@
+function saveCurrentFrame(){
+    window.CanvasToBMP.toBlob(document.getElementById('main_canvas'),(blob) => {
+        const filename = spriteName+'_'+sprites[currentSprite].fileName+'_'+(sprites[currentSprite].currentFrame)+'.bmp';
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = filename;
+        a.click();
+        a.remove();
+    });
+}
+
+function exportCompleteSpritesheet(){
+    const timing = 'vertical'; //which way time moves
+
+    const dims = {
+        w : sprites[currentSprite].width,
+        h : sprites[currentSprite].height,
+        totalW : sprites[currentSprite].width * sprites.length,
+        totalH : 0
+    };
+    for(let sprite of sprites){
+        if((sprite.frames.length * dims.h) > dims.totalH)
+            dims.totalH = sprite.frames.length * dims.h;
+    }
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = timing=='vertical'?dims.totalW:dims.totalH;
+    tempCanvas.height = timing=='vertical'?dims.totalH:dims.totalW;
+    const ctx = tempCanvas.getContext('2d');
+
+    for(let i = 0; i<sprites.length; i++){
+        for(let f = 0; f<sprites[i].frames.length; f++){
+            renderFrame(ctx,sprites[i].frames[f],settings.outputColors,{x:dims.w*(timing=='vertical'?i:f),y:dims.h*(timing=='vertical'?f:i)});
+        }
+    }
+    window.CanvasToBMP.toBlob(tempCanvas,(blob) => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'spritesheet.bmp';
+        a.click();
+        a.remove();
+        tempCanvas.remove();
+    });
+}
 
 let zip = new JSZip();
 

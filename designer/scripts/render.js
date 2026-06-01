@@ -85,7 +85,7 @@ function renderPreviewImage() {
             canvElement.width = canvElement.height / imageAspectRatio;
         }
         let htmlWidth,htmlHeight;
-        const maxDim = 150;
+        const maxDim = 100;
         if(canvElement.height > canvElement.width){
             htmlHeight = maxDim;
             htmlWidth = maxDim * canvElement.width/canvElement.height;
@@ -122,14 +122,20 @@ function renderPreviewImage() {
     img.src = imageUploadSettings.dataURL;
 }
 
+
+function clearPreviewImage(){
+    document.getElementById("uploaded_image_settings").style.display = "none";
+}
+
+
 async function copyPreviewToCanvas(){
     pushUndoState();
     await new Promise((resolve)=>{
         const canvElement = document.getElementById('image_preview');
-        canvElement.style.display = "none";
+        // canvElement.style.display = "none";
         drawDataURLToCanvas(canvElement.toDataURL(), sprites[currentSprite], 0, sprites[currentSprite].currentFrame,resolve);
     });
-    document.getElementById("uploaded_image_settings").style.display = "none";
+    // document.getElementById("uploaded_image_settings").style.display = "none";
     reloadFramePreviews();
     reloadSpritePreviews();
     updateResizePreview();

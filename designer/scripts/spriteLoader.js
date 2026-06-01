@@ -134,7 +134,7 @@ function setUploadMode(event){
     if(uploadIdentity == 'NORMAL_MODE')
         src = "designer/images/preview_sprites/tamo.gif";
     else if(uploadIdentity == 'SLIDESHOW_MODE')
-            src = "designer/images/preview_sprites/porcini.gif";
+        src = "designer/images/preview_sprites/porcini.gif";
     // document.getElementById("identity_preview_image").src = src;
 }
 

@@ -117,9 +117,17 @@ async function processLoadedFiles(fileList, sprite, startFrame) {
         if (file.type == 'image/gif') {
             return gifToSprite(file, (frames) => {
                 const sprite = sprites[currentSprite + index];
-                sprite.frames = frames;
-                sprite.width = frames[0].width;
-                sprite.height = frames[0].height;
+                // const originalFramecount = frames.length;
+                for(let i = 0; i<frames.length; i++){
+                    if((i+sprite.currentFrame)<sprite.frames.length)
+                        sprite.frames[i+sprite.currentFrame] = frames[i];
+                    else
+                        sprite.frames.push(frames[i]);
+                }
+                resizeDimensions.width = frames[0].width;
+                resizeDimensions.height = frames[0].height;
+                resizeAllSprites();
+                updateResizeSliders();
                 reloadFramePreviews();
                 reloadSpritePreviews();
                 updateCanvas();
@@ -151,8 +159,8 @@ async function processLoadedFiles(fileList, sprite, startFrame) {
     }));
 
     await Promise.all(promises);
-    if(imageUploadSettings.type == 'slideshow'){
-        document.getElementById("uploaded_image_settings").style.display = "block";
+    if(imageUploadSettings.type == 'image'){
+        document.getElementById("uploaded_image_settings").style.display = "flex";
     }
     updateResizeSliders();
     reloadFramePreviews();

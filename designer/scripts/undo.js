@@ -22,7 +22,7 @@ function pushUndoState() {
   // pixelSaveState.current = PixelFrame(spritesRef.current[currentSpriteRef.current].width,spritesRef.current[currentSpriteRef.current].height,spritesRef.current[currentSpriteRef.current].frames[spritesRef.current[currentSpriteRef.current].currentFrame].data);
   //adding to the undo buffer resets the redo buffer
   redoBuffer = [];
-  localStorage.setItem(settings.type, state);
+  localStorage.setItem(settings.type, spritesJSON);
 }
 
 function parseAppStateJSON(jsonString){
@@ -73,6 +73,7 @@ function undo() {
   };
   redoBuffer.push(state);
   restoreState(previousState);
+  localStorage.setItem(settings.type, state.spritesJSON);
 }
 
 function redo() {

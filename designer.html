@@ -27,6 +27,7 @@
 </head>
 
 <body>
+  <div id = "version_number">v0.9.1</div>
   <div id="app">
     <div id="center_align_container">
       <div id="app_container">
@@ -39,79 +40,11 @@
           <div id = "boto_gif" class = "title_image"></div>
         </div>
         <!-- {/* ui */} -->
-        <!-- <div id = "ui_container"> -->
-        <div id="frame_controls">
-          <!-- {/* preview canvases */} -->
-          <div id="frame_counter_label" class="ui_label"
-            style="font-family:chopin;font-size:25px;width:fit-content;">Frame -- 1 / 1</div>
-          <div id="preview_gallery_holder"></div>
-
-          <!-- {/* frame editing */} -->
-          <div id="frame_editing_controls" class="button_holder">
-            <div class="tool_button button" onmouseenter="setTooltip('move frame back')"
-              onclick="moveCurrentFrameBack()"><img class="tool_icon" src="designer/images/icons/back_icon.gif"></div>
-            <div class="tool_button button" onmouseenter="setTooltip('play [space]')" onclick="togglePlayback()"><img
-                class="tool_icon" src="designer/images/icons/play_icon.bmp"></div>
-            <div class="tool_button button" onmouseenter="setTooltip('copy to next frame')"
-              onclick="copyFrameToNextFrame()"><img class="tool_icon" src="designer/images/icons/duplicate_icon.gif">
-            </div>
-            <div class="tool_button button" onmouseenter="setTooltip('reverse frames')" onclick="reverseFrames()"><img
-                class="tool_icon" src="designer/images/icons/reorder_icon.gif"></div>
-            <div class="tool_button button" onmouseenter="setTooltip('delete frame')" onclick="deleteCurrentFrame()">
-              <img class="tool_icon" src="designer/images/icons/clear_icon.gif">
-            </div>
-            <div class="tool_button button" onmouseenter="setTooltip('move frame forward')"
-              onclick="moveCurrentFrameForward()"><img class="tool_icon" src="designer/images/icons/forward_icon.gif">
-            </div>
-          </div>
-        </div>
         <div id="big_undo_buttons">
           <div class="tool_button button" onmouseenter="setTooltip('undo [cmd Z]')" onclick="undo()"><img
               style="width:100%;height:100%;" src="designer/images/icons/undo_icon.gif"></div>
           <div class="tool_button button" onmouseenter="setTooltip('redo [cmd shift Z]')" onclick="redo()"><img
               style="width:100%;height:100%;" src="designer/images/icons/redo_icon.gif"></div>
-        </div>
-        <div id="edit_controls_container">
-          <!-- {/* pixel/canvases manipulation tools */} -->
-          <div class="cursive_label">Tools</div>
-          <div id="tooltip_text" class="ui_label">pixel</div>
-          <div class="button_holder">
-            <div class="tool_button button" id="color_toggle_button"
-              style="border:1px solid black;width:20px;height:20px;" onmouseenter="setTooltip('swap color [shift]')"
-              onclick="toggleColor(this);"></div>
-            <div class="tool_button button" id="pixel_tool_button" onmouseenter="setTooltip('pixel [P]')"
-              onclick="setTool('pixel',this);"><img src="designer/images/icons/pixel_icon.gif"></div>
-            <div class="tool_button button" id="line_tool_button" onmouseenter="setTooltip('line [L]')"
-              onclick="setTool('line',this);"><img src="designer/images/icons/line_icon.gif"></div>
-            <div class="tool_button button" id="rectangle_tool_button" onmouseenter="setTooltip('rectangle [R]')"
-              onclick="setTool('rectangle',this);"><img src="designer/images/icons/rect_icon.gif"></div>
-            <div class="tool_button button" id="circle_tool_button" onmouseenter="setTooltip('circle [C]')"
-              onclick="setTool('circle',this);"><img src="designer/images/icons/circle_icon.gif"></div>
-            <div class="tool_button button" id="fill_tool_button" onmouseenter="setTooltip('fill [F]')"
-              onclick="setTool('fill',this);"><img src="designer/images/icons/fill_icon.gif"></div>
-          </div>
-          <div class="button_holder">
-            <div class="tool_button button" id="select_tool_button" onmouseenter="setTooltip('select [S]')"
-              onclick="setTool('select',this);"><img src="designer/images/icons/select_icon.gif"></div>
-            <div class="tool_button button" id="move_tool_button" onmouseenter="setTooltip('move pixels [M]')"
-              onclick="setTool('move',this);">
-              <img src="designer/images/icons/move_icon.gif">
-            </div>
-            <div class="tool_button button" onmouseenter="setTooltip('clear frame')" onclick="clearFrame()"><img
-                src="designer/images/icons/clear_icon.gif"></div>
-          </div>
-          <div id="full_frame_edit_controls" class="button_holder">
-            <div class="tool_button button" onmouseenter="setTooltip('invert pixels')" onclick="invertFrame()">
-              <img src="designer/images/icons/invert_icon.gif">
-            </div>
-            <div class="tool_button button" onmouseenter="setTooltip('flip horizontally')"
-              onclick="mirrorHorizontally()"><img src="designer/images/icons/flip_horizontal.gif"></div>
-            <div class="tool_button button" onmouseenter="setTooltip('flip vertically')" onclick="mirrorVertically()">
-              <img src="designer/images/icons/flip_vertical.gif">
-            </div>
-            <div class="tool_button button" onmouseenter="setTooltip('rotate')" onclick="rotateFrame()"><img
-                src="designer/images/icons/rotate_tool.gif"></div>
-          </div>
         </div>
         <!-- extra settings -->
         <div id="extra_settings_container">
@@ -139,7 +72,7 @@
                     <option value="top left">top left</option>
                   </select>
                 </div>
-                <div class="button" onclick="resizeAllSprites()">apply</div>
+                <div class="button" onclick="resizeAllSprites();checkCanvasOverflowBounds();">apply</div>
               </div>
             </div>
             <!-- canvas overlays -->
@@ -148,6 +81,8 @@
                 grid</div>
               <div class="button" style="background-color:var(--button-highlight-color);color:yellow;" onclick="togglePreviousFrameOverlay(this);">
                 disable overlay</div>
+              <div class="button"  onclick="exportCompleteSpritesheet()">
+                download spritesheet</div>
             </div>
             <!-- {/* playback speed slider */} -->
             <div class="button_holder" style="flex-direction:column;">
@@ -158,7 +93,7 @@
               </div>
                 <div style="margin:0px auto;padding-top:6px;justify-self: left;">--canv. scale--</div>
                 <div class = "button_holder" style = "flex-direction:column; justify-content: center; width:100%;">
-                  <input type="range" onmouseenter = "setTooltip('canvas size')" class = "control_slider" id="canvas_scale_slider" name="ms" min="1" max="32" step="1" value = "15" oninput="setCanvasScale(event)"/>
+                  <input type="range" onmouseenter = "setTooltip('canvas size')" class = "control_slider" id="canvas_scale_slider" name="ms" min="0.1" max="20" step="0.1" value = "15" oninput="setCanvasScale(event);checkCanvasOverflowBounds();"/>
                 </div>
             </div>
 
@@ -188,37 +123,54 @@
           </div>
         </div>
 
-        <!-- sprite previews/checklist -->
-        <div id="sprite_preview_container">
-          <!-- name -->
-          <div style="padding:10px;">~spritesheet~</div>
-          <div id="sprite_previews"></div>
-          <!-- templates -->
-          <!-- <div id="template_controls">
-            <label class="ui_label" for="templates">create new...</label>
-            <select class="button" name="templates" id="template_select" onchange="loadSelectedTemplate(event);">
-              <option value="creature">creature</option>
-              <option value="food">food</option>
-              <option value="thought">thought</option>
-              <option value="slideshow">slideshow</option>
-            </select>
-          </div> -->
+        <!-- uploaded image preview -->
+        <div id = "uploaded_image_settings" style = "display:none;">
+          <div style = "display:flex; flex-direction:column;">
+            <div id = "clear_image_preview" class="tool_button button" onmouseenter="setTooltip('delete image')" onclick="clearPreviewImage()">
+              <img class="tool_icon" src="designer/images/icons/clear_icon.gif">
+            </div>
+            <div id = "uploaded_image_preview">
+              <canvas id = "image_preview"></canvas>
+            </div>
+            <div id = "draw_image_preview" class="tool_button button" onmouseenter="setTooltip('add 2 canvas')" onclick = "copyPreviewToCanvas()">
+              <img class = "tool_icon" src="designer/images/icons/plus_icon.gif">
+            </div>
+          </div>
+          <!-- render algorithm-->
+          <div style = "display:flex; flex-direction:column;">
+            dither:
+            <div class = "button_holder">
+              <div id = "atkinson_algorithm_button" class = "button tool_button" onclick = "setRenderAlgorithm('atkinson')" style = "flex-direction: column;" onmouseenter="setTooltip('atkinson dithering')"><img src = "designer/images/icons/atkinson.png"></div>
+              <div id = "threshold_algorithm_button" class = "button tool_button" onclick = "setRenderAlgorithm('threshold')" style = "flex-direction: column;" onmouseenter="setTooltip('brightness threshold')"><img src = "designer/images/icons/threshold.png"></div>
+              <div id = "bayer_algorithm_button" class = "button tool_button" onclick = "setRenderAlgorithm('bayer')" style = "flex-direction: column;" onmouseenter="setTooltip('bayer dithering')"><img src = "designer/images/icons/bayer.png"></div>
+            </div>
+            brightness:
+            <input type="range" class="control_slider" id="brightness_slider" min="0.01" max="4.0"
+              step="0.01" oninput="setRenderBrightness(event)" onmouseenter="setTooltip('image brightness')">
+          </div>
+          <!-- resize to width or height -->
+          <div style = "display:flex; flex-direction:column;">
+            resize to fit...
+            <div class = "button_holder">
+              <div class = "button" id = "upload_fit_width" style = "color:yellow;background:var(--button-highlight-color);" onclick = "setUploadFit('width')" onmouseenter="setTooltip('fit canvas width')">width</div>
+              <div class = "button" id = "upload_fit_height" onclick = "setUploadFit('height')" onmouseenter="setTooltip('fit canvas height')">height</div>
+            </div>
+            <!-- <div class = "button" onclick = "copyPreviewToCanvas()" onmouseenter="setTooltip('draw 2 canvas')">draw</div> -->
+          </div>
         </div>
+
         <!-- upload/load controls -->
         <div id="file_controls" class="button_holder">
-          <div class="tool_button button" style = "height:fit-content;padding:10px;" onmouseenter="setTooltip('reset sprite')" onclick="resetSprites()">
-            <img src="designer/images/icons/restart_icon.gif">reset
-          </div>
           <div id="download_controls">
-            <div class="ui_label">save as a...</div>
+            <div class="ui_label">export a...</div>
             <div style="display:flex;flex-direction: row;">
               <div id="download_icon_holder">
                 <img id="download_icon" src="designer/images/icons/download.gif">
               </div>
               <div>
-                <div class="button" onclick="saveGIF();" style="background:#69baae;">.gif</div>
-                <div class="button" onclick="zipAllFrames();" style="background:#ffd79f;">.bmp</div>
-                <div class="button" onclick="zipAllFrames();" style="background:#ea10cc;">.zip</div>
+                <div class="button" onclick="saveGIF();" style="background:#69baae;" onmouseenter="setTooltip('save a .gif')">.gif</div>
+                <div class="button" onclick="saveCurrentFrame();" style="background:#ffd79f;" onmouseenter="setTooltip('save current frame')">.bmp</div>
+                <div class="button" onclick="zipAllFrames();" style="background:#ea10cc;" onmouseenter="setTooltip('save frames as .zip')">.zip</div>
               </div>
             </div>
           </div>
@@ -226,83 +178,124 @@
             <label id="drop_zone" class = "button" style = "cursor:pointer;">
               <img id="file_icon" src="designer/images/icons/file.gif">
               <div class = "button_holder" style = "flex-direction:column;">
-                <div class="ui_label" style = "align-self: center;">import</div>
+                <div class="ui_label" style = "align-self: center;" onmouseenter="setTooltip('load image/gif');">import</div>
                 <input type="file" id="file-input" multiple accept="image/*" style="display:none;"
                 oninput="handleFileInput(event)">
               </div>
             </label>
             <div style = "display:flex;flex-direction:row;">
-              <div class = "button" id = "sprite_upload_type_button" style = "color:var(--button-highlight-text-color);background-color:var(--button-highlight-color);" onclick = "setImageUploadTypeEvent(event)">sprite</div>
-              <div class = "button" id = "slideshow_upload_type_button" onclick = "setImageUploadTypeEvent(event)">slideshow</div>
-            </div>
-            <div id = "uploaded_image_settings" style = "display:none;">
-              <div id = "uploaded_image_preview">
-                <canvas id = "image_preview"></canvas>
-              </div>
-              <!-- render algorithm-->
-              <div>
-                dither:
-                <!-- <select class="button" name="set_render_algorithm" id="render_algorithm_select" onchange="setRenderAlgorithm(event)">
-                  <option value="atkinson">atkinson</option>
-                  <option value="threshold">threshold</option>
-                  <option value="bayer">bayer</option>
-                </select> -->
-                <div class = "button_holder">
-                  <div id = "atkinson_algorithm_button" class = "button tool_button" onclick = "setRenderAlgorithm('atkinson')" style = "flex-direction: column;"><img src = "designer/images/icons/atkinson.png">atkinson</div>
-                  <div id = "threshold_algorithm_button" class = "button tool_button" onclick = "setRenderAlgorithm('threshold')" style = "flex-direction: column;"><img src = "designer/images/icons/threshold.png">threshold</div>
-                  <div id = "bayer_algorithm_button" class = "button tool_button" onclick = "setRenderAlgorithm('bayer')" style = "flex-direction: column;"><img src = "designer/images/icons/bayer.png">bayer</div>
-                </div>
-                brightness:
-                <input type="range" class="control_slider" id="brightness_slider" min="0.01" max="4.0"
-                  step="0.01" oninput="setRenderBrightness(event)">
-              </div>
-              <!-- resize to width or height -->
-              <div>
-                resize to fit...
-                <div class = "button_holder">
-                  <div class = "button" id = "upload_fit_width" style = "color:yellow;background:var(--button-highlight-color);" onclick = "setUploadFit('width')">width</div>
-                  <div class = "button" id = "upload_fit_height" onclick = "setUploadFit('height')">height</div>
-                </div>
-              </div>
-              <div class = "button" onclick = "copyPreviewToCanvas()">place on canvas</div>
+              <div class = "button" id = "sprite_upload_type_button" style = "color:var(--button-highlight-text-color);background-color:var(--button-highlight-color);" onclick = "setImageUploadTypeEvent(event)" onmouseenter="setTooltip('directly import sprite');">sprite</div>
+              <div class = "button" id = "image_upload_type_button" onclick = "setImageUploadTypeEvent(event)" onmouseenter="setTooltip('upload & edit image');">image</div>
             </div>
           </div>
 
         </div>
           <div id="sprite_loader_controls" class="button_holder">
             <img src="designer/images/icons/tamo_rotate_optimized_cropped.gif" id="hardware_gif">
-            <div style = "padding:10px;border:none;background:var(--button-highlight-color);flex-direction: column; border-radius: 10px;">
+            <div style = "padding:10px;border:none;background:var(--button-highlight-color);flex-direction: column; border-radius: 20px;">
               <img id="upload_icon" src="designer/images/icons/upload_icon.gif">
-              <div class="button tool_button" id="upload_sprites_button" onclick="uploadSpriteData()"><div class = "ui_label">upload to Tamo</div></div>
+              <div class="button tool_button" id="upload_sprites_button" onclick="uploadSpriteData()" onmouseenter="setTooltip('flash to tamo');"><div class = "ui_label">upload to Tamo</div></div>
               <div id="upload_progress_bar_container">
                 <div id="upload_progress_bar"></div>
               </div>
             </div>
           </div>
 
-        <!-- sprite name -->
-        <div id="sprite_name">
-          hello...
-          <div id = "sprite_name_container" style = "height:fit-content;display:flex;flex-direction: row; align-content:center;">
-            <div id="sprite_name_static" ondblclick="editName()">new sprite</div>
-            <div id = "name_exclamation_mark" style = "display:flex;align-items:center;font-size:18px;white-space: pre;">!</div>
-          </div>
+        <!-- sprite previews/checklist -->
+        <div id="sprite_preview_container">
+          <!-- name -->
+          <div style="padding:10px;">~spritesheet~</div>
+          <!-- spritesheet preview -->
+          <div id="sprite_previews"></div>
         </div>
 
-        <!-- canvas -->
-        <div id="canvas_container_container">
-          <div id="canvas_container">
-            <canvas id="main_canvas" ondragend="handleDragLeave()" ondragleave="handleDragLeave()"
-              ondragover="handleDragOver(event)" ondrop="handleDrop(event)" onmouseout="handleMouseOut(event)"
-              onmouseenter="handleMouseEnter(event)" onmousedown="handleMouseDown(event)"
-              onmousemove="handleMouseMove(event)"" onmouseup=" handleMouseUp(event)"
-              ontouchstart="handleMouseDown(event)" ontouchend="handleMouseUp(event)"
-              ontouchcancel="handleMouseUp(event)" ontouchmove="handleMouseMove(event)"></canvas>
-            <!-- <img id = "canvas_border_image" src = "designer/images/border_animated.gif"> -->
-            <div id="canvas_overlay_grid"></div>
-            <div id="selection_box"></div>
-            <div id="resize_box"></div>
-            <div id="pixel_cursor"></div>
+        <div id = "canvas_and_tools">
+          <!-- sprite name -->
+          <div id="sprite_name">
+            hello...
+            <div id = "sprite_name_container" style = "height:fit-content;display:flex;flex-direction: row; align-content:center;">
+              <div id="sprite_name_static" ondblclick="editName()" onmouseenter="setTooltip('rename');">new sprite</div>
+              <div id = "name_exclamation_mark" style = "display:flex;align-items:center;font-size:18px;white-space: pre;">!</div>
+            </div>
+          </div>
+          <div id="frame_controls">
+            <!-- {/* preview canvases */} -->
+            <div id="frame_counter_label" class="ui_label"
+              style="font-family:chopin;font-size:25px;width:fit-content;">Frame -- 1 / 1</div>
+            <div id="preview_gallery_holder" ondragover = "handleFrameHolderDragOver(event,this)"></div>
+            <!-- {/* frame editing */} -->
+            <div id="frame_editing_controls" class="button_holder">
+              <div class="tool_button button" onmouseenter="setTooltip('move frame back')"
+                onclick="moveCurrentFrameBack()"><img class="tool_icon" src="designer/images/icons/back_icon.gif"></div>
+              <div class="tool_button button" onmouseenter="setTooltip('play [space]')" onclick="togglePlayback()"><img
+                  class="tool_icon" src="designer/images/icons/play_icon.bmp"></div>
+              <div class="tool_button button" onmouseenter="setTooltip('copy to next frame')"
+                onclick="copyFrameToNextFrame()"><img class="tool_icon" src="designer/images/icons/duplicate_icon.gif">
+              </div>
+              <div class="tool_button button" onmouseenter="setTooltip('reverse frames')" onclick="reverseFrames()"><img
+                  class="tool_icon" src="designer/images/icons/reorder_icon.gif"></div>
+              <div class="tool_button button" onmouseenter="setTooltip('delete frame')" onclick="deleteCurrentFrame()">
+                <img class="tool_icon" src="designer/images/icons/clear_icon.gif">
+              </div>
+              <div class="tool_button button" onmouseenter="setTooltip('move frame forward')"
+                onclick="moveCurrentFrameForward()"><img class="tool_icon" src="designer/images/icons/forward_icon.gif">
+              </div>
+            </div>
+          </div>
+          <div class="button_holder" style = "grid-area:pixel_tools;max-width: 250px;">
+            <div class="tool_button button" id="color_toggle_button"
+              style="border:1px solid black;width:20px;height:20px;" onmouseenter="setTooltip('swap color [shift]')"
+              onclick="toggleColor(this);"></div>
+            <div class="tool_button button" id="pixel_tool_button" onmouseenter="setTooltip('pixel [P]')"
+              onclick="setTool('pixel',this);"><img src="designer/images/icons/pixel_icon.gif"></div>
+            <div class="tool_button button" id="line_tool_button" onmouseenter="setTooltip('line [L]')"
+              onclick="setTool('line',this);"><img src="designer/images/icons/line_icon.gif"></div>
+            <div class="tool_button button" id="rectangle_tool_button" onmouseenter="setTooltip('rectangle [R]')"
+              onclick="setTool('rectangle',this);"><img src="designer/images/icons/rect_icon.gif"></div>
+            <div class="tool_button button" id="circle_tool_button" onmouseenter="setTooltip('circle [C]')"
+              onclick="setTool('circle',this);"><img src="designer/images/icons/circle_icon.gif"></div>
+            <div class="tool_button button" id="fill_tool_button" onmouseenter="setTooltip('fill [F]')"
+              onclick="setTool('fill',this);"><img src="designer/images/icons/fill_icon.gif"></div>
+            <div id="tooltip_text" style = "grid-area:tooltip;" class="ui_label">pixel</div>
+          </div>
+          <div id="full_frame_edit_controls" class="button_holder" style = "grid-area:frame_tools;flex-direction: column;">
+            <div class="tool_button button" id="select_tool_button" onmouseenter="setTooltip('select [S]')"
+              onclick="setTool('select',this);"><img src="designer/images/icons/select_icon.gif"></div>
+            <div class="tool_button button" id="move_tool_button" onmouseenter="setTooltip('move pixels [M]')"
+              onclick="setTool('move',this);">
+              <img src="designer/images/icons/move_icon.gif">
+            </div>
+            <div class="tool_button button" onmouseenter="setTooltip('clear frame')" onclick="clearFrame()"><img
+                src="designer/images/icons/clear_icon.gif"></div>
+            <div class="tool_button button" onmouseenter="setTooltip('invert pixels')" onclick="invertFrame()">
+              <img src="designer/images/icons/invert_icon.gif">
+            </div>
+            <div class="tool_button button" onmouseenter="setTooltip('flip horizontally')"
+              onclick="mirrorHorizontally()"><img src="designer/images/icons/flip_horizontal.gif"></div>
+            <div class="tool_button button" onmouseenter="setTooltip('flip vertically')" onclick="mirrorVertically()">
+              <img src="designer/images/icons/flip_vertical.gif">
+            </div>
+            <div class="tool_button button" onmouseenter="setTooltip('rotate')" onclick="rotateFrame()"><img
+                src="designer/images/icons/rotate_tool.gif"></div>
+                          <!-- reset button -->
+            <div id = "reset_button" class="button" onmouseenter="setTooltip('erase & reset')" onclick="resetSprites()">
+              <img src="designer/images/icons/restart_icon.gif" style = "width:20px;">reset
+            </div>
+        </div>
+          <!-- canvas -->
+          <div id="canvas_container_container" onscroll="checkCanvasOverflowBounds()">
+            <div id="canvas_container">
+              <canvas id="main_canvas" ondragend="handleDragLeave()" ondragleave="handleDragLeave()"
+                ondragover="handleDragOver(event)" ondrop="handleDrop(event)" onmouseout="handleMouseOut(event)"
+                onmouseenter="handleMouseEnter(event)" onmousedown="handleMouseDown(event)"
+                onmousemove="handleMouseMove(event)"" onmouseup=" handleMouseUp(event)"
+                ontouchstart="handleMouseDown(event)" ontouchend="handleMouseUp(event)"
+                ontouchcancel="handleMouseUp(event)" ontouchmove="handleMouseMove(event)"></canvas>
+              <div id="canvas_overlay_grid"></div>
+              <div id="selection_box"></div>
+              <div id="resize_box"></div>
+              <div id="pixel_cursor"></div>
+            </div>
           </div>
         </div>
       </div>

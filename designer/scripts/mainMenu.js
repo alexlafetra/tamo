@@ -35,7 +35,7 @@ function togglePanel(className,trigger){
         }
     }
     if(className == 'identity_sprite_gif_holder')
-        document.getElementById("main_menu").style.gridTemplateRows = `min-content min-content min-content ${isOpening?100:20}px min-content`;
+        document.getElementById("main_menu").style.gridTemplateRows = `min-content 100px min-content ${isOpening?100:20}px min-content`;
 }
 
 buildCylinder();
