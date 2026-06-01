@@ -47,6 +47,14 @@ function addNewFrame(){
     updateFramePreviews();
 }
 
+function insertEmptyFrame(){
+    pushUndoState();
+    const sprite = sprites[currentSprite];
+    sprite.frames.splice(sprite.currentFrame+1,0,PixelFrame(sprite.width, sprite.height, 0));
+    sprite.currentFrame++;
+    updateFramePreviews();
+}
+
 function moveCurrentFrameBack(){
     const index = sprites[currentSprite].currentFrame;
     if(index){

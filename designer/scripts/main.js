@@ -32,24 +32,6 @@ const settings = {
   type : 'sprite'
 };
 
-
-function loadDefaultSpritesFromJSON(){
-  //rebuild sprites object from json
-  sprites = [];
-  defaultSprites.map(raw => {
-    const sprite = Sprite();
-    sprite.width = raw.width;
-    sprite.height = raw.height;
-    sprite.fileName = raw.fileName;
-    sprite.currentFrame = raw.currentFrame;
-    sprite.frames = [];
-    raw.frames.map(frame => {
-      sprite.frames.push(PixelFrame(frame.width,frame.height,frame.data));
-    });
-    sprites.push(sprite);
-  });
-}
-
 function loadApp(){
   //grabbing some visual settings from url
   const urlParams = new URLSearchParams(window.location.search);//uses the ? string following the url
@@ -161,6 +143,31 @@ const imageUploadSettings = {
   render : 'atkinson',
   brightness : 1.0,
   dataURL : null
+}
+
+function loadSpritesFromJSON(jsonString){
+  sprites = [];
+  jsonString.map(raw => {
+    const sprite = Sprite();
+    sprite.width = raw.width;
+    sprite.height = raw.height;
+    sprite.fileName = raw.fileName;
+    sprite.currentFrame = raw.currentFrame;
+    sprite.frames = [];
+    raw.frames.map(frame => {
+      sprite.frames.push(PixelFrame(frame.width,frame.height,frame.data));
+    });
+    sprites.push(sprite);
+  });
+}
+
+function loadPresetSprite(name){
+  pushUndoState();
+  loadSpritesFromJSON(presetSpriteData[name]);
+  updateCanvas(false);
+  reloadFramePreviews();
+  reloadSpritePreviews();
+  document.getElementById("sprite_name_static").innerHTML = name;
 }
 
 
@@ -335,6 +342,9 @@ function toggleExtraSettingsVisibility(domElement){
   if(domElement){
     domElement.style.backgroundColor = settingsShown?"var(--button-highlight-color)":null;
     domElement.style.color = settingsShown?"yellow":null;
+    domElement.style.borderBottomLeftRadius = settingsShown?"0px":null;
+    domElement.style.borderBottomRightRadius = settingsShown?"0px":null;
+    domElement.style.borderBottom = settingsShown?"none":null;
   }
 }
 
@@ -827,9 +837,9 @@ function getDragAfterElement(container,e){
   const draggableElements = [...container.querySelectorAll('.preview_canvas:not(.dragging)')];
   return draggableElements.reduce((closest,child) => {
     const box = child.getBoundingClientRect();
-    const offsetX = e.clientX-box.left-box.width/2;
-    const offsetY = e.clientY-box.top-box.height;
-    if(offsetX < 0  && offsetY < 0 && (offsetX > closest.offset)){
+    const offsetX = e.clientX-(box.left+box.width/2);
+    const offsetY = (e.clientY+e.target.clientHeight/2)-(box.top+box.height/2);
+    if((offsetX < 0 )&& (offsetX > closest.offset) && offsetY < box.height/2){
       return {offset:offsetX,element:child};
     }
     else return closest;

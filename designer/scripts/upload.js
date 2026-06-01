@@ -107,12 +107,12 @@ function drawFileToCanvas(file, sprite, startFrame, index) {
 }
 
 // gets images and turns them into anim frames
-async function processLoadedFiles(fileList, sprite, startFrame) {
+async function processSpriteFiles(fileList, sprite, startFrame) {
     pushUndoState();
     if (fileList.length === 1) {
         fileList = [fileList[0]];
     }
-    const promises = imageUploadSettings.type == 'sprite'?(fileList.map((file, index) => {
+    const promises = fileList.map((file, index) => {
         //grabbing sprite frames from a gif
         if (file.type == 'image/gif') {
             return gifToSprite(file, (frames) => {
@@ -137,9 +137,27 @@ async function processLoadedFiles(fileList, sprite, startFrame) {
         else {
             return drawFileToCanvas(file, sprite, startFrame, index);
         }
-    })):(fileList.map((file, index) => {
+    });
+
+    await Promise.all(promises);
+    updateResizeSliders();
+    reloadFramePreviews();
+    reloadSpritePreviews();
+    updateCanvas();
+}
+
+//for dithering/processing normal images
+async function handleImageUpload(event){
+    let fileList = event.target.files;
+    const sprite = sprites[currentSprite];
+    const startFrame = sprite.currentFrame;
+
+    pushUndoState();
+    if (fileList.length === 1) {
+        fileList = [fileList[0]];
+    }
+    const promises = (fileList.map((file, index) => {
         return new Promise((resolve) => {
-            //for dithering/processing normal images
 
             //skip if it's a gif
             if (file.type == 'image/gif') {
@@ -157,19 +175,16 @@ async function processLoadedFiles(fileList, sprite, startFrame) {
             }
         })
     }));
-
     await Promise.all(promises);
-    if(imageUploadSettings.type == 'image'){
-        document.getElementById("uploaded_image_settings").style.display = "flex";
-    }
+    document.getElementById("uploaded_image_settings").style.display = "flex";
     updateResizeSliders();
     reloadFramePreviews();
     reloadSpritePreviews();
     updateCanvas();
 }
 
-//callback from the <input> element
-function loadFiles(files) {
+async function handleSpriteUpload(event){
+    const files = event.target.files;
     //parsing files by name
     if (settings.createSpritesByFileName && files.length > 1) {
         const filesByName = [];
@@ -211,14 +226,14 @@ function loadFiles(files) {
             const newSprite = Sprite();
             newSprite.fileName = fileList[0].spriteName;
 
-            processLoadedFiles(fileList, newSprite, (files.length === 1) ? sprites[currentSprite].currentFrame : 0);
+            processSpriteFiles(fileList, newSprite, (files.length === 1) ? sprites[currentSprite].currentFrame : 0);
             newSprites.push(newSprite);
         }
         //add in the stragglers that didn't match any names
         if (unorderedFiles.length) {
             const miscSprite = Sprite();
             miscSprite.fileName = 'misc.';
-            processLoadedFiles(unorderedFiles, miscSprite);
+            processSpriteFiles(unorderedFiles, miscSprite);
             newSprites.push(miscSprite);
         }
         currentSprite = 0;
@@ -228,12 +243,9 @@ function loadFiles(files) {
     }
     else {
         //load files like normal, into the current sprite
-        processLoadedFiles(files, sprites[currentSprite], sprites[currentSprite].currentFrame);
+        processSpriteFiles(files, sprites[currentSprite], sprites[currentSprite].currentFrame);
     }
-}
-function handleFileInput(e){
-    const files = e.target.files;
-    loadFiles(files);
+
 }
 
 function handleDragOver(e){
@@ -247,5 +259,8 @@ function handleDrop(e){
     document.documentElement.style.setProperty('--canvas-filter', "none");
     e.preventDefault();
     e.stopPropagation();
-    loadFiles(e.dataTransfer.files);
+    const dummyEvent = {
+        target : {files : e.dataTransfer.files}
+    };
+    handleSpriteUpload(dummyEvent);
 }

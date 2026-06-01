@@ -59,13 +59,15 @@
 
 @media (prefers-color-scheme: dark) {
     :root{
-        --drop-shadow-color: blue;
+        --drop-shadow-color: transparent;
         --button-highlight-color: rgb(20, 0, 155);
-        --button-highlight-text-color:yellow;
+        /* --button-highlight-text-color:yellow; */
+        --button-highlight-text-color:rgb(235, 255, 179);
         --button-background-color: blue;
-        --button-border:1px solid rgb(255, 255, 255);
-        --background-color: rgb(21, 0, 90);
-        --text-color:white;
+        /* --button-border:1px solid rgb(255, 255, 255); */
+        --button-border:1px solid rgb(235, 255, 179);
+        --background-color: rgb(0, 0, 76);
+        --text-color:rgb(235, 255, 179);
     }
 }
 
@@ -111,8 +113,8 @@ select{
     background-color: var(--text-color);
     image-rendering: pixelated;
 
-    mask-image:url("images/ribbon.gif");
-    -webkit-mask-image:url("images/ribbon.gif");
+    mask-image:url("images/animated_spritesheet.gif");
+    -webkit-mask-image:url("images/animated_spritesheet.gif");
 
     -webkit-mask-size:cover;
     mask-size: cover;
@@ -382,17 +384,20 @@ select{
     position:relative;
     display:grid;
     gap:10px;
+    /* grid-template-rows: min-content 210px 50px 10px min-content; */
     grid-template-areas:"title title title"
                         "spritesheet canvas_and_tools hardware_gif"
-                        "file_controls canvas_and_tools image_preview"
-                        "settings settings image_preview";
+                        "template canvas_and_tools hardware_gif"
+                        "template canvas_and_tools image_preview"
+                        "export_controls canvas_and_tools image_preview"
+                        "import_controls canvas_and_tools image_preview"
+                        "settings settings settings";
 }
 
 #canvas_and_tools{
     grid-area:canvas_and_tools;
     display:grid;
-    grid-template-columns: min-content min-content;
-    grid-template-rows: min-content min-content;
+    grid-template-rows: min-content min-content min-content min-content;
     grid-template-areas:
                         "sprite_name sprite_name"
                         "pixel_tools pixel_tools"
@@ -400,19 +405,52 @@ select{
                         "frame_tools frames";
 }
 
+#preset_sprite_templates{
+    width:fit-content;
+    height:fit-content;
+    grid-area:template;
+}
+#sprite_preset_previews{
+    padding:10px;
+    border-radius:20px;
+    border:var(--button-border);
+    display:flex;
+    flex-direction: row;
+    justify-items: center;
+    /* background-color: var(--button-background-color); */
+    gap:4px;
+    flex-wrap:wrap;
+
+
+}
+
+.sprite_preset_preview{
+    display:block;
+    padding:2px;
+    border:var(--button-border);
+    width:20px;
+    border-radius:10px;
+    image-rendering: pixelated;
+    background:black;
+    transition:0.2s;
+    cursor:pointer;
+}
+.sprite_preset_preview:hover{
+    background:blue;
+}
 
 #frame_controls{
     grid-area:frames;
     width:200px;
+    margin:auto;
     height:fit-content;
     flex-direction: column;
-    padding-left:10px;
 }
 
 #preview_gallery_holder{
     display:flex;
     align-items:center;
-    width:100%;
+    width:calc(100% - 8px);
     flex-wrap:wrap;
     height:fit-content;
     overflow-y:scroll;
@@ -422,15 +460,21 @@ select{
     border:var(--button-border);
     border-style: dashed;
 }
+#extra_settings_button{
+    margin:0px;
+}
 #extra_settings_container{
     grid-area:settings;
+    margin:0;
 }
 #uploaded_image_settings{
+    gap:10px;
     max-width:100px;
     align-items: center;
     justify-items: center;
-    background-color: var(--button-background-color);
-    border-radius: 10px;
+    /* background-color: var(--button-background-color); */
+    border-radius: 20px;
+    border:var(--button-border);
     padding:10px;
     cursor:auto;
     grid-area:image_preview;
@@ -463,8 +507,11 @@ select{
     display: var(--extra-settings-display);
     flex-direction: row;
     border:var(--button-border);
+    border-color:var(--button-highlight-color);
     border-radius: 20px;
     padding:10px;
+    margin:0px;
+    border-top-left-radius:0px;
     background-color:var(--button-background-color);
 }
 #sprite_loader_controls{
@@ -500,7 +547,7 @@ select{
     padding-left:10px;
 }
 #file_controls{
-    grid-area: file_controls;
+    /* grid-area: file_controls; */
     margin-bottom:0px;
     margin-right:0px;
     flex-direction: column;
@@ -822,7 +869,9 @@ select{
     flex-direction: row;
 }
 .ui_label{
-    font-weight:bold;
+    /* font-weight:bold; */
+    width:fit-content;
+    margin:auto;
     /* padding:4px; */
     /* color:var(--button-highlight-color); */
     /* padding-bottom:10px; */
@@ -831,21 +880,32 @@ select{
     font-family:chopin;
     font-size:30px;
 }
-#file_icon{
+#upload_controls img{
     image-rendering: pixelated;
-    width:40px;
+    width:30px;
     mix-blend-mode:difference;
     align-self: center;
+    padding-right:4px;
+}
+#upload_controls{
+    padding:4px;
+    grid-area: import_controls;
 }
 
-#download_controls{
+#download_controls_container{
+    grid-area:export_controls;
     display:flex;
     flex-direction: column;
     gap:10px;
-    border:var(--button-border);
-    border-radius: 10px;
     width:fit-content;
     height:fit-content;
+}
+#download_controls{
+    display:flex;
+    flex-direction: row;
+
+    border:var(--button-border);
+    border-radius: 10px;
     padding:10px;
     background-color: var(--button-background-color);
 }
@@ -928,6 +988,7 @@ select{
     display:flex;
     width:fit-content;
     gap:inherit;
+    /* margin:auto; */
 }
 .button{
     background-color:var(--button-background-color);
@@ -995,12 +1056,19 @@ select{
   100% {border: 2px solid  black;}
 }
 
-#version_number{
+.debug_text{
     color:blue;
     font-style: italic;
     font-size: 10px;
     position:fixed;
-    bottom:10px;
+    writing-mode: sideways-lr;
+}
+#version_number{
+    bottom:300px;
+    left:10px;
+}
+#app_title{
+    bottom:140px;
     left:10px;
 }
 
@@ -1060,6 +1128,13 @@ select{
     margin:auto;
 }
 
+#pixel_editing_tools{
+    grid-area:pixel_tools;
+    /* height:20px; */
+    max-width: 250px;
+    height:fit-content;
+}
+
 #big_undo_buttons{
     display:none;
     grid-area:undo_buttons;
@@ -1103,23 +1178,44 @@ select{
         gap:10px;
         grid-template-areas:"title title"
                             "canvas_and_tools canvas_and_tools"
-                            "file_controls spritesheet"
+                            "export_controls spritesheet"
+                            "import_controls spritesheet"
+                            "import_controls template"
                             "image_preview image_preview"
                             "hardware_gif hardware_gif"
                             "settings settings";
     }
+    /* #canvas_and_tools{
+        grid-area:canvas_and_tools;
+        display:grid;
+        grid-template-columns: min-content min-content;
+        grid-template-rows: min-content min-content;
+        grid-template-areas:
+                            "sprite_name sprite_name"
+                            "pixel_tools pixel_tools"
+                            "frame_tools canvas"
+                            "frame_tools frames";
+    } */
+    #sprite_preset_previews{
+        /* width:26px; */
+    }
+    /* #preset_sprite_templates{
+        position:absolute;
+        left:20px;
+        top:100px;
+    } */
+
+
     #uploaded_image_settings{
         flex-direction: row;
         gap:10px;
+        max-width:85%;
     }
     #hardware_gif{
         width:80px;
     }
     #upload_icon{
         width:80px;
-    }
-    #file_controls{
-        flex-direction: column;
     }
     #canvas_appearance_settings{
         max-width:250px;
