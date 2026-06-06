@@ -8,7 +8,6 @@
 #define BUTTON_PIN PIN_PA2
 #define LED_A PIN_PA6
 #define LED_B PIN_PC0
-#define BATTERY_PIN PIN_PA7
 #define UART_RX_PIN PIN_PB3
 #define UART_TX_PIN PIN_PB2
 
@@ -25,10 +24,11 @@ uint16_t readVcc();
 
 //reading inputs
 void checkInput();
+void checkInput(bool);
 
 //time (ms) before tamo sleeps
 // #define TIME_BEFORE_SLEEP 60000
-#define TIME_BEFORE_SLEEP 12000
+#define TIME_BEFORE_SLEEP 24000
 
 void sleepHardware();
 void wakeHardware();

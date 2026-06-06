@@ -56,10 +56,43 @@ function threshold(pixels, w, thresh) {
     return out;
 }
 
-
-function renderPreviewImage() {
-    if (!imageUploadSettings.dataURL)
-        return;
+function ditherImage(img,canvElement){
+    // console.log(img,canvElement);
+    //resize canvas appropriately
+    const imageAspectRatio = img.height/img.width;
+    if(imageUploadSettings.fit == 'width'){
+        canvElement.width = sprites[currentSprite].width;
+        canvElement.height = canvElement.width * imageAspectRatio;
+    }
+    else{
+        canvElement.height = sprites[currentSprite].height;
+        canvElement.width = canvElement.height / imageAspectRatio;
+    }
+    let htmlWidth,htmlHeight;
+    const maxDim = 100;
+    if(canvElement.height > canvElement.width){
+        htmlHeight = maxDim;
+        htmlWidth = maxDim * canvElement.width/canvElement.height;
+        document.documentElement.style.setProperty('--fit-preview-scale',`${maxDim/canvElement.height}`);
+    }
+    else{
+        htmlWidth = maxDim;
+        htmlHeight = maxDim * canvElement.height/canvElement.width;
+        document.documentElement.style.setProperty('--fit-preview-scale',`${maxDim/canvElement.width}`);
+    }
+    canvElement.style.width = `${htmlWidth}px`;
+    canvElement.style.height = `${htmlHeight}px`;
+    
+    const ctx = canvElement.getContext('2d');
+    ctx.drawImage(img,0,0,canvElement.width,canvElement.height);
+    //get the pixels that we just drew to this canvas
+    const imageData = ctx.getImageData(0,0,canvElement.width, canvElement.height);
+    let outputPixels = [];
+    // convert color to BW
+    for (let byte = 0; byte < imageData.data.length; byte += 4) {
+        const val = (255.0 - imageData.data[byte + 3]) + (imageData.data[byte + 3] / 255.0) * ((imageData.data[byte] + imageData.data[byte + 1] + imageData.data[byte + 2]) / 3.0);
+        outputPixels.push(val / 255.0);
+    }
 
     //get the dither algorithm
     const ditherAlgorithms = {
@@ -69,56 +102,32 @@ function renderPreviewImage() {
     };
     const ditherAlgorithm = ditherAlgorithms[imageUploadSettings.render];
 
+    //load dithered pixels back into the image
+    outputPixels = ditherAlgorithm(outputPixels, canvElement.width, 1.0 - imageUploadSettings.brightness);
+    for (let p = 0; p < imageData.data.length; p += 4) {
+        imageData.data[p] = outputPixels[p / 4];
+        imageData.data[p + 1] = outputPixels[p / 4];
+        imageData.data[p + 2] = outputPixels[p / 4];
+        imageData.data[p + 3] = 255;
+        // imageData.data[p + 3] = outputPixels[p / 4] ? 0 : 255;
+    }
+    ctx.putImageData(imageData, 0, 0);
+}
+
+
+function renderPreviewImage(dataURL = imageUploadSettings.dataURL) {
+    if (!dataURL)
+        return;
+
     //draw image to canvas element
     const canvElement = document.getElementById('image_preview');
     canvElement.style.display = "block";
     const img = new Image();
-    img.onload = function(){
-        //resize canvas appropriately
-        const imageAspectRatio = img.height/img.width;
-        if(imageUploadSettings.fit == 'width'){
-            canvElement.width = sprites[currentSprite].width;
-            canvElement.height = canvElement.width * imageAspectRatio;
-        }
-        else{
-            canvElement.height = sprites[currentSprite].height;
-            canvElement.width = canvElement.height / imageAspectRatio;
-        }
-        let htmlWidth,htmlHeight;
-        const maxDim = 100;
-        if(canvElement.height > canvElement.width){
-            htmlHeight = maxDim;
-            htmlWidth = maxDim * canvElement.width/canvElement.height;
-        }
-        else{
-            htmlWidth = maxDim;
-            htmlHeight = maxDim * canvElement.height/canvElement.width;
-        }
-        canvElement.style.width = `${htmlWidth}px`;
-        canvElement.style.height = `${htmlHeight}px`;
-        
-        const ctx = canvElement.getContext('2d');
-        ctx.drawImage(img,0,0,canvElement.width,canvElement.height);
-        //get the pixels that we just drew to this canvas
-        const imageData = ctx.getImageData(0,0,canvElement.width, canvElement.height);
-        let outputPixels = [];
-        // convert color to BW
-        for (let byte = 0; byte < imageData.data.length; byte += 4) {
-            const val = (255.0 - imageData.data[byte + 3]) + (imageData.data[byte + 3] / 255.0) * ((imageData.data[byte] + imageData.data[byte + 1] + imageData.data[byte + 2]) / 3.0);
-            outputPixels.push(val / 255.0);
-        }
-
-        //load dithered pixels back into the image
-        outputPixels = ditherAlgorithm(outputPixels, canvElement.width, 1.0 - imageUploadSettings.brightness);
-        for (let p = 0; p < imageData.data.length; p += 4) {
-            imageData.data[p] = outputPixels[p / 4];
-            imageData.data[p + 1] = outputPixels[p / 4];
-            imageData.data[p + 2] = outputPixels[p / 4];
-            imageData.data[p + 3] = 255;
-            // imageData.data[p + 3] = outputPixels[p / 4] ? 0 : 255;
-        }
-        ctx.putImageData(imageData, 0, 0);
-    }
+    img.onload = ()=>{
+        ditherImage(img,canvElement);
+        document.documentElement.style.setProperty('--fit-preview-left',imageUploadSettings.align == 'center'?`${(canvElement.width - sprites[currentSprite].width)/2}px`:'0px');
+        document.documentElement.style.setProperty('--fit-preview-top',imageUploadSettings.align == 'center'?`${(canvElement.height - sprites[currentSprite].height)/2}px`:'0px');
+    };
     img.src = imageUploadSettings.dataURL;
 }
 
@@ -130,14 +139,36 @@ function clearPreviewImage(){
 
 async function copyPreviewToCanvas(){
     pushUndoState();
-    await new Promise((resolve)=>{
-        const canvElement = document.getElementById('image_preview');
-        // canvElement.style.display = "none";
-        drawDataURLToCanvas(canvElement.toDataURL(), sprites[currentSprite], 0, sprites[currentSprite].currentFrame,resolve);
+    const promises = [];
+    if(imageUploadSettings.isGif && imageUploadSettings.gifFrames.length > 1){
+        const skip = ((imageUploadSettings.gifFrames.length > sprites[currentSprite].frames.length) && imageUploadSettings.shrinkGifToFit)?Math.ceil(imageUploadSettings.gifFrames.length/sprites[currentSprite].frames.length):1;
+        for(let frame = 0; frame<Math.min(imageUploadSettings.gifFrames.length/skip,sprites[currentSprite].frames.length); frame++){
+            promises.push(new Promise((resolve,reject)=>{
+                const url = gifFrameToDataURL(imageUploadSettings.gifFrames[frame*skip]);
+                const img = new Image();
+                const canvElement = document.createElement('canvas');
+                img.onload = function(){
+                    ditherImage(img,canvElement);
+                    drawDataURLToCanvas(canvElement.toDataURL(),sprites[currentSprite],0,frame,()=>{
+                        canvElement.remove();
+                        resolve();
+                    });
+                }
+                img.src = url;
+            }));
+        }
+    }
+    else{
+        promises.push(new Promise((resolve,reject)=>{
+            const canvElement = document.getElementById('image_preview');
+            drawDataURLToCanvas(canvElement.toDataURL(), sprites[currentSprite], 0, sprites[currentSprite].currentFrame,resolve);
+        }));
+    }
+    Promise.all(promises).then(()=>{
+        reloadFramePreviews();
+        reloadSpritePreviews();
+        updateResizePreview();
+        updateCanvas();
+        console.log('done!');
     });
-    // document.getElementById("uploaded_image_settings").style.display = "none";
-    reloadFramePreviews();
-    reloadSpritePreviews();
-    updateResizePreview();
-    updateCanvas();
 }

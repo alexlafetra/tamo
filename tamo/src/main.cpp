@@ -28,7 +28,6 @@ SUPER annoying highkey annoying vibes
 #define BUTTON_PIN PIN_PA2
 #define LED_A PIN_PA6
 #define LED_B PIN_PC0
-#define BATTERY_PIN PIN_PA7
 #define UART_RX_PIN PIN_PB3
 #define UART_TX_PIN PIN_PB2
 
@@ -66,6 +65,18 @@ SSD1306Device oled;
 #include "Tamo.h"
 Tamo tamo;
 
+// FrameBuffer fbo(72,48);
+// FrameBuffer fbo(36,24);
+/*
+the attiny3217 can't store a full 64x32 buffer in RAM, so instead
+you store a half-buffer, which is good enough for almost everything
+except full-screen slideshow images.
+These need to be split into two 64x16 chunks
+*/
+FrameBuffer fbo(32,32);
+
+
+
 //Interrupt callback to wake Attiny back up
 ISR(PORTA_PORT_vect) {
   PORTA.INTFLAGS = PIN2_bm; // Clear interrupt flag for PIN 2
@@ -93,23 +104,13 @@ void RTC_init(void)
 
   RTC.PITINTCTRL = RTC_PI_bm;           /* PIT Interrupt: enabled */
 
-  RTC.PITCTRLA = RTC_PERIOD_CYC32768_gc /* 4Hz */
+  // RTC.PITCTRLA = RTC_PERIOD_CYC16384_gc /* RTC Clock Cycles 16384, resulting in 32.768kHz/16384 = 2Hz */
+  RTC.PITCTRLA = RTC_PERIOD_CYC32768_gc /* RTC Clock Cycles 16384, resulting in 32.768kHz/16384 = 2Hz */
   | RTC_PITEN_bm;                       /* Enable PIT counter: enabled */
 }
 
 //important to do so you save power on sleep()
 void disconnectUnusedPins(){
-  //everything but the button pin and the ADC batt pin should be disabled
-  //led pins don't need to be disabled since they're set to output
-  //so everything except:
-  /*
-    PA7
-    PB0
-    PB1
-    PB2
-    PA6
-    PC0
-  */
   const uint8_t unused_pins[] = {
     //updi pin, doesn't need to be disconnected
     // PIN_PA0,
@@ -151,15 +152,9 @@ void onBeforeInit(){
 
 void setup(){
 
-  /*
-      Turning on LED controls
-  */
+  //connect pins to leds, button
   pinMode(LED_A,OUTPUT);
   pinMode(LED_B,OUTPUT);
-  pinMode(BATTERY_PIN,INPUT);
-  /*
-    Initializing button
-  */
   pinMode(BUTTON_PIN,INPUT_PULLUP);
 
   //set floating pins to OUTPUT (to save power during sleep)
@@ -171,49 +166,30 @@ void setup(){
   //allows the CPU to go to sleep
   sleep_enable();
 
-  /*
-      Turning on watchdog timer
-  */
-  RTC_init();
-
   // Enable global interrupts
   sei();
-  
+
+  //turn on RTC timer
+  RTC_init();
+
   //turn on/set up the screen
   oled.begin(72, 40);
   
   //initialize UART
   Serial.begin(115200);
 
-  tamo.identity = EEPROM.read(EEPROM_IDENTITY_ADDR);
-  oled.clear();
+  tamo.init();
 }
 
-enum TamoMode:uint8_t{
-  NORMAL_TAMO,
-  SLIDESHOW,
-  TEXT
-};
-
-TamoMode mode = NORMAL_TAMO;
-
-// FrameBuffer fbo(72,48);
-FrameBuffer fbo(36,24);
-
 void loop() {
-  // oled.disableZoomIn();
-  // fbo.clear();
-  // fbo.bitmap_from_spritesheet(0,0,16,16,tamo_sprite_idle_1);
-  // oled.renderFBO(4,0,72,3,fbo.buffer);
-  // digitalWrite(LED_A,CHANGE);
-  // delay(1000);
-
-  switch(mode){
+  // tamo.qrCode();
+  switch(tamo.mode){
+    default:
     case NORMAL_TAMO:
       tamo.live();
       break;
     case SLIDESHOW:
+      tamo.slideshow();
       break;
   }
 }
-

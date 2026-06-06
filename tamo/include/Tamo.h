@@ -24,6 +24,8 @@
 #define THOUGHT_OF_SADTHOUGHTS 9 //crying face
 #define THOUGHT_OF_NEUTRALTHOUGHTS 10 //neutral face
 #define THOUGHT_OF_HAPPYTHOUGHTS 11//happy face
+#define THOUGHT_OF_SMOKING 12
+#define THOUGHT_OF_FLOWERS 13
 
 // Moods
 #define MOOD_NEUTRAL 0
@@ -36,6 +38,9 @@
 #define MOOD_RANDOM 7
 #define MOOD_SMOKING 8
 #define MOOD_POOPING 9
+#define MOOD_TALKING 10
+#define MOOD_PECKISH 11
+#define MOOD_QR_CODE 12
 
 // Sprite ID's
 #define IDLE_SPRITE MOOD_NEUTRAL
@@ -44,18 +49,12 @@
 #define HAPPY_SPRITE MOOD_HAPPY
 #define EATING_SPRITE MOOD_EATING
 
-const uint8_t happyThoughts[4] = {THOUGHT_OF_HAPPYTHOUGHTS,THOUGHT_OF_LOVE,THOUGHT_OF_MUSIC,THOUGHT_OF_MONEY};
-const uint8_t neutralThoughts[5] = {THOUGHT_OF_NEUTRALTHOUGHTS,THOUGHT_OF_MUSIC,THOUGHT_OF_MONEY,THOUGHT_OF_REVENGE,THOUGHT_OF_DEATH};
-const uint8_t sadThoughts[5] = {THOUGHT_OF_SADTHOUGHTS,THOUGHT_OF_HEARTBREAK,THOUGHT_OF_DEATH,THOUGHT_OF_REVENGE,THOUGHT_OF_MONEY};
+const uint8_t happyThoughts[7] = {THOUGHT_OF_FLOWERS,THOUGHT_OF_HAPPYTHOUGHTS,THOUGHT_OF_LOVE,THOUGHT_OF_MUSIC,THOUGHT_OF_MONEY,THOUGHT_OF_REVENGE,THOUGHT_OF_SMOKING};
+const uint8_t neutralThoughts[6] = {THOUGHT_OF_NEUTRALTHOUGHTS,THOUGHT_OF_MUSIC,THOUGHT_OF_MONEY,THOUGHT_OF_REVENGE,THOUGHT_OF_DEATH,THOUGHT_OF_SMOKING};
+const uint8_t sadThoughts[6] = {THOUGHT_OF_SADTHOUGHTS,THOUGHT_OF_HEARTBREAK,THOUGHT_OF_DEATH,THOUGHT_OF_REVENGE,THOUGHT_OF_MONEY,THOUGHT_OF_SMOKING};
 
-//health starts at 65535 and goes down every 9s by HEALTH_LOSS or HEALTH_LOSS * 4 if tamo has pooped
-//meaning, with no intervention tamo should die in 65535/HEALTH_LOSS * 9 / 3600
-// ==> 54.6125 hr @ 3 health loss
-// set HL to 2000 to make it last 5min (debugging)
-
-#define HEALTH_LOSS 6
-//feed tamo every 12 hrs
-#define FOOD_HEALTH_RECOVERY (HEALTH_LOSS/9 * 3600 * 12)
+#define HEALTH_LOSS 1
+#define HEALTH_GAIN 10000
 
 #define GOOD_HEALTH_THRESHOLD 55535 //drops to this in 25hrs
 #define BAD_HEALTH_THRESHOLD 32768 //drops to this in 3 days
@@ -74,9 +73,15 @@ const uint8_t sadThoughts[5] = {THOUGHT_OF_SADTHOUGHTS,THOUGHT_OF_HEARTBREAK,THO
 #define NEEDS_TO_SMOKE_BIT 6
 #define RESET_BIT 7
 
-// EEPROM addresses
-#define EEPROM_IDENTITY_ADDR 0
-#define CUSTOM_SPRITE_DATA_ADDR 1
+// EEPROM memory addresses
+#define EEPROM_MODE_ADDR 0
+#define EEPROM_IDENTITY_ADDR 1
+#define EEPROM_HEALTH_ADDR 2//2bytes
+#define EEPROM_STATUS_ADDR 4
+#define EEPROM_SLIDESHOW_FRAME_COUNT_ADDR 6
+#define EEPROM_SLIDESHOW_SPEED_ADDR 7
+#define EEPROM_SLIDESHOW_SLEEP_TIME_ADDR 8
+#define EEPROM_SLIDESHOW_BLINK_TIME_ADDR 9
 
 // #define EEPROM_SIZE 256
 
@@ -96,6 +101,13 @@ const uint8_t sadThoughts[5] = {THOUGHT_OF_SADTHOUGHTS,THOUGHT_OF_HEARTBREAK,THO
 
 #include "Sprite.h"
 
+enum TamoMode:uint8_t{
+  NORMAL_TAMO = 0,
+  SLIDESHOW = 1,
+  TEXT = 2
+};
+
+
 /*
 when tamo sleeps, it needs to jump out of whatever emotion it's in before actually putting itself to sleep. Then 
 mood/state can be changed during sleep, and when he wakes up he'll live() or vibecheck() again to get back to it
@@ -104,23 +116,24 @@ class Tamo{
   public:
     Tamo();
     Sprite sprite;
+    TamoMode mode = NORMAL_TAMO;
     // default: birth sequence
     uint8_t mood = MOOD_BIRTH;
     uint8_t thought = THOUGHT_OF_LOVE;
     int16_t moodTime = 0;
-    uint8_t timeSinceLastCig = 0;
+    uint16_t timeSinceLastCig = 0;
     uint8_t timeSinceLastTalk = 0;
     //status register (volatile so that sleep can be turned off from interrupts)
     volatile uint8_t status = 0b00000000;
     uint8_t identity = NO_IDENTITY;//which sprites to chose from
-    // uint8_t identity = CUSTOM_SPRITE;
     /*
-      health decreases every 8 seconds. Food resets it
+      health decreases every 1 second. Food resets it
     */
-    volatile uint16_t health = 65535;//decreases by 6, so it lasts ~24 hrs. When tamo has pooped, decreases by 12
-    volatile uint16_t hunger = 0;//increases up to 255, at which point tamo can eat. Every 34min
-    // uint16_t healthAddress = 1;//test idea abt writing health to EEPROM, not sure
+    volatile uint16_t health = 65535;//decreases by 1 when hunger is 255, so it lasts 18hrs
+    volatile uint16_t hunger = 0;//increases up to 255, at which point tamo can eat
+    volatile uint16_t updatesSinceLastEEPROMSave = 0;
 
+    void init();
     bool isFeeling();
     void sleepCheck();
     void body();
@@ -128,6 +141,11 @@ class Tamo{
     void live();
     //gets new emotion/current state
     void vibeCheck();
+    void vibeCheck(bool);
+
+    //randomly eat
+    void feedSelf();
+
     //runs the current emotion
     void feel();
     void debugCheckMoodSprites();
@@ -142,9 +160,10 @@ class Tamo{
     void idle();
     void smokeBreak();
     void smokingDamage();
-    void talk(uint8_t t);
+    void talk();
     void poop();
-    void eat();
+    void feed();
+    void eat(const uint16_t *);
     void dead();
     void birth();
     void baby();
@@ -157,4 +176,6 @@ class Tamo{
     bool isCharging(){return getStatusBit(IS_CHARGING_BIT);}
     const uint16_t *  getSprite(uint8_t);
     void batteryCheck();
+    void slideshow();
+    void qrCode();
 };

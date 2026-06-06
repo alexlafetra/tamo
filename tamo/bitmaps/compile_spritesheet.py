@@ -40,6 +40,7 @@ validSprites = [
     'thoughts',
     
     # misc
+    'utils'
     # 'custom_screen_image'
 ]
 
@@ -202,6 +203,16 @@ for i in range(0,len(customSpriteNames),1):
     else:
         dataString += blankSpriteData_1
     totalByteCount += 32
+
+# reserved space for slideshow frames
+MAXIMUM_SLIDESHOW_FRAMES = 16
+for i in range(0,MAXIMUM_SLIDESHOW_FRAMES,1):
+    definesString += "\n#define slideshow_frame_"+str(i)+" "+str(totalByteCount)
+    dataString += "\n\t//slideshow_frame_"+str(i)+" @ "+str(totalByteCount)+": 16x16\n\t"
+    for b in range(0,256,1):
+        dataString+="0,"
+    totalByteCount += 256
+
 
 #Once we've reached the end of our input string, pull the last two
 #characters off (the last comma and space) since we don't need

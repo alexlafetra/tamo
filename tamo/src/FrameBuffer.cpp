@@ -21,7 +21,7 @@ FrameBuffer::FrameBuffer(uint8_t w, uint8_t h){
     if(buffer)
         delete [] buffer;
 
-    bufferSize = width*height/8;
+    bufferSize = uint16_t(width)*uint16_t(height)/8;
     buffer = new uint8_t [bufferSize];
 
     fill(0x00);

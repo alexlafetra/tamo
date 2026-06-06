@@ -11,16 +11,17 @@
 #define BUTTON_PIN PIN_PA2
 #define LED_A PIN_PA6
 #define LED_B PIN_PC0
-#define BATTERY_PIN PIN_PA7
 #define UART_RX_PIN PIN_PB3
 #define UART_TX_PIN PIN_PB2
 
+#define ULTRA_LONG_PRESS_TIME 5000
 #define LONG_PRESS_TIME 1000
 #define DOUBLE_CLICK_TIME 200
 
 // these prob don't need to be volatile, since readButtons() isn't called from an interrupt
 volatile bool BUTTON = false;
 volatile bool LONG_PRESS = false;
+volatile bool ULTRA_LONG_PRESS = false;
 volatile bool DOUBLE_CLICK = false;
 volatile bool SINGLE_CLICK = false;
 
@@ -61,6 +62,9 @@ uint16_t readVcc() {
 
 //reading inputs
 void checkInput(){
+  checkInput(true);
+}
+void checkInput(bool updateLEDs){
   checkSerialConnection();
   uint8_t val = digitalRead(BUTTON_PIN);
   // uint8_t val = (PINB & (1<<PB1));//check the value from the PB1 register
@@ -78,21 +82,21 @@ void checkInput(){
       timeOfLastButtonPress = millis();
     }
     //turn on the LED
-    digitalWrite(LED_A,true);
+    if(updateLEDs)
+      digitalWrite(LED_A,true);
     //set the button flag
     BUTTON = true;
     //check to see if it's been held
     if((millis() - timeOfLastButtonPress) > (LONG_PRESS_TIME) ){
       LONG_PRESS = true;
+      timeOfLastButtonPress = millis();
     }
-    // else{
-    // SINGLE_CLICK = true;
-    // }
   }
   //if the button is released
   else{
     //turn off the LED
-    digitalWrite(LED_A,false);
+    if(updateLEDs)
+      digitalWrite(LED_A,false);
     //if the button *was* held, then you just released it
     if(BUTTON){
       //if it was held for a while, it's a long press
@@ -100,15 +104,17 @@ void checkInput(){
         LONG_PRESS = true;
         DOUBLE_CLICK = false;
         SINGLE_CLICK = false;
+        timeOfLastButtonPress = millis();
       }
       //if it wasn't, then it's a single click
       else{
         SINGLE_CLICK = true;
         LONG_PRESS = false;
         DOUBLE_CLICK = false;
+        timeOfLastButtonPress = millis();
       }
     }
-    //if the button wasn't pressed down before, then don't do anything
+    //if the button wasn't pressed down before, and isn't pressed down now, then don't do anything
     else{
       SINGLE_CLICK = false;
       LONG_PRESS = false;

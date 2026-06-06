@@ -282,6 +282,15 @@ const uint16_t talking_happy[2] = {
 	thought_bubble_sprite,
 	thinking_happy_sprite_1
 };
+const uint16_t talking_smoking[2] = {
+	thought_bubble_sprite,
+	thinking_smoking_sprite
+};
+const uint16_t talking_flowers[3] = {
+	thought_bubble_sprite,
+	thinking_flower_1,
+	thinking_flower_2
+};
 /*
 ----------------------------------
 

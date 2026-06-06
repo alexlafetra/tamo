@@ -12,8 +12,6 @@ const settings = {
   canvasScale : 15,
   currentTool: 'pixel',
   currentColor: 1,
-  lineStarted: false,
-  moveStarted: false,
   overlayGhosting: true,
   showGrid:true,
   foregroundColor: '#ffffff',
@@ -21,26 +19,95 @@ const settings = {
   frameSpeed: 500,
   maxCanvasDimension: 128,
   useAlphaAsBackground: false, //treat empty areas as though they're a color
-  resizeCanvasToImage: false,
+  resizeCanvasToImage: true,
   createSpritesByFileName: true,
   showGrid: true,
-  maxFrames: 2,
+  maxFrames: 16,
   outputColors : {
     foregroundColor:'#ffffff',
     backgroundColor:'#000000'
   },
-  type : 'sprite'
+  type : 'sprite',
+  slideshowSpeed : 1,
+  slideshowSleepTime : 2,
+  slideshowBlinkInterval : 0,
 };
+
+//  const uint16_t slideshow_speeds[] = {0,100,500,1000,2000,5000,10000,60000};
+//  const uint32_t slideshow_sleep_times[] = {0,10000,60000,300000};
+
+function setSlideshowSpeed(event){
+  const slideshow_speeds = [0,100,500,1000,2000,5000,10000,60000];
+  settings.slideshowSpeed = parseInt(event.target.value);
+  const val = slideshow_speeds[settings.slideshowSpeed];
+  settings.frameSpeed = val;
+  let text = '';
+  if(val == 0){
+    text = 'max';
+  }
+  else{
+    let fps = 1000/val;
+    text = fps.toString();
+    text = text.substr(0,4)+'fps';
+  }
+
+  document.getElementById('slideshow_speed_label').innerText = text;
+}
+
+function setSlideshowSleepTimeout(event){
+  const slideshow_sleep_times = [0,10000,60000,300000];
+  settings.slideshowSleepTime = parseInt(event.target.value);
+  const val = slideshow_sleep_times[settings.slideshowSleepTime];
+  let text = '';
+  if(val == 0){
+    text = 'never';
+  }
+  else{
+    if(val/1000 >= 60){
+      text = `${val/60000}min`
+    }
+    else{
+      text = `${val/1000}s`
+    }
+  }
+  document.getElementById('slideshow_sleep_timeout_label').innerText = text;
+
+}
+function setSlideshowBlinkInterval(event){
+  settings.slideshowBlinkInterval = parseInt(event.target.value);
+  let text = '';
+  if(settings.slideshowBlinkInterval){
+    text = settings.slideshowBlinkInterval.toString();
+  }
+  else{
+    text = 'off';
+  }
+  document.getElementById('slideshow_blink_interval_label').innerText = text;
+}
+
+function loadSpriteEditing(){
+  settings.type = 'sprite';
+  document.getElementById('sprite_preview_container').style.display = 'flex';
+  document.getElementById('preset_sprite_templates').style.display = 'block';
+
+}
+function loadSlideshowEditing(){
+  settings.type = 'slideshow';
+  document.getElementById('slideshow_parameter_controls').style.display = 'block';
+  document.getElementById("sprite_name_static").innerText = 'new slideshow';
+  setCanvasScale(3.8);
+
+}
 
 function loadApp(){
   //grabbing some visual settings from url
   const urlParams = new URLSearchParams(window.location.search);//uses the ? string following the url
-  if(urlParams.has('sprite')){
-    settings.type = 'sprite';
+  if(urlParams.has('slideshow')){
+    loadSlideshowEditing();
   }
-  else if(urlParams.has('slideshow')){
-    settings.type = 'slideshow';
-    setImageUploadType('image');
+  // else if(urlParams.has('sprite')){
+  else{
+    loadSpriteEditing();
   }
   let spritesJSON = localStorage.getItem(settings.type);
   if(spritesJSON != undefined){
@@ -57,7 +124,7 @@ function loadApp(){
 //resets the full app
 function resetSprites(){
   pushUndoState();
-  sprites = [Sprite('idle', 16, 16)];
+  loadTemplate(templates[settings.type]);
   currentSprite = 0;
   reloadSpritePreviews();
   updateFramePreviews();
@@ -138,11 +205,14 @@ let resizeDimensions = {
 
 
 const imageUploadSettings = {
-  type : 'sprite', //'sprite' or 'image'
   fit : 'width',
   render : 'atkinson',
+  align: 'center',
   brightness : 1.0,
-  dataURL : null
+  dataURL : null,
+  isGif : false,
+  gifFrames : null,
+  shrinkGifToFit : false
 }
 
 function loadSpritesFromJSON(jsonString){
@@ -235,16 +305,6 @@ function setImageUploadTypeEvent(e){
   setImageUploadType(e.target.innerText);
 }
 
-function setImageUploadType(val){
-  const old = document.getElementById(`${imageUploadSettings.type}_upload_type_button`);
-  imageUploadSettings.type = val;
-  const newButton = document.getElementById(`${imageUploadSettings.type}_upload_type_button`);
-  old.style.color = null;
-  old.style.backgroundColor = null;
-  newButton.style.color = 'yellow';
-  newButton.style.backgroundColor = 'var(--button-highlight-color)';
-}
-
 function setUploadFit(fit){
   const old = document.getElementById(`upload_fit_${imageUploadSettings.fit}`);
   old.style.backgroundColor = null;
@@ -252,7 +312,7 @@ function setUploadFit(fit){
   imageUploadSettings.fit = fit;
   const newElement = document.getElementById(`upload_fit_${imageUploadSettings.fit}`);
   newElement.style.backgroundColor = 'var(--button-highlight-color)';
-  newElement.style.color = "yellow";
+  newElement.style.color = "var(--button-highlight-text-color)";
   renderPreviewImage();
 }
 
@@ -262,8 +322,8 @@ function setRenderAlgorithm(algo){
   old.style.color = null
   imageUploadSettings.render = algo;
   const newButton = document.getElementById(`${imageUploadSettings.render}_algorithm_button`);
-  newButton.style.background = 'blue';
-  newButton.style.color = 'yellow';
+  newButton.style.background = 'var(--button-highlight-color)';
+  newButton.style.color = 'var(--button-highlight-text-color)';
   renderPreviewImage();
 }
 function setRenderBrightness(event){
@@ -319,6 +379,20 @@ function loadSelectedTemplate(event) {
   loadTemplate(templates[event.target.value]);
 }
 
+function toggleImageAlign(){
+  const element = document.getElementById('image_align_button');
+  if(imageUploadSettings.align == 'center'){
+    imageUploadSettings.align = 'left';
+    element.style.color = "var(--text-color)";
+    element.style.background = "var(--button-background-color)";
+  }
+  else{
+    imageUploadSettings.align = 'center';
+    element.style.color = "var(--button-highlight-text-color)";
+    element.style.background = "var(--button-highlight-color)";
+  }
+  renderPreviewImage();
+}
 
 function setAnimationSpeed(event) {
   //set new speed
@@ -331,9 +405,13 @@ function setAnimationSpeed(event) {
   }
 }
 
-function setCanvasScale(event){
-  document.documentElement.style.setProperty('--canvas-scale', event.target.value);
-  settings.canvasScale = parseFloat(event.target.value);
+function setCanvasScaleEventHandler(event){
+  setCanvasScale(event.target.value);
+}
+
+function setCanvasScale(val){
+  document.documentElement.style.setProperty('--canvas-scale',val);
+  settings.canvasScale = parseFloat(val);
 }
 
 function toggleExtraSettingsVisibility(domElement){
@@ -341,7 +419,7 @@ function toggleExtraSettingsVisibility(domElement){
   document.documentElement.style.setProperty('--extra-settings-display', settingsShown?'flex':'none');
   if(domElement){
     domElement.style.backgroundColor = settingsShown?"var(--button-highlight-color)":null;
-    domElement.style.color = settingsShown?"yellow":null;
+    domElement.style.color = settingsShown?"var(--button-highlight-text-color)":null;
     domElement.style.borderBottomLeftRadius = settingsShown?"0px":null;
     domElement.style.borderBottomRightRadius = settingsShown?"0px":null;
     domElement.style.borderBottom = settingsShown?"none":null;
@@ -357,7 +435,7 @@ function showGrid(domElement){
   if(domElement){
     domElement.innerText = "hide grid";
     domElement.style.backgroundColor = "var(--button-highlight-color)";
-    domElement.style.color = "yellow";
+    domElement.style.color = "var(--button-highlight-text-color)";
   }
   document.documentElement.style.setProperty('--grid-visibility', 'visible');
 }
@@ -376,7 +454,7 @@ function togglePreviousFrameOverlay(domElement) {
   if (settings.overlayGhosting) {
     domElement.innerText = "disable overlay";
     domElement.style.background = "var(--button-highlight-color)";
-    domElement.style.color = "yellow";
+    domElement.style.color = "var(--button-highlight-text-color)";
   }
   else {
     domElement.innerText = "enable overlay";
@@ -624,7 +702,7 @@ function setOutputForeground(domElement){
       break;
   }
   domElement.style.backgroundColor = 'var(--button-highlight-color)';
-  domElement.style.color = 'yellow';
+  domElement.style.color = 'var(--button-highlight-text-color)';
 }
 
 function setOutputBackground(domElement){
@@ -654,7 +732,7 @@ function setOutputBackground(domElement){
       break;
   }
   domElement.style.backgroundColor = 'var(--button-highlight-color)';
-  domElement.style.color = 'yellow';
+  domElement.style.color = 'var(--button-highlight-text-color)';
 }
 
 function setTooltip(text) {
@@ -835,15 +913,20 @@ function updateActivePreview(index) {
 let draggedFrame = null;
 function getDragAfterElement(container,e){
   const draggableElements = [...container.querySelectorAll('.preview_canvas:not(.dragging)')];
-  return draggableElements.reduce((closest,child) => {
+  const target = draggableElements.reduce((closest,child) => {
     const box = child.getBoundingClientRect();
     const offsetX = e.clientX-(box.left+box.width/2);
-    const offsetY = (e.clientY+e.target.clientHeight/2)-(box.top+box.height/2);
-    if((offsetX < 0 )&& (offsetX > closest.offset) && offsetY < box.height/2){
-      return {offset:offsetX,element:child};
+    const offsetY = Math.abs((e.clientY+e.target.clientHeight/2)-(box.top+box.height/2));
+    /*
+    something like if offset is negative (it's before the box) & it's the smallest offset (it's closest to this box) 
+    AND it needs to be within 1 height vertically (offsetY) of the box
+    */
+    if((offsetX < 0 ) && (Math.abs(offsetX) < Math.abs(closest.offsetX)) && offsetY < box.height/2 && offsetY < closest.offsetY){
+      return {offsetX:offsetX,offsetY:offsetY,element:child};
     }
     else return closest;
-  },{offset:Number.NEGATIVE_INFINITY}).element;
+  },{offsetX:Number.NEGATIVE_INFINITY,offsetY:Number.POSITIVE_INFINITY});
+  return target.element;
 }
 
 function handleFrameHolderDragOver(e,frameHolder){
@@ -913,6 +996,7 @@ function reloadFramePreviews() {
       document.getElementById('new_canvas_button').style.display = 'none';
     });
     newCanvas.addEventListener('dragend', (e)=>{
+      pushUndoState();
 
       //reorder frames
       const sprite = sprites[currentSprite];
@@ -1028,7 +1112,7 @@ function reloadSpritePreviews() {
     const slot = document.createElement('div');
     if (i == currentSprite) {
       slot.style.background = 'var(--button-highlight-color)';
-      slot.style.color = 'white';
+      slot.style.color = 'var(--button-highlight-text-color)';
     }
 
     //if there's an existing sprite for this slot, draw it

@@ -7,6 +7,7 @@ const commands = {
     SET_IDENTITY : 0x04,
     TAMO_DISCONNECT : 0x05,
     SET_MODE : 0x06,
+    WEBSERIAL_SLIDESHOW_UPLOAD : 0x08
 }
 
 //constants that are stored in EEPROM, define which identity Tamo has when it boots
@@ -127,15 +128,8 @@ function setUploadIdentity(val){
     writeTamoIdentity();
 }
 
-
 function setUploadMode(event){
     uploadMode = event.target.value;
-    let src;
-    if(uploadIdentity == 'NORMAL_MODE')
-        src = "designer/images/preview_sprites/tamo.gif";
-    else if(uploadIdentity == 'SLIDESHOW_MODE')
-        src = "designer/images/preview_sprites/porcini.gif";
-    // document.getElementById("identity_preview_image").src = src;
 }
 
 async function writeTamoIdentity(){
@@ -163,6 +157,44 @@ async function writeTamoIdentity(){
     await port.close();
 }
 
+async function writeTamoMode(){
+//open the port
+    let port;
+    try{
+        port = await navigator.serial.requestPort();
+    }
+    catch(error){
+        console.log(error);
+        return;
+    }
+
+
+    await port.open({ baudRate: 115200 });
+    const modes = {
+        slideshow:SLIDESHOW_MODE,
+        sprite:NORMAL_MODE
+    };
+
+    //clear buffer
+    await clearReadBuffer(port);
+
+    //say hello to tamo
+    console.log("setting identity!");
+    let writer = port.writable.getWriter();
+    await writer.write(new Uint8Array([commands.SET_MODE,modes[settings.type]]));
+    writer.releaseLock();
+    console.log("closing serial port");
+    await port.close();
+}
+
+function uploadData(){
+    if(settings.type == 'sprite')
+        uploadSpriteData();
+    else if(settings.type == 'slideshow')
+        uploadSlideshowData();
+
+}
+
 async function uploadSpriteData(){
     //open the port
     let port;
@@ -183,8 +215,6 @@ async function uploadSpriteData(){
     let writer = port.writable.getWriter();
     await writer.write(new Uint8Array([commands.WEBSERIAL_SPRITE_UPLOAD]));
     writer.releaseLock();
-
-    // await new Promise(resolve => setTimeout(resolve, 1000)); // give ATtiny time to respond
 
     console.log("getting tamo response...")
     let value = await readBytes(port,1);
@@ -210,7 +240,55 @@ async function uploadSpriteData(){
                 organizedSprites[nameIndex] = undefined;
         })
         console.log(organizedSprites);
-        const spriteData = packSpritesIntoByteArray(organizedSprites);
+        const spriteData = packSpritesIntoByteArray(organizedSprites,32);
+        const success = await transmitDataInPackets(spriteData,port);
+        if(success){
+            console.log("wrote all data to tamo!");
+        }
+        else{
+            console.log("error!");
+        }
+        console.log("closing serial port");
+        await port.close();
+    }
+    else{
+        console.log("tamo didn't say hey! Received:");
+        console.log(...value);
+        console.log("closing serial port");
+        await port.close();
+    }
+}
+
+
+async function uploadSlideshowData(){
+    //open the port
+    let port;
+    try{
+        port = await navigator.serial.requestPort();
+    }
+    catch(error){
+        console.log(error);
+        return;
+    }
+
+    await port.open({ baudRate: 115200 });
+    //clear buffer
+    await clearReadBuffer(port);
+
+    //say hello to tamo
+    console.log("hello tamo!");
+    let writer = port.writable.getWriter();
+    await writer.write(new Uint8Array([commands.WEBSERIAL_SLIDESHOW_UPLOAD,sprites[0].frames.length,settings.slideshowSpeed,settings.slideshowSleepTime,settings.slideshowBlinkInterval]));
+    writer.releaseLock();
+
+    console.log("getting tamo response...")
+    let value = await readBytes(port,1);
+
+    // console.log(commands.TAMO_HELLO);
+    if(value[0] == commands.TAMO_HELLO){
+        console.log("tamo says hello!");
+
+        const spriteData = packSpritesIntoByteArray(sprites,256);
         const success = await transmitDataInPackets(spriteData,port);
         if(success){
             console.log("wrote all data to tamo!");

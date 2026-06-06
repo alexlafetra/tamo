@@ -4,8 +4,8 @@
 
 class FrameBuffer{
     public:
-    uint8_t width = 32;
-    uint8_t height = 32;
+    uint16_t width = 32;
+    uint16_t height = 32;
     uint8_t* buffer = nullptr;
     uint16_t bufferSize = 0;
     FrameBuffer();

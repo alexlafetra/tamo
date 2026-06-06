@@ -81,7 +81,12 @@ function drawDataURLToCanvas(url,sprite,startFrame,index,resolve){
         tempCanvas.width = sprite.width;
         tempCanvas.height = sprite.height;
         const ctx = tempCanvas.getContext('2d');
-        ctx.drawImage(img, 0, 0);
+        let offsetX = 0,offsetY = 0;
+        if(imageUploadSettings.align == 'center'){
+            offsetX = (tempCanvas.width - img.width)/2;
+            offsetY = (tempCanvas.height - img.height)/2;
+        }
+        ctx.drawImage(img, offsetX, offsetY,);
 
         //make new frames as needed
         while (index >= sprite.frames.length) {
@@ -146,6 +151,28 @@ async function processSpriteFiles(fileList, sprite, startFrame) {
     updateCanvas();
 }
 
+//draws a gif frame from the gifuct decompressFrames() function
+//to a canvas, then converts it to a dataurl
+function gifFrameToDataURL(frame){
+    console.log(frame);
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = frame.dims.width;
+    tempCanvas.height = frame.dims.height;
+
+
+    const ctx = tempCanvas.getContext('2d');
+    const imageData = ctx.createImageData(tempCanvas.width,tempCanvas.height);
+    // set the patch data as an override
+    imageData.data.set(frame.patch)
+
+    // draw the patch back over the canvas
+    ctx.putImageData(imageData, 0, 0)
+
+    const dataURL = tempCanvas.toDataURL();
+    tempCanvas.remove();
+    return dataURL;
+}
+
 //for dithering/processing normal images
 async function handleImageUpload(event){
     let fileList = event.target.files;
@@ -161,12 +188,34 @@ async function handleImageUpload(event){
 
             //skip if it's a gif
             if (file.type == 'image/gif') {
-                resolve();
+                const reader = new FileReader();
+                reader.onload = function () {
+                    //get array buffer from the file reader
+                    const arrayBuffer = reader.result;
+
+                    //idk but recommended by the docs: https://github.com/matt-way/gifuct-js
+                    if (arrayBuffer) {
+                        //build gif object
+                        const gif = parseGIF(arrayBuffer);
+
+                        //get frame data (pass false bc we don't need to turn it into colors for drawing)
+                        const gifFrames = decompressFrames(gif, true);
+                        imageUploadSettings.isGif = true;
+                        imageUploadSettings.gifFrames = gifFrames;
+                        imageUploadSettings.dataURL = gifFrameToDataURL(gifFrames[0]);
+                        renderPreviewImage();
+                    }
+                    resolve();
+                }
+                reader.readAsArrayBuffer(file);
+
             }
             else{
                 const reader = new FileReader();
                 //callback once the file is read
                 reader.onload = function () {
+                    imageUploadSettings.isGif = false;
+                    imageUploadSettings.gifFrames = null;
                     imageUploadSettings.dataURL = reader.result;
                     renderPreviewImage();
                     resolve();

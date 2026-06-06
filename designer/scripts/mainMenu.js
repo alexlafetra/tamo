@@ -27,7 +27,7 @@ function buildCylinder(){
 function togglePanel(className,trigger){
     const parentContainers = document.getElementsByClassName(className);
     const isOpening = !parentContainers[0].children[0].style.animation.includes('open');
-    trigger.style.backgroundColor = isOpening?"blue":null;
+    trigger.style.backgroundColor = isOpening?"var(--button-highlight-color)":null;
     trigger.style.color = isOpening?"white":null;
     for(let container of parentContainers){
         for(let i of container.children){

@@ -34,6 +34,11 @@
     --resize-box-start-x: 0px;
     --resize-box-start-y: 0px;
 
+    /* image fit preview */
+    --fit-preview-top: 0;
+    --fit-preview-left: 0;
+    --fit-preview-scale: 1;
+
     /* mouse cursor */
     --cursor-x:2px;
     --cursor-y:8px;
@@ -62,13 +67,15 @@
         --drop-shadow-color: transparent;
         --button-highlight-color: rgb(20, 0, 155);
         /* --button-highlight-text-color:yellow; */
-        --button-highlight-text-color:rgb(235, 255, 179);
-        --button-background-color: blue;
+        --button-highlight-text-color:#110245;
+        --button-background-color: #2a0062;
+        --button-highlight-color:rgb(235, 255, 179);
         /* --button-border:1px solid rgb(255, 255, 255); */
         --button-border:1px solid rgb(235, 255, 179);
-        --background-color: rgb(0, 0, 76);
+        --background-color: #110245;
         --text-color:rgb(235, 255, 179);
     }
+    
 }
 
 html{
@@ -166,7 +173,7 @@ select{
     grid-area:about;
     width:300px;
     position:relative;
-    color:blue;
+    color:var(--button-highlight-color);
     /* filter:url(#goo); */
 }
 #about_container .sprite_gif_bg{
@@ -309,7 +316,7 @@ select{
 }
 .menu_button_label_text{
     color:white;
-    background:blue;
+    background:var(--button-highlight-color);
 }
 
 .sprite_gif_bg{
@@ -350,8 +357,8 @@ select{
     grid-area:designer;
 }
 #designer_controls a{
-    color:yellow;
-    background:blue;
+    color:var(--text-color);
+    background:var(--button-highlight-color);
     font-weight:bold;
 }
 #designer_controls a:hover{
@@ -391,7 +398,45 @@ select{
                         "template canvas_and_tools image_preview"
                         "export_controls canvas_and_tools image_preview"
                         "import_controls canvas_and_tools image_preview"
-                        "settings settings settings";
+                        "settings settings keyboard_shortcuts";
+}
+.big_undo_button{
+    display:none;
+    width:50px;
+    /* height:50px; */
+    padding:4px;
+    transition:0.2s;
+    cursor:pointer;
+    align-items: center;
+    justify-content: center;
+    justify-items: center;
+    align-content: center;
+    border:var(--button-border);
+    border-radius:20px;
+}
+#keyboard_shortcut_info_container{
+    /* display:flex; */
+    display:none;
+    flex-direction:column;
+    grid-area:keyboard_shortcuts;
+    padding:4px;
+    width:fit-content;
+}
+.cmd_symbol{
+    font-size:22px;
+    position:relative;
+    top:0.22em;
+}
+.keyboard_shortcut{
+    color:var(--button-highlight-color);
+    font-size:12px;
+    width:fit-content;
+}
+.keyboard_shortcut_section_header{
+    color:var(--button-background-color);
+    background:var(--button-highlight-color);
+    /* text-decoration: underline; */
+    width:fit-content;
 }
 
 #canvas_and_tools{
@@ -404,8 +449,23 @@ select{
                         "frame_tools canvas"
                         "frame_tools frames";
 }
+.slider_label{
+    margin:0px auto;
+    padding-top:6px;
+    justify-self: left;
+}
+.slider_value_label{
+    padding-left:10px;
+}
+#slideshow_parameter_controls{
+    display:none;
+    grid-area:spritesheet template;
+    width:fit-content;
+    max-width: 100px;
+}
 
 #preset_sprite_templates{
+    display:none;
     width:fit-content;
     height:fit-content;
     grid-area:template;
@@ -436,7 +496,8 @@ select{
     cursor:pointer;
 }
 .sprite_preset_preview:hover{
-    background:blue;
+    background:var(--button-highlight-color);
+    /* mix-blend-mode: difference; */
 }
 
 #frame_controls{
@@ -470,15 +531,25 @@ select{
 #uploaded_image_settings{
     gap:10px;
     max-width:100px;
+    width:fit-content;
     align-items: center;
     justify-items: center;
-    /* background-color: var(--button-background-color); */
+    background-color: var(--background-color);
     border-radius: 20px;
     border:var(--button-border);
     padding:10px;
     cursor:auto;
     grid-area:image_preview;
     flex-direction: column;
+}
+#canvas_fit_preview{
+    display:block;
+    position:absolute;
+    width:calc(var(--fit-preview-scale) * var(--sprite-width));
+    height:calc(var(--fit-preview-scale) * var(--sprite-height));
+    top:calc(var(--fit-preview-scale) * var(--fit-preview-top) - 1px);
+    left:calc(var(--fit-preview-scale) * var(--fit-preview-left) - 1px);
+    border:dashed 2px var(--button-highlight-color);
 }
 #draw_image_preview{
     background:rgb(9, 255, 0);
@@ -720,7 +791,7 @@ select{
 }
 
 #sprite_preview_container{
-    display:flex;
+    display:none;
     flex-direction: column;
     grid-area:spritesheet;
     width:fit-content;
@@ -766,7 +837,7 @@ select{
 }
 
 #sprite_name_textarea{
-    color:white;
+    color:var(--button-highlight-text-color);
     background-color: var(--button-highlight-color);
     border:none;
     border-radius:2px;
@@ -788,7 +859,7 @@ select{
 }
 #sprite_name_static:hover{
     background-color: var(--button-highlight-color);
-    color:white;
+    color:var(--button-highlight-text-color);
 }
 
 #tooltip_text{
@@ -880,23 +951,33 @@ select{
     font-family:chopin;
     font-size:30px;
 }
+
+#upload_controls{
+    width:fit-content;
+    height:fit-content;
+    display:flex;
+    cursor:pointer;
+    border-radius: 10px;
+    transition:0.1s;
+    flex-direction: column;
+    gap:2px;
+    grid-area: import_controls;
+    /* align-items: center; */
+}
 #upload_controls img{
+    margin:auto;
     image-rendering: pixelated;
     width:30px;
     mix-blend-mode:difference;
     align-self: center;
     padding-right:4px;
 }
-#upload_controls{
-    padding:4px;
-    grid-area: import_controls;
-}
 
 #download_controls_container{
     grid-area:export_controls;
     display:flex;
     flex-direction: column;
-    gap:10px;
+    gap:4px;
     width:fit-content;
     height:fit-content;
 }
@@ -911,7 +992,7 @@ select{
 }
 #download_controls:hover{
     background-color: var(--button-highlight-color);
-    color:yellow;
+    color:var(--button-highlight-text-color);
 }
 #download_controls:hover .button{
     mix-blend-mode: difference;
@@ -945,9 +1026,13 @@ select{
     image-rendering: pixelated;
     display:none;
     filter:drop-shadow(4px 4px 2px var(--drop-shadow-color));
-    padding-bottom:10px;
-    padding-top:10px;
+    position:relative;
+}
+#uploaded_image_preview{
     margin:auto;
+    margin-bottom:10px;
+    margin-top:10px;
+    position:relative;
 }
 
 .tool_icon{
@@ -1011,7 +1096,7 @@ select{
 }
 .button:hover{
     background-color:var(--button-highlight-color);
-    color:yellow;
+    color:var(--button-highlight-text-color);
     border: 1px solid var(--button-highlight-color);
 }
 .tool_button img{
@@ -1044,7 +1129,7 @@ select{
 }
 .dimension_input:hover{
     background-color:var(--button-highlight-color);
-    color:#ffffff;
+    color:var(--button-highlight-text-color);
 }
 .transparent_img_drop_shadow{
     filter:drop-shadow(4px 4px 2px var(--drop-shadow-color));
@@ -1057,7 +1142,7 @@ select{
 }
 
 .debug_text{
-    color:blue;
+    color:var(--button-highlight-color);
     font-style: italic;
     font-size: 10px;
     position:fixed;
@@ -1108,24 +1193,6 @@ select{
 #serial_connection_icon{
     width:20px;
     height:20px;
-}
-
-#upload_controls{
-    width:fit-content;
-    height:fit-content;
-    display:flex;
-    cursor:pointer;
-    border-radius: 10px;
-    /* border:var(--button-border); */
-    margin:2px;
-    /* padding:4px; */
-    transition:0.1s;
-    /* background-color: var(--button-background-color); */
-    flex-direction: column;
-    gap:10px;
-}
-#upload_controls img{
-    margin:auto;
 }
 
 #pixel_editing_tools{
@@ -1185,26 +1252,9 @@ select{
                             "hardware_gif hardware_gif"
                             "settings settings";
     }
-    /* #canvas_and_tools{
-        grid-area:canvas_and_tools;
-        display:grid;
-        grid-template-columns: min-content min-content;
-        grid-template-rows: min-content min-content;
-        grid-template-areas:
-                            "sprite_name sprite_name"
-                            "pixel_tools pixel_tools"
-                            "frame_tools canvas"
-                            "frame_tools frames";
-    } */
-    #sprite_preset_previews{
-        /* width:26px; */
+    .big_undo_button{
+        display:flex;
     }
-    /* #preset_sprite_templates{
-        position:absolute;
-        left:20px;
-        top:100px;
-    } */
-
 
     #uploaded_image_settings{
         flex-direction: row;

@@ -38,7 +38,7 @@ void Sprite::showCurrentFrame(bool clearScreen,bool updateDisplay){
   fbo.bitmap_from_spritesheet(xCoord,yCoord,width,height,frames[currentFrame]);
   if(updateDisplay){
     // printScreenToSerial();
-    oled.renderFBO2x(4,0,36,3,fbo.buffer);
+    oled.renderFBO2x(4,0,32,4,fbo.buffer);
   }
 }
 void Sprite::showCurrentFrame(){

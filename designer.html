@@ -6,8 +6,6 @@
   <link rel="icon" type="image/gif" href="designer/images/sprites/tamo_idle.gif" />
   <link rel="stylesheet" href="designer/style.css">
   <script src="designer/scripts/lib/jszip.min.js"></script>
-  <!-- <script src="designer/scripts/lib/p5.min.js"></script> -->
-  <!-- <script src="designer/scripts/lib/p5.webserial.js"></script> -->
   <script src="designer/scripts/lib/CanvasToBMP.js"></script>
   <script src="designer/scripts/lib/gifuct-browser.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/gif.js/dist/gif.js"></script>
@@ -40,6 +38,26 @@
           <div id="bug_gif" class="title_image"></div>
           <div id="boto_gif" class="title_image"></div>
         </div>
+        <!-- keyboard shortcuts -->
+        <div id = "keyboard_shortcut_info_container">
+          <!-- pixel editing tools -->
+          <div class = "keyboard_shortcut_section_header">[ pixel editing ]</div>
+          <div class = "keyboard_shortcut">+ [shift] - toggle color</div>
+          <div class = "keyboard_shortcut">+ p - pixel</div>
+          <div class = "keyboard_shortcut">+ l - line</div>
+          <div class = "keyboard_shortcut">+ r - rectangle</div>
+          <div class = "keyboard_shortcut">+ c - circle</div>
+          <div class = "keyboard_shortcut">+ f - fill</div>
+          <!-- frame editing tools -->
+          <div class = "keyboard_shortcut_section_header">[ frame editing ]</div>
+          <div class = "keyboard_shortcut">+ s - select</div>
+          <div class = "keyboard_shortcut">+ m - move</div>
+          <div class = "keyboard_shortcut_section_header">[ misc. ]</div>
+          <div class = "keyboard_shortcut">+ [space] - play/pause</div>
+          <div class = "keyboard_shortcut">+ [ < / > ] - change frame</div>
+          <div class = "keyboard_shortcut">+ [ ^ / v ] - change sprite</div>
+          <!-- <div class = "keyboard_shortcut"><span class = "cmd_symbol">⌘</span>c -- copy</div> -->
+        </div>
         <!-- extra settings -->
         <div id="extra_settings_container">
           <div id="extra_settings_button" class="button" onclick="toggleExtraSettingsVisibility(this)"><img
@@ -59,7 +77,7 @@
               </div>
               <div class="button_holder">
                 <div id="resize_alignment_settings">
-                  <label class="ui_label" for="resize">align with...</label>
+                  <label class="ui_label" for="resize">align to...</label>
                   <select class="button" name="resize" id="resize_select" onchange="setResizeAlignment(event)">
                     <option value="center">center</option>
                     <option value="top left">top left</option>
@@ -70,10 +88,10 @@
             </div>
             <!-- canvas overlays -->
             <div class="button_holder" style="flex-direction: column;">
-              <div class="button" style="background-color:var(--button-highlight-color);color:yellow;"
+              <div class="button" style="background-color:var(--button-highlight-color);color:var(--button-highlight-text-color);"
                 onclick="toggleGridVisibility(this);">hide
                 grid</div>
-              <div class="button" style="background-color:var(--button-highlight-color);color:yellow;"
+              <div class="button" style="background-color:var(--button-highlight-color);color:var(--button-highlight-text-color);"
                 onclick="togglePreviousFrameOverlay(this);">
                 disable overlay</div>
               <div class="button" onclick="exportCompleteSpritesheet()">
@@ -91,7 +109,7 @@
               <div class="button_holder" style="flex-direction:column; justify-content: center; width:100%;">
                 <input type="range" onmouseenter="setTooltip('canvas size')" class="control_slider"
                   id="canvas_scale_slider" name="ms" min="0.1" max="20" step="0.1" value="15"
-                  oninput="setCanvasScale(event);checkCanvasOverflowBounds();" />
+                  oninput="setCanvasScaleEventHandler(event);checkCanvasOverflowBounds();" />
               </div>
             </div>
 
@@ -101,7 +119,7 @@
               </div>
               <div id="output_foreground_settings" class="color_settings">
                 <div class="button" id="foreground_white" onclick="setOutputForeground(this)"
-                  style="color:yellow;background:var(--button-highlight-color);">white</div>
+                  style="color:var(--button-highlight-text-color);background:var(--button-highlight-color);">white</div>
                 <div class="button" id="foreground_black" style="color:white; background:black;"
                   onclick="setOutputForeground(this)">black</div>
                 <div class="button" id="foreground_transparent" style="color:gray; border:1px dashed gray;"
@@ -113,7 +131,7 @@
               <div id="output_background_settings" class="color_settings">
                 <div class="button" id="background_white" onclick="setOutputBackground(this)">white</div>
                 <div class="button" id="background_black"
-                  style="color:yellow; background:var(--button-highlight-color);" onclick="setOutputBackground(this)">
+                  style="color:var(--button-highlight-text-color); background:var(--button-highlight-color);" onclick="setOutputBackground(this)">
                   black</div>
                 <div class="button" id="background_transparent" style="color:gray; border:1px dashed gray;"
                   onclick="setOutputBackground(this)">transparent</div>
@@ -131,6 +149,7 @@
             </div>
             <div id="uploaded_image_preview">
               <canvas id="image_preview"></canvas>
+              <div id = "canvas_fit_preview"></div>
             </div>
             <div id="clear_image_preview" class="tool_button button" onmouseenter="setTooltip('delete image')"
               onclick="clearPreviewImage()">
@@ -142,7 +161,7 @@
             <!-- render algorithm-->
             <div style="display:flex; flex-direction:column;width:fit-content;margin:auto 0;">
               <div class = "ui_label">dither:</div>
-              <div class="button_holder">
+              <div class="button_holder" style = "margin:auto;width:fit-content;">
                 <div id="atkinson_algorithm_button" class="button tool_button" onclick="setRenderAlgorithm('atkinson')"
                   style="flex-direction: column;" onmouseenter="setTooltip('atkinson dithering')"><img
                     src="designer/images/icons/atkinson.png"></div>
@@ -161,11 +180,14 @@
             <div style="display:flex; flex-direction:column;">
               <div class = "ui_label">resize to fit:</div>
               <div class="button_holder">
-                <div class="button" id="upload_fit_width" style="color:yellow;background:var(--button-highlight-color);"
+                <div class="button" id="upload_fit_width" style="color:var(--button-highlight-text-color);background:var(--button-highlight-color);"
                   onclick="setUploadFit('width')" onmouseenter="setTooltip('fit canvas width')">width</div>
                 <div class="button" id="upload_fit_height" onclick="setUploadFit('height')"
                   onmouseenter="setTooltip('fit canvas height')">height</div>
               </div>
+            </div>
+            <div class="button_holder" style = "width:fit-content;margin:auto;">
+              <div id = "image_align_button" class = "button" style = "color:var(--button-highlight-text-color);background:var(--button-highlight-color);" onclick = "toggleImageAlign()">center</div>
             </div>
           </div>
         </div>
@@ -213,7 +235,7 @@
           <div
             style="padding:10px;border:none;background:var(--button-highlight-color);flex-direction: column; border-radius: 20px;">
             <img id="upload_icon" src="designer/images/icons/upload_icon.gif">
-            <div class="button tool_button" id="upload_sprites_button" onclick="uploadSpriteData()"
+            <div class="button tool_button" id="upload_sprites_button" onclick="uploadData()"
               onmouseenter="setTooltip('flash to tamo');">
               <div class="ui_label">upload to Tamo</div>
             </div>
@@ -222,11 +244,35 @@
             </div>
           </div>
         </div>
+        <!-- slideshow controls -->
+        <div id = "slideshow_parameter_controls">
+            <div style = "width:fit-content;margin:auto;padding-bottom:4px;">slideshow:</div>
+            <div class="button_holder" style="flex-direction:column; border:var(--button-border);border-radius:10px;padding:10px;">
+              <div class = "slider_label">--speed--</div>
+              <div class='button_holder' style="flex-direction:column;align-items: center;">
+                <input type="range" class="control_slider" id="frame_speed_slider"min="0" max="7"
+                  step="1" value = "3" oninput="setSlideshowSpeed(event)">
+                <div class = "slider_value_label" id="slideshow_speed_label">1fps</div>
+              </div>
+              <div class = "slider_label">--sleep--</div>
+                <div class='button_holder' style="flex-direction:column;align-items: center;">
+                <input type="range" class="control_slider" id="frame_speed_slider" min="0" max="3"
+                  step="1" value = "3" oninput="setSlideshowSleepTimeout(event)">
+                <div class = "slider_value_label" id="slideshow_sleep_timeout_label">5min</div>
+              </div>
+              <div class = "slider_label">--blink--</div>
+                <div class='button_holder' style="flex-direction:column;align-items: center;">
+                <input type="range" class="control_slider" id="blink_interval_slider" min="0" max="255"
+                  step="1" value = "0" oninput="setSlideshowBlinkInterval(event)">
+                <div class = "slider_value_label" id="slideshow_blink_interval_label">off</div>
+              </div>
+            </div>
+        </div>
 
         <!-- sprite previews/checklist -->
         <div id="sprite_preview_container">
           <!-- name -->
-          <div style="padding:10px; width:fit-content;margin:auto;">~spritesheet~</div>
+          <div style="padding-bottom:4px;width:fit-content;margin:auto;">~spritesheet~</div>
           <!-- spritesheet preview -->
           <div id="sprite_previews"></div>
         </div>
@@ -250,7 +296,7 @@
             <div id="sprite_name_container"
               style="height:fit-content;display:flex;flex-direction: row; align-content:center;">
               <div id="sprite_name_static" ondblclick="editName()" onmouseenter="setTooltip('rename');">new sprite</div>
-              <div id="name_exclamation_mark" style="display:flex;align-items:center;font-size:18px;white-space: pre;">!
+              <div id="name_exclamation_mark" style="font-size:18px;white-space: pre;height:0px;">!
               </div>
             </div>
           </div>
@@ -280,9 +326,9 @@
             <div id="misc_buttons" style="display:flex;flex-direction: row;">
               <div style="width:80px;height:40px;border-radius: 40px;" class="tool_button button" onmouseenter="setTooltip('play [space]')"
                 onclick="togglePlayback()"><img id = "play_icon" class="tool_icon" src="designer/images/icons/play_icon.bmp"></div>
-              <div class="tool_button button" onmouseenter="setTooltip('undo [cmd Z]')" onclick="undo()"><img
+              <div class="tool_button big_undo_button" onmouseenter="setTooltip('undo [cmd Z]')" onclick="undo()"><img
                   style="width:40px;height:100%;" src="designer/images/icons/undo_icon.gif"></div>
-              <div class="tool_button button" onmouseenter="setTooltip('redo [cmd shift Z]')" onclick="redo()"><img
+              <div class="tool_button big_undo_button" onmouseenter="setTooltip('redo [cmd shift Z]')" onclick="redo()"><img
                   style="width:40px;height:100%;" src="designer/images/icons/redo_icon.gif"></div>
             </div>
           </div>

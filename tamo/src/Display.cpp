@@ -105,9 +105,8 @@ void SSD1306Device::begin(){
 	}
 	ssd1306_send_stop();
 
-	// zoom the oled in
-	enableZoomIn();//Need this so the sprites aren't all weird
 	setRotation(2);//flip display upside-down
+	disableFadeOutAndBlinking();
 	on();
 	clear();
 }
@@ -194,12 +193,15 @@ void SSD1306Device::bitmap(uint8_t x0, uint8_t y0, uint8_t x1, uint8_t y1,  uint
 }
 
 void SSD1306Device::renderFBO(uint8_t x0, uint8_t y0, uint8_t w, uint8_t h,  uint8_t* bitmap) {
+	//just in case
+	disableZoomIn();
 	uint16_t j = 0;
  	for (uint8_t y = 0; y <= h; y++) {
 		setCursor(x0,y);
 		ssd1306_send_data_start();
 		for (uint8_t x = 0; x < w; x++) {
-			ssd1306_send_data_byte(*(bitmap+j++));
+			ssd1306_send_data_byte(*(bitmap+j));
+			j++;
 		}
 		ssd1306_send_stop();
 	}
@@ -207,13 +209,14 @@ void SSD1306Device::renderFBO(uint8_t x0, uint8_t y0, uint8_t w, uint8_t h,  uin
 }
 
 void SSD1306Device::renderFBO2x(uint8_t x0, uint8_t y0, uint8_t w, uint8_t h,  uint8_t* bitmap) {
+	enableZoomIn();
 	uint16_t j = 0;
  	for (uint8_t y = 0; y <= h; y++) {
 		setCursor(x0,y);
 		ssd1306_send_data_start();
 		for (uint8_t x = 0; x < w; x++) {
 			ssd1306_send_data_byte(*(bitmap+j));
-			ssd1306_send_data_byte(*(bitmap+j++));
+			ssd1306_send_data_byte(*(bitmap+(j++)));
 		}
 		ssd1306_send_stop();
 	}
@@ -244,6 +247,10 @@ void SSD1306Device::bitmap_from_spritesheet(uint8_t x0, uint8_t y0, uint8_t w, u
 	bitmap_from_spritesheet(x0,y0,w,h,offset,false);
 }
 void SSD1306Device::bitmap_from_spritesheet(uint8_t x0, uint8_t y0, uint8_t w, uint8_t h, uint16_t offset, bool twoTimesScale) {
+	if(twoTimesScale)
+		enableZoomIn();
+	else
+		disableZoomIn();
 	uint16_t j = 0;
 	uint16_t y1 = abs(y0 - h)/8;
  	for (uint8_t y = y0; y <= y1; y++) {
@@ -500,16 +507,16 @@ void SSD1306Device::disableFadeOutAndBlinking(void) {
 }
 
 void SSD1306Device::enableZoomIn(void) {
-	if(zoomed)
-		return;
-	zoomed = true;
+	// if(zoomed)
+	// 	return;
+	// zoomed = true;
 	ssd1306_send_command2(0xD6, 0x01);
 }
 
 void SSD1306Device::disableZoomIn(void) {
-	if(!zoomed)
-		return;
-	zoomed = false;
+	// if(!zoomed)
+	// 	return;
+	// zoomed = false;
 	ssd1306_send_command2(0xD6, 0x00);
 }
 
