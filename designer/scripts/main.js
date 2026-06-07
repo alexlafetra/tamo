@@ -93,6 +93,7 @@ function loadSpriteEditing(){
 }
 function loadSlideshowEditing(){
   settings.type = 'slideshow';
+  hideGrid();
   document.getElementById('slideshow_parameter_controls').style.display = 'block';
   document.getElementById("sprite_name_static").innerText = 'new slideshow';
   setCanvasScale(3.8);
@@ -115,6 +116,7 @@ function loadApp(){
   }
   else{
     loadTemplate(templates[settings.type]);
+    currentSprite = 0;
   }
   reloadSpritePreviews();
   updateFramePreviews();
@@ -367,10 +369,10 @@ function loadTemplate(template) {
   document.documentElement.style.setProperty('--sprite-height', `${template.height}px`);
   document.documentElement.style.setProperty('--background-width', `${100 / template.width}%`);
   document.documentElement.style.setProperty('--background-height', `${100 / template.height}%`);
-  if(template.defaultCanvasScale){
-    document.documentElement.style.setProperty('--canvas-scale', `${template.defaultCanvasScale}`);
-    settings.canvasScale = template.defaultCanvasScale;
-  }
+  // if(template.defaultCanvasScale){
+  //   document.documentElement.style.setProperty('--canvas-scale', `${template.defaultCanvasScale}`);
+  //   settings.canvasScale = template.defaultCanvasScale;
+  // }
   reloadSpritePreviews();
   updateFramePreviews();
 }

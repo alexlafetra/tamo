@@ -6,7 +6,7 @@ const commands = {
     REQUEST_NEXT_SPRITE_PACKET : 0x03,
     SET_IDENTITY : 0x04,
     TAMO_DISCONNECT : 0x05,
-    SET_MODE : 0x06,
+    SET_MODE : 0x07,
     WEBSERIAL_SLIDESHOW_UPLOAD : 0x08
 }
 
@@ -157,7 +157,7 @@ async function writeTamoIdentity(){
     await port.close();
 }
 
-async function writeTamoMode(){
+async function writeTamoMode(which){
 //open the port
     let port;
     try{
@@ -170,18 +170,18 @@ async function writeTamoMode(){
 
 
     await port.open({ baudRate: 115200 });
-    const modes = {
-        slideshow:SLIDESHOW_MODE,
-        sprite:NORMAL_MODE
+    const modeValues = {
+        slideshow:modes.SLIDESHOW_MODE,
+        sprite:modes.NORMAL_MODE
     };
 
     //clear buffer
     await clearReadBuffer(port);
 
     //say hello to tamo
-    console.log("setting identity!");
+    console.log("setting mode!");
     let writer = port.writable.getWriter();
-    await writer.write(new Uint8Array([commands.SET_MODE,modes[settings.type]]));
+    await writer.write(new Uint8Array([commands.SET_MODE,modeValues[which]]));
     writer.releaseLock();
     console.log("closing serial port");
     await port.close();
@@ -258,7 +258,6 @@ async function uploadSpriteData(){
         await port.close();
     }
 }
-
 
 async function uploadSlideshowData(){
     //open the port

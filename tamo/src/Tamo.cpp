@@ -16,7 +16,7 @@ void Tamo::init(){
   mode = TamoMode(EEPROM.read(EEPROM_MODE_ADDR));
   identity = EEPROM.read(EEPROM_IDENTITY_ADDR);
   health = uint16_t(EEPROM.read(EEPROM_HEALTH_ADDR))<<8 | uint16_t(EEPROM.read(EEPROM_HEALTH_ADDR+1));
-  status = EEPROM.read(EEPROM_STATUS_ADDR);
+  // status = EEPROM.read(EEPROM_STATUS_ADDR); //this is causing weird problems with sleep, smoking on reboot
   setStatusBit(NEEDS_TO_SMOKE_BIT,false);
 }
 
@@ -180,11 +180,11 @@ void Tamo::body(){
     timeSinceLastCig = 0;
     return;
   }
-  if(isAsleep() &&  !getStatusBit(IS_DEAD_BIT) && randomInt(240)){
-    mood = MOOD_PECKISH;
-    setStatusBit(IS_ASLEEP_BIT,false);
-    return;
-  }
+  // if(isAsleep() &&  !getStatusBit(IS_DEAD_BIT) && randomInt(240)){
+  //   mood = MOOD_PECKISH;
+  //   setStatusBit(IS_ASLEEP_BIT,false);
+  //   return;
+  // }
   
 
   uint8_t healthLoss = 0;
@@ -447,11 +447,11 @@ void Tamo::feed(){
     drawReticle(counter>48);
     oled.renderFBO2x(4,0,32,4,fbo.buffer);
     checkInput();
-    if(LONG_PRESS && itsbeen(1000)){
-      // qrCode();
-      EEPROM.update(EEPROM_MODE_ADDR,SLIDESHOW);
-      mode = SLIDESHOW;
-      return;
+    if(ULTRA_LONG_PRESS){
+      qrCode();
+      // EEPROM.update(EEPROM_MODE_ADDR,SLIDESHOW);
+      // mode = SLIDESHOW;
+      // return;
     }
     if(SINGLE_CLICK && itsbeen(500)){
       break;
@@ -851,7 +851,7 @@ void Tamo::vibeCheck(bool updateThought){
     mood = MOOD_TALKING;
 
   //if you need to poop, there's a 1/3 chance you'll poop
-  if(needsToPoop() && !randomInt(3)){
+  if(needsToPoop() && randomInt(240) == 0){
     mood = MOOD_POOPING;
   }
   

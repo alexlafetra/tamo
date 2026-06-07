@@ -24,8 +24,9 @@
   <!-- <script src="designer/scripts/main.js" defer></script> -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>tamo</title>
-    <svg>
-        <filter id="goo">
+    <svg style = "display:none;">
+        <filter id="goo" x="-50%" y="-50%" width="200%" height="200%"
+        color-interpolation-filters="sRGB">
             <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="blur" />
             
             <!-- threshold -->
@@ -40,7 +41,7 @@
             "
             result="goo"
             />
-
+            <!-- <feComposite in="SourceGraphic" in2="goo" operator="over"/> -->
             <feComposite in="SourceGraphic" in2="goo" operator="atop"/>
         </filter>
     </svg>
@@ -52,15 +53,7 @@
         <div id="title_gif" class="transparent_img_drop_shadow title_image"></div>
     </div>
     <div id = "main_menu">
-        <div id = "purchase_links_container">
-            <!-- <img src = "designer/images/icons/money.gif" class = "money_gif"> -->
-            <a  style = "padding:4px;border-radius:0px;margin:auto;white-space: pre;" href = "manual.html" class = "main_menu_button">{{(($$ quickstart $$))}}</a>
-            <!-- <img src = "designer/images/icons/money.gif" class = "money_gif"> -->
-        </div>
         <div id = "about_container">
-            <!-- <div>
-                //about
-            </div> -->
             <div>
                 Nonperformance tamo is a digital life
             </div>
@@ -68,30 +61,61 @@
         <!-- experimenting w cylinder idea! -->
         <div class="scene" id = "cylinder_container">
             <div class="foreground">
-                <!-- <img id = "main_menu_hardware_gif" src= "designer/images/gif_optimized.gif"> -->
                 <img id = "main_menu_hardware_gif" src= "designer/images/combined_optimized.gif">
             </div>
         </div>
-        <div id = "designer_controls">
-            <a href = "designer.html" style = "font-style: italic;padding:4px;border-radius:0px;text-decoration: none;">**~~>><span style = "text-decoration:underline;">sprite creator</span><<~~**</a>
-            <!-- <img style = "width:100px;margin:auto;" src= "designer/images/gif_optimized.gif"> -->
-            <!-- <img src="manual/images/xray_alpha.png" id="xray_image"> -->
+        <div id = "sprite_designer_container" class = "goo_container">
+            <div class = "main_menu_button" onclick = "togglePanel('designer_links_container',this);">{{(($$ make your own $$))}}</div>
+            <div class = "designer_links_container">
+                <a class = "sprite_gif" style = "--x:-335px;--y:-120px;--x-start:-200px;--y-start:0px;" href = "designer.html?sprite">
+                    <div class = "sprite_gif_bg"></div>
+                    <img src = "designer/images/icons/heart.gif">
+                </a>
+                <a class = "sprite_gif" style = "--x:-260px;--y:-80px;--x-start:-240px;--y-start:0px;" href = "designer.html?slideshow">
+                    <img src = "designer/images/icons/slideshow.gif">
+                    <div class = "sprite_gif_bg"></div>
+                </a>
+            </div>
         </div>
-        <img src = "designer/images/test.png" style = "width:100%;z-index:-1;grid-area:blank_1">
-        <div id = "set_identity_controls">
+        <div id = "designer_links_label_container" class = "designer_links_container">
+            <svg class = "menu_button_label" style = "--x:-200px;--y:-180px;--x-start:-240px;--y-start:-150px;" width="120" height="120" direction="rtl" viewBox="0 0 120 120">
+                <defs>
+                <path
+                    id="slideshow_designer_path"
+                    fill="none"
+                    stroke="none"
+                    d="M 60 0 A 60 60 0 1 0 60 120 A 60 60 0 1 0 60 0"  />
+                </defs>
+                <text class = "menu_button_label_text">
+                    <textPath startOffset="46%" href="#slideshow_designer_path">slideshow</textPath>
+                </text>
+            </svg>
+            <svg class = "menu_button_label" style = "--x:-280px;--y:-250px;--x-start:-300px;--y-start:-290px;" width="120" height="120" direction="rtl" viewBox="0 0 120 120">
+                <defs>
+                <path
+                    id="sprite_designer_path"
+                    d="M 20 60 A 60 60 20 0 1 120 60"
+                />
+                </defs>
+                <text class = "darkmode">
+                    <textPath startOffset="40%" href="#sprite_designer_path">sprite</textPath>
+                </text>
+            </svg>
+        </div>
+        <div id = "set_identity_controls" class = "goo_container">
             <div id = "identity_goo_container">
                 <div class="main_menu_button" id = "change_identity_button" onclick = "togglePanel('identity_sprite_gif_holder',this);">//set identity</div>
                 <div class = "identity_sprite_gif_holder">
-                    <div class = "sprite_gif" id = "TAMO_identity" style = "--x:-60px;--y:-40px;"onclick = "setUploadIdentity('TAMO')"><div class = "sprite_gif_bg"></div><img src = "designer/images/preview_sprites/tamo.gif"></div>
-                    <div class = "sprite_gif" id = "PORCINI_identity" style = "--x:-80px;--y:20px;" onclick = "setUploadIdentity('PORCINI')"><div class = "sprite_gif_bg"></div><img src = "designer/images/preview_sprites/porcini.gif"></div>
-                    <div class = "sprite_gif" id = "BUG_identity" style = "--x:-50px;--y:80px;" onclick = "setUploadIdentity('BUG')"><div class = "sprite_gif_bg"></div><img src = "designer/images/preview_sprites/bug.gif"></div>
-                    <div class = "sprite_gif" id = "BOTO_identity" style = "--x:10px;--y:120px;" onclick = "setUploadIdentity('BOTO')"><div class = "sprite_gif_bg"></div><img src = "designer/images/preview_sprites/boto.gif"></div>
-                    <div class = "sprite_gif" id = "CUSTOM_SPRITE_identity" style = "--x:80px;--y:120px;" onclick = "setUploadIdentity('CUSTOM_SPRITE')"><div class = "sprite_gif_bg"></div><img src = "designer/images/preview_sprites/custom.gif"></div>
-                    <div class = "sprite_gif" id = "NO_IDENTITY_identity" style = "--x:140px;--y:90px;" onclick = "setUploadIdentity('NO_IDENTITY')"><div class = "sprite_gif_bg"></div><img src = "designer/images/preview_sprites/egg.gif"></div>
+                    <div class = "sprite_gif" id = "TAMO_identity" style = "--x:-60px;--y:-40px;"onclick = "setUploadIdentity('TAMO')"><div class = "sprite_gif_bg"></div><img src = "designer/images/sprites/tamo_full.gif"></div>
+                    <div class = "sprite_gif" id = "PORCINI_identity" style = "--x:-80px;--y:20px;" onclick = "setUploadIdentity('PORCINI')"><div class = "sprite_gif_bg"></div><img src = "designer/images/sprites/porcini_full.gif"></div>
+                    <div class = "sprite_gif" id = "BUG_identity" style = "--x:-50px;--y:80px;" onclick = "setUploadIdentity('BUG')"><div class = "sprite_gif_bg"></div><img src = "designer/images/sprites/bug_full.gif"></div>
+                    <div class = "sprite_gif" id = "BOTO_identity" style = "--x:10px;--y:120px;" onclick = "setUploadIdentity('BOTO')"><div class = "sprite_gif_bg"></div><img src = "designer/images/sprites/boto_full.gif"></div>
+                    <div class = "sprite_gif" id = "CUSTOM_SPRITE_identity" style = "--x:80px;--y:120px;" onclick = "setUploadIdentity('CUSTOM_SPRITE')"><div class = "sprite_gif_bg"></div><img src = "designer/images/sprites/custom.gif"></div>
+                    <div class = "sprite_gif" id = "NO_IDENTITY_identity" style = "--x:140px;--y:90px;" onclick = "setUploadIdentity('NO_IDENTITY')"><div class = "sprite_gif_bg"></div><img src = "designer/images/sprites/egg.gif"></div>
                 </div>
             </div>
             <div id = "identity_text_labels_container" class = "identity_sprite_gif_holder">
-                <svg class = "menu_button_label" style = "--x:40px;--y:80px;" width="120" height="120" viewBox="0 0 120 120">
+                <svg class = "menu_button_label identity_sprite_gif_holder" style = "--x:40px;--y:80px;" width="120" height="120" viewBox="0 0 120 120">
                     <defs>
                     <path
                         id="custom_identity_path"
@@ -99,35 +123,35 @@
                         stroke="none"
                         d="M 60 0 A 60 60 0 1 0 60 120 A 60 60 0 1 0 60 0"  />
                     </defs>
-                    <text fill = "blue" class = "menu_button_label_text">
+                    <text class = "menu_button_label_text">
                         <textPath startOffset="48%" href="#custom_identity_path">custom</textPath>
                     </text>
                 </svg>
-                <svg class = "menu_button_label" style = "--x:95px;--y:25px;" width="120" height="120" direction="rtl" viewBox="0 0 120 120">
+                <svg class = "menu_button_label identity_sprite_gif_holder" style = "--x:95px;--y:25px;" width="120" height="120" direction="rtl" viewBox="0 0 120 120">
                     <defs>
                     <path
                         id="default_mode_path"
                         d="M 20 60 A 60 60 20 0 1 120 60"
                     />
                     </defs>
-                    <text fill = "blue" class = "menu_button_label_text">
+                    <text  class = "menu_button_label_text">
                         <textPath startOffset="40%" href="#default_mode_path">random</textPath>
                     </text>
                 </svg>
             </div>
         </div>
         <div id = "set_mode_controls">
-            <div id = "mode_goo_container">
+            <div id = "mode_goo_container" class = "goo_container">
                 <div class="main_menu_button" id = "change_mode_button" onclick = "togglePanel('mode_gif_holder',this);">//set mode</div>
                 <div class = "mode_gif_holder">
-                    <a class = "sprite_gif" style = "--x:100px;--y:10px;" href = "designer.html?sprite">
+                    <div class = "sprite_gif" style = "--x:100px;--y:10px;" onclick = "writeTamoMode('sprite')">
                         <div class = "sprite_gif_bg"></div>
                         <img src = "designer/images/icons/heart.gif">
-                    </a>
-                    <a class = "sprite_gif" style = "--x:150px;--y:80px;" href = "designer.html?slideshow">
+                    </div>
+                    <div class = "sprite_gif" style = "--x:150px;--y:80px;" onclick = "writeTamoMode('slideshow')">
                         <img src = "designer/images/icons/slideshow.gif">
                         <div class = "sprite_gif_bg"></div>
-                    </a>
+                    </div>
                 </div>
             </div>
             <div id = "mode_text_labels_container" class = "mode_gif_holder">
@@ -139,7 +163,7 @@
                         stroke="none"
                         d="M 60 0 A 60 60 0 1 0 60 120 A 60 60 0 1 0 60 0"  />
                     </defs>
-                    <text fill = "blue" class = "menu_button_label_text">
+                    <text  class = "menu_button_label_text">
                         <textPath startOffset="200" href="#slideshow_mode_path">slideshow</textPath>
                     </text>
                 </svg>
@@ -150,13 +174,15 @@
                         d="M 20 60 A 60 60 20 0 1 120 60"
                     />
                     </defs>
-                    <text fill = "blue" class = "menu_button_label_text">
-                        <textPath startOffset="80%" href="#default_mode_path">creature</textPath>
+                    <text  class = "menu_button_label_text">
+                        <textPath startOffset="80%" href="#default_mode_path">live</textPath>
                     </text>
                 </svg>
             </div>
         </div>
-        <img id = "bottom_image" src = "designer/images/tamo_drawing.jpg">
+        <div id="app_title" class="debug_text">tamo</div>
+        <a id="github_link" class="debug_text" href = "https://github.com/alexlafetra/tamo">github</a>
+        <!-- <img id = "bottom_image" src = "designer/images/tamo_drawing.jpg"> -->
     </div>
 </body>
 </html>

@@ -247,7 +247,8 @@
         <!-- slideshow controls -->
         <div id = "slideshow_parameter_controls">
             <div style = "width:fit-content;margin:auto;padding-bottom:4px;">slideshow:</div>
-            <div class="button_holder" style="flex-direction:column; border:var(--button-border);border-radius:10px;padding:10px;">
+            <div class="button_holder" style="flex-direction:column; border:var(--button-border);border-radius:10px;padding:10px;background-color: var(--button-background-color);">
+              <img class = "sprite" src = "designer/images/icons/slideshow.gif" style = "height:60px;width:60px;margin:auto;">
               <div class = "slider_label">--speed--</div>
               <div class='button_holder' style="flex-direction:column;align-items: center;">
                 <input type="range" class="control_slider" id="frame_speed_slider"min="0" max="7"
@@ -283,10 +284,10 @@
           <div style="width:fit-content;margin:auto;padding-bottom:4px;">template:</div>
           <!-- spritesheet preview -->
           <div id="sprite_preset_previews">
-            <img class = "sprite_preset_preview" onmouseenter = "setTooltip('tamo')" src = "designer/images/preview_sprites/tamo.gif" onclick = "loadPresetSprite('tamo')">
-            <img class = "sprite_preset_preview" onmouseenter = "setTooltip('porcini')"src = "designer/images/preview_sprites/porcini.gif" onclick = "loadPresetSprite('porcini')">
-            <img class = "sprite_preset_preview" onmouseenter = "setTooltip('boto')"src = "designer/images/preview_sprites/boto.gif" onclick = "loadPresetSprite('boto')">
-            <img class = "sprite_preset_preview" onmouseenter = "setTooltip('bug')"src = "designer/images/preview_sprites/bug.gif" onclick = "loadPresetSprite('bug')">
+            <img class = "sprite_preset_preview" onmouseenter = "setTooltip('tamo')" src = "designer/images/sprites/tamo_full.gif" onclick = "loadPresetSprite('tamo')">
+            <img class = "sprite_preset_preview" onmouseenter = "setTooltip('porcini')"src = "designer/images/sprites/porcini_full.gif" onclick = "loadPresetSprite('porcini')">
+            <img class = "sprite_preset_preview" onmouseenter = "setTooltip('boto')"src = "designer/images/sprites/boto_full.gif" onclick = "loadPresetSprite('boto')">
+            <img class = "sprite_preset_preview" onmouseenter = "setTooltip('bug')"src = "designer/images/sprites/bug_full.gif" onclick = "loadPresetSprite('bug')">
           </div>
         </div>
         <div id="canvas_and_tools">
@@ -370,7 +371,7 @@
                 src="designer/images/icons/rotate_tool.gif"></div>
             <!-- reset button -->
             <div id="reset_button" class="button" onmouseenter="setTooltip('erase & reset')" onclick="resetSprites()">
-              <img src="designer/images/icons/restart_icon.gif" style="width:20px;">reset
+              <img class = "sprite" src="designer/images/icons/restart_icon.gif" style="width:20px;"><span style = "mix-blend-mode: difference; color: white;white-space: pre;"> reset </span>
             </div>
           </div>
           <!-- canvas -->
