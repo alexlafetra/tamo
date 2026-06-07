@@ -58,7 +58,7 @@ function drawDataURLToCanvas(url,sprite,startFrame,index,resolve){
     //make an image, draw it to canvas
     const img = new Image();
     img.onload = function () {
-        if (settings.resizeCanvasToImage) {
+        if (settings.automaticallyResizeCanvasToImage) {
             const aspectRatio = img.width / img.height;
             if (img.width > img.height) {
                 if (img.width > settings.maxCanvasDimension) {
@@ -117,6 +117,7 @@ async function processSpriteFiles(fileList, sprite, startFrame) {
     if (fileList.length === 1) {
         fileList = [fileList[0]];
     }
+    console.log(fileList);
     const promises = fileList.map((file, index) => {
         //grabbing sprite frames from a gif
         if (file.type == 'image/gif') {
@@ -235,7 +236,7 @@ async function handleImageUpload(event){
 async function handleSpriteUpload(event){
     const files = event.target.files;
     //parsing files by name
-    if (settings.createSpritesByFileName && files.length > 1) {
+    if (settings.automaticallyProcessSprites && files.length > 1) {
         const filesByName = [];
         let similarFiles = [];
 
@@ -291,8 +292,12 @@ async function handleSpriteUpload(event){
         //reloads the preview frames
     }
     else {
+        const fileList = [];
+        for(let file of files){
+            fileList.push(file);
+        }
         //load files like normal, into the current sprite
-        processSpriteFiles(files, sprites[currentSprite], sprites[currentSprite].currentFrame);
+        processSpriteFiles(fileList, sprites[currentSprite], sprites[currentSprite].currentFrame);
     }
 
 }

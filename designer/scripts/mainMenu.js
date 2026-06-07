@@ -27,16 +27,19 @@ function buildCylinder(){
 function togglePanel(className,trigger){
     const parentContainers = document.getElementsByClassName(className);
     const isOpening = !parentContainers[0].children[0].style.animation.includes('open');
-    trigger.style.backgroundColor = isOpening?"var(--button-highlight-color)":null;
-    trigger.style.color = isOpening?"var(--button-highlight-text-color)":null;
+    // trigger.style.backgroundColor = isOpening?"var(--button-highlight-color)":null;
+    // trigger.style.color = isOpening?"var(--button-highlight-text-color)":null;
     for(let container of parentContainers){
         for(let i of container.children){
             i.style.animation = `${isOpening?'open 0.5s':'close 0.1s'} ease forwards`;
         }
     }
-    if(className == 'identity_sprite_gif_holder')
+    if(className == 'identity_panel_items')
         document.getElementById("main_menu").style.gridTemplateRows = `min-content 100px min-content ${isOpening?100:20}px min-content`;
 }
 
 buildCylinder();
+window.setTimeout(()=>{togglePanel('identity_panel_items',null)},0);
+window.setTimeout(()=>{togglePanel('designer_links_container',null)},200);
+window.setTimeout(()=>{togglePanel('mode_gif_holder',null)},500);
 // document.documentElement.style.setProperty('--text-color', 'blue');

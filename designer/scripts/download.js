@@ -10,7 +10,7 @@ function saveCurrentFrame(){
 }
 
 function exportCompleteSpritesheet(){
-    const timing = 'vertical'; //which way time moves
+    const timing = settings.spritesheetExportDirection; //which way time moves
 
     const dims = {
         w : sprites[currentSprite].width,

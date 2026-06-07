@@ -55,6 +55,23 @@
     --button-border:1px solid rgb(0, 0, 0);
     --background-color:white;
     --text-color:black;
+    --grid-areas:
+                "title title title"
+                "spritesheet canvas_and_tools hardware_gif"
+                "template canvas_and_tools hardware_gif"
+                "template canvas_and_tools image_preview"
+                "export_controls canvas_and_tools image_preview"
+                "import_controls canvas_and_tools image_preview"
+                "settings settings image_preview";
+    --skinny-grid-areas:
+                "title title"
+                "canvas_and_tools canvas_and_tools"
+                "export_controls spritesheet"
+                "import_controls spritesheet"
+                "import_controls template"
+                "image_preview image_preview"
+                "hardware_gif hardware_gif"
+                "settings settings";
 
     /* upload progress bar */
     --upload-progress:0%;
@@ -66,11 +83,9 @@
     :root{
         --drop-shadow-color: transparent;
         --button-highlight-color: rgb(24, 0, 178);
-        /* --button-highlight-text-color:yellow; */
         --button-highlight-text-color:#0a002e;
         --button-background-color: #070037;
         --button-highlight-color:rgb(229, 253, 167);
-        /* --button-border:1px solid rgb(255, 255, 255); */
         --button-border:1px solid var(--button-highlight-color);
         --background-color: #0a002e;
         --text-color:var(--button-highlight-color);
@@ -84,6 +99,10 @@
     text{
         filter:drop-shadow(0px 0px 10px var(--button-highlight-color));
     }
+    .goo_container{
+        filter:drop-shadow(0px 0px 3px var(--button-highlight-color));
+    }
+
 }
 
 textPath{
@@ -201,16 +220,42 @@ select{
     pointer-events: none;
 }
 
+#animation_controls{
+    flex-direction:column; border:var(--button-border);border-radius:10px;padding:10px;background-color: var(--button-background-color);
+}
+#animation_controls:hover{
+    background-color: var(--button-highlight-color);
+    color:var(--button-highlight-text-color);
+}
+
+#animation_controls:hover input[type=range]::-ms-thumb {
+  background: var(--button-highlight-text-color);
+}
+#animation_controls:hover input[type=range]::-moz-range-thumb {
+  background: var(--button-highlight-text-color);
+}
+#animation_controls:hover input[type=range]::-webkit-slider-thumb {
+  background: var(--button-highlight-text-color);
+}
+#animation_controls:hover input[type=range]::-webkit-slider-runnable-track {
+  background: var(--button-highlight-text-color);
+}
+#animation_controls:hover input[type=range]::-moz-range-track {
+  background: var(--button-highlight-text-color);
+}
+#animation_controls:hover input[type=range]::-ms-track{
+  background: var(--button-highlight-text-color);
+}
+
+
+.highlight_icon_container .sprite_gif{
+    z-index: -1;
+    mix-blend-mode: difference;
+}
+
 #sprite_designer_container{
-    /* width:fit-content; */
     grid-area:designer;
-    /* margin:auto; */
-    width:100%;
-    display:flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-    gap:10px;
+    position:relative;
 }
 
 #purchase_links_container .sprite_gif_bg{
@@ -245,9 +290,8 @@ select{
 }
 
 #set_identity_controls{
-    position:relative;
     grid-area:identity;
-
+    position:relative;
 }
 
 .main_menu_button{
@@ -258,15 +302,16 @@ select{
     transition: 0.2s;
     border-radius: 30px;
     padding:15px;
+    z-index:10;
     width:fit-content;
     height:fit-content;
     color:var(--button-highlight-text-color);
 
 }
 .main_menu_button:hover{
-    color:var(--text-color);
-    background-color:var(--button-background-color);
-    /* padding:20px; */
+    /* color:var(--text-color); */
+    /* opacity:0.2; */
+    /* background-color:var(--button-background-color); */
 }
 
 text{
@@ -278,6 +323,7 @@ text{
     will-change: transform;
     transform: translateZ(0);
   -webkit-transform: translateZ(0);
+
 }
 .sprite_gif_bg{
     position:absolute;
@@ -340,7 +386,7 @@ text{
     position:absolute;
     top:-60px;
 }
-.identity_sprite_gif_holder{
+.identity_panel_items{
     position:absolute;
     left:-10px;
     top:-10px;
@@ -371,6 +417,27 @@ text{
     grid-area:mode;
     position:relative;
 }
+#set_mode_controls .menu_button_label_text{
+    opacity:0%;
+    transition:0.2s;
+}
+#set_mode_controls:hover .menu_button_label_text{
+    opacity:100%;
+}
+#set_identity_controls .menu_button_label_text{
+    opacity:0%;
+    transition:0.2s;
+}
+#set_identity_controls:hover .menu_button_label_text{
+    opacity:100%;
+}
+#sprite_designer_container .menu_button_label_text{
+    opacity:0%;
+    transition:0.2s;
+}
+#sprite_designer_container:hover .menu_button_label_text{
+    opacity:100%;
+}
 #xray_image{
     width:150px;
 }
@@ -397,14 +464,7 @@ text{
     position:relative;
     display:grid;
     gap:10px;
-    /* grid-template-rows: min-content 210px 50px 10px min-content; */
-    grid-template-areas:"title title title"
-                        "spritesheet canvas_and_tools hardware_gif"
-                        "template canvas_and_tools hardware_gif"
-                        "template canvas_and_tools image_preview"
-                        "export_controls canvas_and_tools image_preview"
-                        "import_controls canvas_and_tools image_preview"
-                        "settings settings keyboard_shortcuts";
+    grid-template-areas:var(--grid-areas);
 }
 .big_undo_button{
     display:none;
@@ -465,9 +525,10 @@ text{
 }
 #slideshow_parameter_controls{
     display:none;
-    grid-area:spritesheet template;
+    grid-area:spritesheet;
     width:fit-content;
     max-width: 100px;
+    margin:auto;
 }
 
 #preset_sprite_templates{
@@ -533,11 +594,13 @@ text{
 #extra_settings_container{
     grid-area:settings;
     margin:0;
+    /* width:min-content; */
 }
 #uploaded_image_settings{
     gap:10px;
     max-width:100px;
     width:fit-content;
+    height:fit-content;
     align-items: center;
     justify-items: center;
     background-color: var(--background-color);
@@ -748,6 +811,19 @@ text{
     -webkit-mask-repeat:no-repeat;
     mask-repeat:no-repeat;
     background-color: var(--text-color);
+
+    position:absolute;
+    image-rendering:pixelated;
+    width:60px;
+    height:60px;
+}
+.main_menu_title_image{
+    -webkit-mask-size:contain;
+    mask-size:contain;
+
+    -webkit-mask-repeat:no-repeat;
+    mask-repeat:no-repeat;
+    background-color: var(--button-highlight-color);
 
     position:absolute;
     image-rendering:pixelated;
@@ -1162,10 +1238,7 @@ text{
     bottom:140px;
     left:10px;
 }
-#github_link{
-    bottom:300px;
-    left:10px;
-}
+
 
 .preview_canvas{
     /* border:var(--button-border); */
@@ -1253,14 +1326,7 @@ text{
         justify-content: center;
         position:relative;
         gap:10px;
-        grid-template-areas:"title title"
-                            "canvas_and_tools canvas_and_tools"
-                            "export_controls spritesheet"
-                            "import_controls spritesheet"
-                            "import_controls template"
-                            "image_preview image_preview"
-                            "hardware_gif hardware_gif"
-                            "settings settings";
+        grid-template-areas:var(--skinny-grid-areas);
     }
     .big_undo_button{
         display:flex;
@@ -1302,6 +1368,18 @@ text{
     #sprite_loader_controls{
         flex-direction: row-reverse;
     }
+    #extra_settings_container{
+        width:fit-content;
+        justify-items: center;
+        border-radius:20px;
+    }
+    #canvas_appearance_settings{
+        border-top-left-radius:20px;
+        justify-content: center;
+    }
+    #slideshow_parameter_controls{
+        grid-area:spritesheet;
+    }
 }
 
 /* Sliders! */
@@ -1334,7 +1412,7 @@ input[type=range]::-webkit-slider-thumb {
   -webkit-appearance: none;
 }
 input[type=range]:focus::-webkit-slider-runnable-track {
-  background: #ffffff;
+  background: var(--button-highlight-color);
 }
 input[type=range]::-moz-range-track {
   background: rgba(102, 102, 84, 0);
@@ -1385,7 +1463,7 @@ input[type=range]:focus::-ms-fill-lower {
   background: rgba(102, 102, 84, 0);
 }
 input[type=range]:focus::-ms-fill-upper {
-  background: #ffffff;
+  background: var(--button-highlight-color);
 }
 /*TODO: Use one of the selectors from https://stackoverflow.com/a/20541859/7077589 and figure out
 how to remove the virtical space around the range input in IE*/

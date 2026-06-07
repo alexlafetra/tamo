@@ -19,8 +19,8 @@ const settings = {
   frameSpeed: 500,
   maxCanvasDimension: 128,
   useAlphaAsBackground: false, //treat empty areas as though they're a color
-  resizeCanvasToImage: true,
-  createSpritesByFileName: true,
+  automaticallyProcessSprites: true,
+  automaticallyResizeCanvasToImage: false,
   showGrid: true,
   maxFrames: 16,
   outputColors : {
@@ -31,7 +31,40 @@ const settings = {
   slideshowSpeed : 1,
   slideshowSleepTime : 2,
   slideshowBlinkInterval : 0,
+  spritesheetExportDirection : 'vertical'
 };
+
+function toggleResizeCanvas(element){
+  settings.automaticallyResizeCanvasToImage = !settings.automaticallyResizeCanvasToImage;
+  if (settings.automaticallyResizeCanvasToImage) {
+    element.style.background = "var(--button-highlight-color)";
+    element.style.color = "var(--button-highlight-text-color)";
+  }
+  else {
+    element.style.background = null;
+    element.style.color = null;
+  }
+}
+
+function toggleAutoProcessSprites(element){
+  settings.automaticallyProcessSprites = !settings.automaticallyProcessSprites;
+  if (settings.automaticallyProcessSprites) {
+    element.style.background = "var(--button-highlight-color)";
+    element.style.color = "var(--button-highlight-text-color)";
+  }
+  else {
+    element.style.background = null;
+    element.style.color = null;
+  }
+}
+
+function toggleSpritesheetDirection(element){
+  if(settings.spritesheetExportDirection == 'vertical')
+    settings.spritesheetExportDirection = 'horizontal';
+  else settings.spritesheetExportDirection = 'vertical';
+
+  element.innerText = settings.spritesheetExportDirection == 'vertical'?'{Y}':'{X}';
+}
 
 //  const uint16_t slideshow_speeds[] = {0,100,500,1000,2000,5000,10000,60000};
 //  const uint32_t slideshow_sleep_times[] = {0,10000,60000,300000};
@@ -95,7 +128,23 @@ function loadSlideshowEditing(){
   settings.type = 'slideshow';
   hideGrid();
   document.getElementById('slideshow_parameter_controls').style.display = 'block';
-  document.getElementById("sprite_name_static").innerText = 'new slideshow';
+  document.getElementById("sprite_name_static").innerText = 'new animation';
+  document.documentElement.style.setProperty('--grid-areas',`
+      "title title title"
+      "spritesheet canvas_and_tools hardware_gif"
+      "export_controls canvas_and_tools image_preview"
+      "import_controls canvas_and_tools image_preview"
+      "settings settings image_preview"
+  `);
+  document.documentElement.style.setProperty('--skinny-grid-areas',`
+      "title title"
+      "canvas_and_tools canvas_and_tools"
+      "export_controls spritesheet"
+      "import_controls spritesheet"
+      "image_preview image_preview"
+      "hardware_gif hardware_gif"
+      "settings settings";
+  `);
   setCanvasScale(3.8);
 
 }
@@ -103,7 +152,7 @@ function loadSlideshowEditing(){
 function loadApp(){
   //grabbing some visual settings from url
   const urlParams = new URLSearchParams(window.location.search);//uses the ? string following the url
-  if(urlParams.has('slideshow')){
+  if(urlParams.has('animation')){
     loadSlideshowEditing();
   }
   // else if(urlParams.has('sprite')){

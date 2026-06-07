@@ -88,14 +88,24 @@
             </div>
             <!-- canvas overlays -->
             <div class="button_holder" style="flex-direction: column;">
-              <div class="button" style="background-color:var(--button-highlight-color);color:var(--button-highlight-text-color);"
-                onclick="toggleGridVisibility(this);">hide
-                grid</div>
-              <div class="button" style="background-color:var(--button-highlight-color);color:var(--button-highlight-text-color);"
-                onclick="togglePreviousFrameOverlay(this);">
-                disable overlay</div>
-              <div class="button" onclick="exportCompleteSpritesheet()">
-                download spritesheet</div>
+              <div style = "flex-direction: row; display:flex;">
+                <div class="button" style="background-color:var(--button-highlight-color);color:var(--button-highlight-text-color);"
+                  onclick="toggleGridVisibility(this);">hide grid</div>
+                <div class="button" style="background-color:var(--button-highlight-color);color:var(--button-highlight-text-color);"
+                  onclick="togglePreviousFrameOverlay(this);">
+                  disable overlay</div>
+              </div>
+              <div style = "flex-direction: row; display:flex;">
+                <div class="button" onclick="exportCompleteSpritesheet()">
+                  download spritesheet</div>
+                <div class="button" onclick="toggleSpritesheetDirection(this)">
+                  {Y}</div>
+              </div>
+                <div class="button" style="background-color:var(--button-highlight-color);color:var(--button-highlight-text-color);" 
+                onclick="toggleAutoProcessSprites(this)">
+                  automatically create sprites</div>
+                <div class="button" onclick="toggleResizeCanvas(this)">
+                  resize canvas to images</div>
             </div>
             <!-- {/* playback speed slider */} -->
             <div class="button_holder" style="flex-direction:column;">
@@ -244,25 +254,25 @@
             </div>
           </div>
         </div>
-        <!-- slideshow controls -->
+        <!-- animation controls -->
         <div id = "slideshow_parameter_controls">
-            <div style = "width:fit-content;margin:auto;padding-bottom:4px;">slideshow:</div>
-            <div class="button_holder" style="flex-direction:column; border:var(--button-border);border-radius:10px;padding:10px;background-color: var(--button-background-color);">
+            <div style = "width:fit-content;margin:auto;padding-bottom:4px;">animation:</div>
+            <div id = "animation_controls" class="button_holder">
               <img class = "sprite" src = "designer/images/icons/slideshow.gif" style = "height:60px;width:60px;margin:auto;">
               <div class = "slider_label">--speed--</div>
-              <div class='button_holder' style="flex-direction:column;align-items: center;">
+              <div onmouseenter = "setTooltip('animation speed')" class='button_holder' style="flex-direction:column;align-items: center;">
                 <input type="range" class="control_slider" id="frame_speed_slider"min="0" max="7"
                   step="1" value = "3" oninput="setSlideshowSpeed(event)">
                 <div class = "slider_value_label" id="slideshow_speed_label">1fps</div>
               </div>
               <div class = "slider_label">--sleep--</div>
-                <div class='button_holder' style="flex-direction:column;align-items: center;">
+                <div  onmouseenter = "setTooltip('sleep timeout')"class='button_holder' style="flex-direction:column;align-items: center;">
                 <input type="range" class="control_slider" id="frame_speed_slider" min="0" max="3"
                   step="1" value = "3" oninput="setSlideshowSleepTimeout(event)">
                 <div class = "slider_value_label" id="slideshow_sleep_timeout_label">5min</div>
               </div>
               <div class = "slider_label">--blink--</div>
-                <div class='button_holder' style="flex-direction:column;align-items: center;">
+                <div onmouseenter = "setTooltip('blink interval')"class='button_holder' style="flex-direction:column;align-items: center;">
                 <input type="range" class="control_slider" id="blink_interval_slider" min="0" max="255"
                   step="1" value = "0" oninput="setSlideshowBlinkInterval(event)">
                 <div class = "slider_value_label" id="slideshow_blink_interval_label">off</div>
