@@ -13,7 +13,6 @@ const settings = {
   currentTool: 'pixel',
   currentColor: 1,
   overlayGhosting: true,
-  showGrid:true,
   foregroundColor: '#ffffff',
   backgroundColor: '#000000',
   frameSpeed: 500,
@@ -31,7 +30,8 @@ const settings = {
   slideshowSpeed : 1,
   slideshowSleepTime : 2,
   slideshowBlinkInterval : 0,
-  spritesheetExportDirection : 'vertical'
+  spritesheetExportDirection : 'vertical',
+  showSettings : false,
 };
 
 function toggleResizeCanvas(element){
@@ -130,20 +130,18 @@ function loadSlideshowEditing(){
   document.getElementById('slideshow_parameter_controls').style.display = 'block';
   document.getElementById("sprite_name_static").innerText = 'new animation';
   document.documentElement.style.setProperty('--grid-areas',`
-      "title title title"
-      "spritesheet canvas_and_tools hardware_gif"
-      "export_controls canvas_and_tools image_preview"
-      "import_controls canvas_and_tools image_preview"
-      "settings settings image_preview"
+    "title title title title"
+    "null spritesheet canvas_and_tools hardware_gif"
+    "image_preview import_export canvas_and_tools canvas_settings"
+    "image_preview settings settings settings"
   `);
   document.documentElement.style.setProperty('--skinny-grid-areas',`
-      "title title"
-      "canvas_and_tools canvas_and_tools"
-      "export_controls spritesheet"
-      "import_controls spritesheet"
-      "image_preview image_preview"
-      "hardware_gif hardware_gif"
-      "settings settings";
+    "title title title"
+    "canvas_and_tools canvas_and_tools canvas_and_tools"
+    "import_export canvas_settings spritesheet"
+    "image_preview image_preview image_preview"
+    "hardware_gif hardware_gif hardware_gif"
+    "settings settings settings";
   `);
   setCanvasScale(3.8);
 
@@ -247,7 +245,6 @@ let currentMouseCoords = {
 let currentSprite = 0;
 let timeoutID = undefined;
 let spriteName = "new sprite";
-let settingsShown = false;
 let resizeDimensions = {
   width : sprites[currentSprite].width,
   height : sprites[currentSprite].height,
@@ -466,14 +463,16 @@ function setCanvasScale(val){
 }
 
 function toggleExtraSettingsVisibility(domElement){
-  settingsShown = !settingsShown;
-  document.documentElement.style.setProperty('--extra-settings-display', settingsShown?'flex':'none');
+  settings.showSettings = !settings.showSettings;
+  if(settings.showSettings)
+    updateByteArrayText();
+  document.documentElement.style.setProperty('--extra-settings-display', settings.showSettings?'flex':'none');
   if(domElement){
-    domElement.style.backgroundColor = settingsShown?"var(--button-highlight-color)":null;
-    domElement.style.color = settingsShown?"var(--button-highlight-text-color)":null;
-    domElement.style.borderBottomLeftRadius = settingsShown?"0px":null;
-    domElement.style.borderBottomRightRadius = settingsShown?"0px":null;
-    domElement.style.borderBottom = settingsShown?"none":null;
+    domElement.style.backgroundColor = settings.showSettings?"var(--button-highlight-color)":null;
+    domElement.style.color = settings.showSettings?"var(--button-highlight-text-color)":null;
+    domElement.style.borderBottomLeftRadius = settings.showSettings?"0px":null;
+    domElement.style.borderBottomRightRadius = settings.showSettings?"0px":null;
+    domElement.style.borderBottom = settings.showSettings?"none":null;
   }
 }
 
@@ -484,7 +483,6 @@ function toggleGridVisibility(domElement) {
 
 function showGrid(domElement){
   if(domElement){
-    domElement.innerText = "hide grid";
     domElement.style.backgroundColor = "var(--button-highlight-color)";
     domElement.style.color = "var(--button-highlight-text-color)";
   }
@@ -493,7 +491,6 @@ function showGrid(domElement){
 
 function hideGrid(domElement){
   if(domElement){
-    domElement.innerText = "show grid";
     domElement.style.backgroundColor = null;
     domElement.style.color = null;
   }
@@ -503,12 +500,10 @@ function hideGrid(domElement){
 function togglePreviousFrameOverlay(domElement) {
   settings.overlayGhosting = !settings.overlayGhosting;
   if (settings.overlayGhosting) {
-    domElement.innerText = "disable overlay";
     domElement.style.background = "var(--button-highlight-color)";
     domElement.style.color = "var(--button-highlight-text-color)";
   }
   else {
-    domElement.innerText = "enable overlay";
     domElement.style.background = null;
     domElement.style.color = null;
   }
@@ -582,137 +577,140 @@ function getClickCoords(e) {
 }
 
 function handleKeyDown(e) {
-  if ((e.target === document.body)) {
-    const sprite = sprites[currentSprite];
-    switch (e.key) {
-      case 'a':
-      case 'A':
-        if (e.metaKey || e.ctrlKey) {
-          e.preventDefault();
-          selectionBox.selectAll();
-        }
-        break;
-      case 'X':
-      case 'x':
-        if (e.metaKey || e.ctrlKey) {
-          copyBuffer.cut();
-        }
-        break;
-      case 'C':
-      case 'c':
-        if (e.metaKey || e.ctrlKey) {
-          copyBuffer.copy();
-        }
-        else{
-          setTool('circle');
-        }
-        break;
-      case 'Z':
-      case 'z':
-        if (e.metaKey || e.ctrlKey) {
-          e.preventDefault();
-          e.stopPropagation();
-          if (e.shiftKey) {
-            redo();
-          }
-          else {
-            undo();
-          }
-        }
-        break;
-      case '1':
-      case '2':
-      case '3':
-      case '4':
-      case '5':
-      case '6':
-      case '7':
-      case '8':
-      case '9':
-        const newVal = parseInt(e.key) - 1;
-        if (newVal < sprite.frames.length) {
-          sprite.currentFrame = newVal;
-          updateFramePreviews();
-        }
-        break;
-      case '+':
-      case '=':
-        addNewFrame();
-        break;
-      case '-':
-        deleteCurrentFrame();
-        break;
-      case 'p':
-      case 'P':
-        setTool('pixel');
-        break;
-      case 'r':
-      case 'R':
-        setTool('rectangle');
-        break;
-      case 's':
-      case 'S':
-        setTool('select');
-        break;
-      case 'l':
-      case 'L':
-        setTool('line');
-        break;
-      case 'f':
-      case 'F':
-        setTool('fill');
-        break;
-      case 'm':
-      case 'M':
-        setTool('move');
-        break;
-      case 'v':
-      case 'V':
-        if (e.metaKey || e.ctrlKey) {
-          copyBuffer.paste(e);
-          return;
-        }
-      case 'ArrowLeft':
+  if(e.key == 'Enter' && e.target.className == "dimension_input"){
+    resizeAllSprites();
+    checkCanvasOverflowBounds();
+    return;
+  }
+  const sprite = sprites[currentSprite];
+  switch (e.key) {
+    case 'a':
+    case 'A':
+      if (e.metaKey || e.ctrlKey) {
         e.preventDefault();
-        e.stopImmediatePropagation();
-        sprite.previousFrame();
+        selectionBox.selectAll();
+      }
+      break;
+    case 'X':
+    case 'x':
+      if (e.metaKey || e.ctrlKey) {
+        copyBuffer.cut();
+      }
+      break;
+    case 'C':
+    case 'c':
+      if (e.metaKey || e.ctrlKey) {
+        copyBuffer.copy();
+      }
+      else{
+        setTool('circle');
+      }
+      break;
+    case 'Z':
+    case 'z':
+      if (e.metaKey || e.ctrlKey) {
+        e.preventDefault();
+        e.stopPropagation();
+        if (e.shiftKey) {
+          redo();
+        }
+        else {
+          undo();
+        }
+      }
+      break;
+    case '1':
+    case '2':
+    case '3':
+    case '4':
+    case '5':
+    case '6':
+    case '7':
+    case '8':
+    case '9':
+      const newVal = parseInt(e.key) - 1;
+      if (newVal < sprite.frames.length) {
+        sprite.currentFrame = newVal;
         updateFramePreviews();
-        break;
-      case 'ArrowRight':
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        sprite.nextFrame();
-        updateFramePreviews();
-        break;
-      case 'ArrowUp':
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        if(currentSprite)
-          currentSprite--;
-        else
-          currentSprite = sprites.length-1;
-        updateFramePreviews();
-        reloadSpritePreviews();
-        break;
-      case 'ArrowDown':
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        if(currentSprite < sprites.length - 1)
-          currentSprite++;
-        else
-          currentSprite = 0;
-        updateFramePreviews();
-        reloadSpritePreviews();
-        break;
-      case ' ':
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        togglePlayback();
-        break;
-      case 'Shift':
-        toggleColor();
-        break;
-    }
+      }
+      break;
+    case '+':
+    case '=':
+      addNewFrame();
+      break;
+    case '-':
+      deleteCurrentFrame();
+      break;
+    case 'p':
+    case 'P':
+      setTool('pixel');
+      break;
+    case 'r':
+    case 'R':
+      setTool('rectangle');
+      break;
+    case 's':
+    case 'S':
+      setTool('select');
+      break;
+    case 'l':
+    case 'L':
+      setTool('line');
+      break;
+    case 'f':
+    case 'F':
+      setTool('fill');
+      break;
+    case 'm':
+    case 'M':
+      setTool('move');
+      break;
+    case 'v':
+    case 'V':
+      if (e.metaKey || e.ctrlKey) {
+        copyBuffer.paste(e);
+        return;
+      }
+    case 'ArrowLeft':
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      sprite.previousFrame();
+      updateFramePreviews();
+      break;
+    case 'ArrowRight':
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      sprite.nextFrame();
+      updateFramePreviews();
+      break;
+    case 'ArrowUp':
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      if(currentSprite)
+        currentSprite--;
+      else
+        currentSprite = sprites.length-1;
+      updateFramePreviews();
+      reloadSpritePreviews();
+      break;
+    case 'ArrowDown':
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      if(currentSprite < sprites.length - 1)
+        currentSprite++;
+      else
+        currentSprite = 0;
+      updateFramePreviews();
+      reloadSpritePreviews();
+      break;
+    case ' ':
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      togglePlayback();
+      break;
+    case 'Shift':
+      toggleColor();
+      break;
   }
 }
 
@@ -839,6 +837,9 @@ const backupSettings = {
   overlayGhosting:settings.overlayGhosting
 };
 function togglePlayback() {
+  const buttonID = "play_button";
+  const imgID = "play_icon";
+  const element = document.getElementById(buttonID);
   if (settings.playing) {
     settings.playing = false;
     window.clearTimeout(timeoutID);
@@ -846,6 +847,9 @@ function togglePlayback() {
     settings.overlayGhosting = backupSettings.overlayGhosting;
     backupSettings.showGrid?showGrid():hideGrid();
     updateCanvas(false);
+    element.style.backgroundColor = null;
+    element.style.borderColor = null;
+    document.getElementById(imgID).src = 'designer/images/icons/play_icon.bmp';
   }
   else {
     settings.playing = true;
@@ -854,6 +858,9 @@ function togglePlayback() {
     hideGrid();
     settings.overlayGhosting = false;
     playNextFrame();
+    element.style.backgroundColor = "var(--button-highlight-color)";
+    element.style.borderColor = "var(--button-highlight-color)";
+    document.getElementById(imgID).src = 'designer/images/icons/play_icon.gif';
   }
 }
 function toggleColor(domElement) {
@@ -942,14 +949,16 @@ function updateCanvas(updatePreview = true) {
       context.fillRect(x, y, 1, 1);
     }
   }
-  if(updatePreview)
+  if(updatePreview){
     updateActivePreview(sprite.currentFrame);
+  }
+  updateByteArrayText();
 }
 
 function renderFrame(context, frame, palette = {foregroundColor : settings.foregroundColor,backgroundColor : settings.backgroundColor}, offset = {x:0,y:0}) {
   //draw over each pixel
-  for (let x = 0; x < frame.width; x++) {
-    for (let y = 0; y < frame.height; y++) {
+  for (let x = 0; x < context.canvas.width; x++) {
+    for (let y = 0; y < context.canvas.height; y++) {
       context.fillStyle = frame.getPixel(x, y) ? (palette.foregroundColor ==  'transparent'?(palette.backgroundColor == '#000000'?'#ffffff':'#000000'):palette.foregroundColor):(palette.backgroundColor ==  'transparent'?(palette.foregroundColor == '#000000'?'#ffffff':'#000000'):palette.backgroundColor);
       context.fillRect(x+offset.x, y+offset.y, 1, 1);
     }
@@ -1004,7 +1013,7 @@ function reloadFramePreviews() {
   const frameHolder = document.getElementById("preview_gallery_holder");
 
   //doing some bounds checking on the preview dimensions so they don't get huge or tiny
-  const maxPreviewDim = 32;
+  const maxPreviewDim = 16;
   const aspectRatio = sprites[currentSprite].height / sprites[currentSprite].width;
   let scaledWidth, scaledHeight;
   if (aspectRatio > 1) {
@@ -1020,15 +1029,17 @@ function reloadFramePreviews() {
   for (let f = 0; f < sprites[currentSprite].frames.length; f++) {
     //create preview canvas
     let newCanvas = document.createElement('canvas');
-    newCanvas.width = sprites[currentSprite].width;
-    newCanvas.height = sprites[currentSprite].height;
+    // newCanvas.width = sprites[currentSprite].width;
+    // newCanvas.height = sprites[currentSprite].height;
+    newCanvas.width = scaledWidth;
+    newCanvas.height = scaledHeight;
 
     //styling canvas
     newCanvas.className = (f == sprites[currentSprite].currentFrame) ? 'active_canvas preview_canvas' : 'preview_canvas';
     newCanvas.id = `frame_${f}_preview`;
     newCanvas.style.borderColor = (f == sprites[currentSprite].currentFrame) ? 'var(--button-highlight-color)' : null;
-    newCanvas.style.width = scaledWidth + 'px';
-    newCanvas.style.height = scaledHeight + 'px';
+    newCanvas.style.width = scaledWidth*2  + 'px';
+    newCanvas.style.height = scaledHeight*2 + 'px';
     newCanvas.draggable = true;
     newCanvas.key = f;
 

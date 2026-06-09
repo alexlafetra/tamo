@@ -37,8 +37,36 @@ function togglePanel(className,trigger){
     if(className == 'identity_panel_items')
         document.getElementById("main_menu").style.gridTemplateRows = `min-content 100px min-content ${isOpening?100:20}px min-content`;
 }
+let aboutText = {
+    active:0,
+    text:[
+`
+                                          
+ *                                        
+     Tamo is an open source poject which  
+   ages, feels things, gets hungry, poops,
+       sleeps, thinks, and eventually     
+                  dies.               *   
+                                     * *  
+                                      *   `,
+`
+ *                                        
+* *                                       
+ *   Tamo is an open source poject which  
+   ages, feels things, gets hungry, poops,
+       sleeps, thinks, and eventually     
+                  dies.                   
+                                      *   
+                                          `
+]}
+function swapAboutText(){
+    aboutText.active = aboutText.active?0:1;
+    document.getElementById('about_text').innerText = aboutText.text[aboutText.active];
+    setTimeout(swapAboutText,1000);
+}
 
 buildCylinder();
+window.setTimeout(swapAboutText,1000);
 window.setTimeout(()=>{togglePanel('identity_panel_items',null)},0);
 window.setTimeout(()=>{togglePanel('designer_links_container',null)},200);
 window.setTimeout(()=>{togglePanel('mode_gif_holder',null)},500);

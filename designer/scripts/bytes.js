@@ -57,7 +57,6 @@ const spriteNotFound = new Uint8Array([
 
 function packSpritesIntoByteArray(arrayOfSprites,padEachFrameToLength){
   const bytes = [];
-  console.log(arrayOfSprites);
   for(let sprite of arrayOfSprites){
     if(sprite == undefined){
       bytes.push(spriteNotFound);
@@ -69,7 +68,6 @@ function packSpritesIntoByteArray(arrayOfSprites,padEachFrameToLength){
       }
     }
   }
-  console.log(bytes);
   let dataLength = 0;
   for(let data of bytes){
     dataLength += data.byteLength;
@@ -87,8 +85,8 @@ function packSpritesIntoByteArray(arrayOfSprites,padEachFrameToLength){
 
 function getByteArrayText(){
   const sprite = sprites[currentSprite];
-  const byteArray = convertSpriteToByteArray(sprite);
-  let outputString = `//${sprite.fileName}_${sprite.currentFrame}: ${sprite.width}x${sprite.height}\n\rconst unsigned char ${sprite.fileName}[${byteArray.length}] = {\n\t`;
+  const byteArray = convertFrameToByteArray(sprite,sprite.frames[sprite.currentFrame]);
+  let outputString = `//${sprite.fileName}_${sprite.currentFrame}: ${sprite.width}x${sprite.height}\nconst unsigned char ${sprite.fileName}[${byteArray.length}] = {\n\t`;
   for(let byte = 0; byte<byteArray.length;byte++){
     outputString+='0x'+byteArray[byte].toString(16).padStart(2,'0')+', ';
     if(((byte%16) == 15) && byte != byteArray.length-1){
@@ -99,4 +97,28 @@ function getByteArrayText(){
   outputString += '\n};\n';
   
   return outputString;
+}
+
+function updateByteArrayText(){
+  if(settings.showSettings)
+    document.getElementById("byte_array_text").innerText = getByteArrayText();
+}
+
+function copyByteArrayToClipboard(){
+  navigator.clipboard.writeText(document.getElementById("byte_array_text").innerText).then(
+    ()=>{
+      const copyButton = document.getElementById("byte_array_copy_button");
+      copyButton.style.backgroundColor = "red";
+      copyButton.style.color = "white";
+      copyButton.innerText = "copied!";
+      setTimeout(()=>{
+        copyButton.style.backgroundColor = null;
+        copyButton.style.color = null;
+        copyButton.innerText = "copy";
+      },1000);
+    },
+    ()=>{
+      console.log('error copying to clipboard!')
+    }
+  );
 }

@@ -55,23 +55,23 @@
     --button-border:1px solid rgb(0, 0, 0);
     --background-color:white;
     --text-color:black;
+    /* auto or 30px when canvas is too big */
+    --canvas-overflow-margin:auto;
     --grid-areas:
-                "title title title"
-                "spritesheet canvas_and_tools hardware_gif"
-                "template canvas_and_tools hardware_gif"
-                "template canvas_and_tools image_preview"
-                "export_controls canvas_and_tools image_preview"
-                "import_controls canvas_and_tools image_preview"
-                "settings settings image_preview";
+                "title title title title"
+                "null spritesheet canvas_and_tools hardware_gif"
+                "null template canvas_and_tools hardware_gif"
+                "null template canvas_and_tools canvas_settings"
+                "image_preview import_export canvas_and_tools canvas_settings"
+                "image_preview settings settings canvas_settings";
     --skinny-grid-areas:
-                "title title"
-                "canvas_and_tools canvas_and_tools"
-                "export_controls spritesheet"
-                "import_controls spritesheet"
-                "import_controls template"
-                "image_preview image_preview"
-                "hardware_gif hardware_gif"
-                "settings settings";
+                "title title title"
+                "canvas_and_tools canvas_and_tools canvas_and_tools"
+                "import_export canvas_settings spritesheet"
+                "import_export canvas_settings template"
+                "image_preview image_preview image_preview"
+                "hardware_gif hardware_gif hardware_gif"
+                "settings settings settings";
 
     /* upload progress bar */
     --upload-progress:0%;
@@ -121,6 +121,28 @@ select{
     background-color: var(--button-background-color);
     color:var(--text-color);
 }
+
+.ui_box_header{
+    width:fit-content;
+    padding:6px;
+    color:var(--text-color);
+    /* background-color: var(--button-highlight-color); */
+    border-radius:10px 10px 0px 0px;
+    background-color:var(--button-background-color);
+    /* color:var(--button-highlight-color); */
+    margin:auto;
+}
+
+.ui_box{
+    border-radius:10px;
+    /* border-top-left-radius: 0px; */
+}
+
+/* .ui_box:hover{
+    background-color: var(--button-highlight-color);
+    color:var(--button-highlight-text-color);
+    border-color:var(--button-highlight-color);
+} */
 
 .scene{
     perspective:10000px;
@@ -211,6 +233,9 @@ select{
     width:300px;
     position:relative;
     color:var(--button-highlight-color);
+    text-align: center;
+    white-space:pre;
+    
 }
 #about_container .sprite_gif_bg{
     padding:20px;
@@ -219,13 +244,20 @@ select{
     width:fit-content;
     pointer-events: none;
 }
-
+#frame_speed_label{
+    width:fit-content;
+    margin:auto;
+}
 #animation_controls{
-    flex-direction:column; border:var(--button-border);border-radius:10px;padding:10px;background-color: var(--button-background-color);
+    flex-direction:column;
+    border:var(--button-border);
+    padding:10px;
+    background-color: var(--button-background-color);
 }
 #animation_controls:hover{
     background-color: var(--button-highlight-color);
     color:var(--button-highlight-text-color);
+    border-color:var(--button-highlight-color);
 }
 
 #animation_controls:hover input[type=range]::-ms-thumb {
@@ -258,8 +290,14 @@ select{
     position:relative;
 }
 
-#purchase_links_container .sprite_gif_bg{
-    /* padding:1px; */
+
+input[type=number] {
+    width:3ch;
+}
+
+input[type=number]::-webkit-inner-spin-button {  
+    display:none;
+    opacity:0%;
 }
 
 #main_menu{
@@ -308,12 +346,6 @@ select{
     color:var(--button-highlight-text-color);
 
 }
-.main_menu_button:hover{
-    /* color:var(--text-color); */
-    /* opacity:0.2; */
-    /* background-color:var(--button-background-color); */
-}
-
 text{
     fill:blue;
 }
@@ -323,7 +355,6 @@ text{
     will-change: transform;
     transform: translateZ(0);
   -webkit-transform: translateZ(0);
-
 }
 .sprite_gif_bg{
     position:absolute;
@@ -451,15 +482,11 @@ text{
     display: flex;
 }
 
-.money_gif{
-    width:60px;
-    z-index:-2;
-}
-
 #app_container{
     overflow-y: scroll;
     width:fit-content;
     margin:auto;
+    margin-left:var(--canvas-overflow-margin);
     height:fit-content;
     position:relative;
     display:grid;
@@ -468,7 +495,8 @@ text{
 }
 .big_undo_button{
     display:none;
-    width:50px;
+    width:40px;
+    height:40px;
     /* height:50px; */
     padding:4px;
     transition:0.2s;
@@ -508,6 +536,8 @@ text{
 #canvas_and_tools{
     grid-area:canvas_and_tools;
     display:grid;
+    width:fit-content;
+    /* height:fit-content; */
     grid-template-rows: min-content min-content min-content min-content;
     grid-template-areas:
                         "sprite_name sprite_name"
@@ -570,7 +600,7 @@ text{
 #frame_controls{
     grid-area:frames;
     width:200px;
-    margin:auto;
+    margin-left:20px;
     height:fit-content;
     flex-direction: column;
 }
@@ -594,22 +624,32 @@ text{
 #extra_settings_container{
     grid-area:settings;
     margin:0;
+    flex-wrap:wrap;
+    max-width:450px;
     /* width:min-content; */
 }
-#uploaded_image_settings{
-    gap:10px;
-    max-width:100px;
+#uploaded_image_settings_container{
+    /* gap:10px; */
+    /* max-width:100px; */
     width:fit-content;
     height:fit-content;
     align-items: center;
     justify-items: center;
-    background-color: var(--background-color);
-    border-radius: 20px;
-    border:var(--button-border);
-    padding:10px;
     cursor:auto;
     grid-area:image_preview;
     flex-direction: column;
+}
+#uploaded_image_settings{
+    display:flex;
+    flex-direction: column;
+    border:var(--button-border);
+    border-radius: 20px;
+    padding:10px;
+    background-color: var(--background-color);
+}
+
+#brightness_slider{
+    width:100px;
 }
 #canvas_fit_preview{
     display:block;
@@ -627,6 +667,7 @@ text{
 }
 #draw_image_preview:hover{
     background:var(--button-highlight-color);
+    border-color:var(--button-highlight-color);
 }
 #clear_image_preview{
     background:red;
@@ -635,24 +676,12 @@ text{
 }
 #clear_image_preview:hover{
     background:var(--button-highlight-color);
+    border-color:var(--button-highlight-color);
+
 }
 
 #render_algorithm_select{
     justify-self: center;
-}
-#canvas_appearance_settings{
-    flex-wrap:wrap;
-    width:fit-content;
-    max-width: 400px;
-    display: var(--extra-settings-display);
-    flex-direction: row;
-    border:var(--button-border);
-    border-color:var(--button-highlight-color);
-    border-radius: 20px;
-    padding:10px;
-    margin:0px;
-    border-top-left-radius:0px;
-    background-color:var(--button-background-color);
 }
 #sprite_loader_controls{
     display:flex;
@@ -700,9 +729,11 @@ text{
     width:fit-content;
     height:fit-content;
     filter:var(--canvas-filter);
-    max-height: 260px;
-    max-width: 260px;
-    /* min-width:400px; */
+    min-width:200px;
+    max-width:100%;
+    max-height:400px;
+    /* max-height: 260px;
+    max-width: 260px; */
     overflow: scroll;
     grid-area:canvas;
     border-top:var(--canvas-border-top);
@@ -882,7 +913,7 @@ text{
 
 #sprite_previews{
     border:var(--button-border);
-    border-radius:20px;
+    border-radius: 20px;
     padding:10px;
 }
 .delete_sprite_button{
@@ -903,6 +934,7 @@ text{
 #reset_button:hover{
     color:var(--button-highlight-text-color);
     background:var(--button-highlight-color);
+    border-color:var(--button-highlight-color);
 }
 
 #sprite_name{
@@ -978,7 +1010,7 @@ text{
 .sprite_preview_holder:hover{
     background:var(--button-highlight-color);
     color:var(--button-highlight-text-color);
-    /* background-color: var(--button-background-color); */
+    border-color:var(--button-highlight-color);
 }
 .sprite_blank_preview_holder{
     cursor:default;
@@ -1009,7 +1041,29 @@ text{
     border:2px solid;
     border-color:var(--button-background-color);
 }
-
+#canvas_settings_container{
+    grid-area:canvas_settings;
+    display:flex;
+    flex-direction:column;
+    height:fit-content;
+}
+#canvas_settings{
+    display:flex;
+    width:fit-content;
+    margin:auto;
+    flex-direction: row;
+    align-items: center;
+    border:var(--button-border);
+    padding:10px;
+    border-radius: 20px;
+}
+#canvas_settings_buttons{
+    flex-direction: row;
+    display:flex;
+    width:fit-content;
+    padding-bottom:5px;
+    align-self: center;
+}
 #template_controls{
     padding-top:10px;
 }
@@ -1017,9 +1071,8 @@ text{
     display:flex;
     flex-direction: column;
     gap:5px;
-}
-#resize_controls div{
-    flex-direction: row;
+    width:fit-content;
+    align-items: center;
 }
 .ui_label{
     /* font-weight:bold; */
@@ -1034,16 +1087,19 @@ text{
     font-size:30px;
 }
 
+#import_export_controls{
+    display:flex;
+    flex-direction: column;
+    grid-area:import_export;
+    gap:5px;
+}
 #upload_controls{
     width:fit-content;
     height:fit-content;
     display:flex;
     cursor:pointer;
-    border-radius: 10px;
     transition:0.1s;
     flex-direction: column;
-    gap:2px;
-    grid-area: import_controls;
     /* align-items: center; */
 }
 #upload_controls img{
@@ -1056,10 +1112,8 @@ text{
 }
 
 #download_controls_container{
-    grid-area:export_controls;
     display:flex;
     flex-direction: column;
-    gap:4px;
     width:fit-content;
     height:fit-content;
 }
@@ -1068,13 +1122,13 @@ text{
     flex-direction: row;
 
     border:var(--button-border);
-    border-radius: 10px;
     padding:10px;
     background-color: var(--button-background-color);
 }
 #download_controls:hover{
     background-color: var(--button-highlight-color);
     color:var(--button-highlight-text-color);
+    border-color:var(--button-highlight-color);
 }
 #download_controls:hover .button{
     mix-blend-mode: difference;
@@ -1128,19 +1182,9 @@ text{
 }
 .tool_button:hover{
     background-color: var(--button-highlight-color);
+    border-color:var(--button-highlight-color);
 }
-.grid_holder{
-    display:grid;
-    position:fixed;
-}
-.grid_holder:hover{
-    background-color: var(--button-highlight-color);
-}
-.grid_div{
-    border:1px dashed #535889ff;
-    border-left:none;
-    border-top:none;
-}
+
 #new_canvas_button{
     background: rgb(0, 255, 115);
 }
@@ -1149,6 +1193,7 @@ text{
 }
 #new_canvas_button:hover{
     background: var(--button-highlight-color);
+    border-color:var(--button-highlight-color);
     /* mix-blendrgb(0, 105, 47)e; */
 }
 .button_holder{
@@ -1179,7 +1224,7 @@ text{
 .button:hover{
     background-color:var(--button-highlight-color);
     color:var(--button-highlight-text-color);
-    border: 1px solid var(--button-highlight-color);
+    border-color:var(--button-highlight-color);
 }
 .tool_button img{
     image-rendering: pixelated;
@@ -1212,6 +1257,7 @@ text{
 .dimension_input:hover{
     background-color:var(--button-highlight-color);
     color:var(--button-highlight-text-color);
+    border-color:var(--button-highlight-color);
 }
 .transparent_img_drop_shadow{
     filter:drop-shadow(4px 4px 2px var(--drop-shadow-color));
@@ -1237,6 +1283,24 @@ text{
 #app_title{
     bottom:140px;
     left:10px;
+}
+
+#byte_array_container{
+    width:100%;
+    border:dashed 1px;
+    border-color:var(--text-color);
+    padding:10px;
+    border-radius:20px;
+    margin-top:10px;
+    position:relative;
+}
+#byte_array_text{
+    user-select: all;
+}
+#byte_array_copy_button{
+    position:absolute;
+    top:10px;
+    right:10px;
 }
 
 
@@ -1313,6 +1377,21 @@ text{
     grid-area:hardware_gif;
 }
 
+#misc_settings{
+    flex-wrap:wrap;
+    width:fit-content;
+    /* max-width: 400px; */
+    display: var(--extra-settings-display);
+    flex-direction: row;
+    border:var(--button-border);
+    border-color:var(--button-highlight-color);
+    border-radius: 20px;
+    padding:10px;
+    margin:0px;
+    border-top-left-radius:0px;
+    background-color:var(--button-background-color);
+}
+
 @media all and (max-width: 650px) {
     html{
         height:100%;
@@ -1328,23 +1407,24 @@ text{
         gap:10px;
         grid-template-areas:var(--skinny-grid-areas);
     }
+    #canvas_container_container{
+        max-width:400px;
+    }
     .big_undo_button{
         display:flex;
     }
 
+    #uploaded_image_settings_container{
+        max-width:85%;
+    }
     #uploaded_image_settings{
         flex-direction: row;
-        gap:10px;
-        max-width:85%;
     }
     #hardware_gif{
         width:80px;
     }
     #upload_icon{
         width:80px;
-    }
-    #canvas_appearance_settings{
-        max-width:250px;
     }
     /* #big_undo_buttons{
         display:flex;
@@ -1373,13 +1453,36 @@ text{
         justify-items: center;
         border-radius:20px;
     }
-    #canvas_appearance_settings{
+    #misc_settings{
         border-top-left-radius:20px;
         justify-content: center;
+        max-width:250px;
     }
     #slideshow_parameter_controls{
         grid-area:spritesheet;
     }
+    #canvas_settings{
+        flex-direction: row;
+    }
+    #canvas_settings_buttons{
+        flex-direction: column;
+    }
+    /* .sprite_gif{
+        position:relative;
+        left:0px;
+        top:0px;
+    }
+    .sprite_gif_bg{
+        display:none;
+        position:relative;
+        left:0px;
+        top:0px;
+    }
+    .goo_container{
+        position:relative;
+        left:0px;
+        top:0px;
+    } */
 }
 
 /* Sliders! */

@@ -133,7 +133,7 @@ function renderPreviewImage(dataURL = imageUploadSettings.dataURL) {
 
 
 function clearPreviewImage(){
-    document.getElementById("uploaded_image_settings").style.display = "none";
+    document.getElementById("uploaded_image_settings_container").style.display = "none";
 }
 
 

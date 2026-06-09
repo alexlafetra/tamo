@@ -226,7 +226,7 @@ async function handleImageUpload(event){
         })
     }));
     await Promise.all(promises);
-    document.getElementById("uploaded_image_settings").style.display = "flex";
+    document.getElementById("uploaded_image_settings_container").style.display = "flex";
     updateResizeSliders();
     reloadFramePreviews();
     reloadSpritePreviews();

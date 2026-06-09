@@ -58,43 +58,50 @@
           <div class = "keyboard_shortcut">+ [ ^ / v ] - change sprite</div>
           <!-- <div class = "keyboard_shortcut"><span class = "cmd_symbol">⌘</span>c -- copy</div> -->
         </div>
+        <div id = "canvas_settings_container">
+          <div class = "ui_box_header">canvas</div>
+          <div id = "canvas_settings" class = "ui_box">
+            <div style = "display:flex;flex-direction: column;">
+              <div id = "canvas_settings_buttons">
+                <div class="button" style="background-color:var(--button-highlight-color);color:var(--button-highlight-text-color);"
+                  onclick="toggleGridVisibility(this);">grid</div>
+                <div class="button" style="background-color:var(--button-highlight-color);color:var(--button-highlight-text-color);"
+                  onclick="togglePreviousFrameOverlay(this);">
+                  overlay</div>
+              </div>
+              <div class="button_holder" id="resize_controls" onmouseover="showResizePreview()"
+                onmouseleave="hideResizePreview()">
+                <!-- resizing =  -->
+                <div class="button_holder" style="align-items: center;">
+                  <input inputmode="numeric" type="number" class="dimension_input" id="width_input" name="width"
+                    min="1" max="128" oninput="setResizeDimensionWidth(event);showResizePreview();" value="16"
+                    onmouseenter="setTooltip('sprite width')" />
+                  *<input inputmode="numeric" type="number" class="dimension_input" id="height_input" name="height"
+                    min="1" max="128" oninput="setResizeDimensionHeight(event);showResizePreview();" value="16"
+                    onmouseenter="setTooltip('sprite height')" />
+                </div>
+                <div class="button_holder">
+                  <div class="button" style = "width:13ch;" onclick="resizeAllSprites();checkCanvasOverflowBounds();">resize</div>
+                </div>
+              </div>
+            </div>
+            <div style = "height:100px;flex-direction: row;display:flex;padding:4px;">
+              <div class="button_holder" style="width:fit-content;">
+                  <input orient="vertical" type="range" onmouseenter="setTooltip('canvas size')" class="control_slider" style = "writing-mode: vertical-lr;direction: rtl;"
+                    id="canvas_scale_slider" name="ms" min="0.1" max="20" step="0.1" value="15"
+                    oninput="setCanvasScaleEventHandler(event);checkCanvasOverflowBounds();" />
+            </div>
+            <div style="margin:auto auto; height:fit-content;width:1ch;writing-mode: vertical-lr;padding-left:4px;">-- zoom --</div>
+            </div>
+          </div>
+        </div>
         <!-- extra settings -->
         <div id="extra_settings_container">
           <div id="extra_settings_button" class="button" onclick="toggleExtraSettingsVisibility(this)"><img
               id="settings_icon" src="designer/images/icons/settings_icon.gif">settings</div>
-          <div id="canvas_appearance_settings" class="button_holder">
-            <div class="button_holder" id="resize_controls" onmouseover="showResizePreview()"
-              onmouseleave="hideResizePreview()">
-              <!-- resizing =  -->
-              <div class="ui_label">resize sprite...</div>
-              <div class="button_holder" style="align-items: center;">
-                W :<input inputmode="numeric" type="number" class="dimension_input" id="width_input" name="width"
-                  min="1" max="128" oninput="setResizeDimensionWidth(event);showResizePreview();" value="16"
-                  onmouseenter="setTooltip('sprite width')" />
-                H :<input inputmode="numeric" type="number" class="dimension_input" id="height_input" name="height"
-                  min="1" max="128" oninput="setResizeDimensionHeight(event);showResizePreview();" value="16"
-                  onmouseenter="setTooltip('sprite height')" />
-              </div>
-              <div class="button_holder">
-                <div id="resize_alignment_settings">
-                  <label class="ui_label" for="resize">align to...</label>
-                  <select class="button" name="resize" id="resize_select" onchange="setResizeAlignment(event)">
-                    <option value="center">center</option>
-                    <option value="top left">top left</option>
-                  </select>
-                </div>
-                <div class="button" onclick="resizeAllSprites();checkCanvasOverflowBounds();">apply</div>
-              </div>
-            </div>
+          <div id="misc_settings" class="button_holder">
             <!-- canvas overlays -->
             <div class="button_holder" style="flex-direction: column;">
-              <div style = "flex-direction: row; display:flex;">
-                <div class="button" style="background-color:var(--button-highlight-color);color:var(--button-highlight-text-color);"
-                  onclick="toggleGridVisibility(this);">hide grid</div>
-                <div class="button" style="background-color:var(--button-highlight-color);color:var(--button-highlight-text-color);"
-                  onclick="togglePreviousFrameOverlay(this);">
-                  disable overlay</div>
-              </div>
               <div style = "flex-direction: row; display:flex;">
                 <div class="button" onclick="exportCompleteSpritesheet()">
                   download spritesheet</div>
@@ -106,21 +113,6 @@
                   automatically create sprites</div>
                 <div class="button" onclick="toggleResizeCanvas(this)">
                   resize canvas to images</div>
-            </div>
-            <!-- {/* playback speed slider */} -->
-            <div class="button_holder" style="flex-direction:column;">
-              <div style="margin:0px auto;padding-top:6px;justify-self: left;">--anim. speed--</div>
-              <div class='button_holder' style="align-items: center;">
-                <input type="range" class="control_slider" id="frame_speed_slider" name="ms" min="100" max="1000"
-                  step="100" oninput="setAnimationSpeed(event)">
-                <div id="frame_speed_label" style="padding-left:10px;">600ms</div>
-              </div>
-              <div style="margin:0px auto;padding-top:6px;justify-self: left;">--canv. scale--</div>
-              <div class="button_holder" style="flex-direction:column; justify-content: center; width:100%;">
-                <input type="range" onmouseenter="setTooltip('canvas size')" class="control_slider"
-                  id="canvas_scale_slider" name="ms" min="0.1" max="20" step="0.1" value="15"
-                  oninput="setCanvasScaleEventHandler(event);checkCanvasOverflowBounds();" />
-              </div>
             </div>
 
             <div id="output_color_settings">
@@ -147,98 +139,106 @@
                   onclick="setOutputBackground(this)">transparent</div>
               </div>
             </div>
+            <div id = "byte_array_container">
+              <div id = "byte_array_text"></div>
+              <div id = "byte_array_copy_button" class = "button" onclick = "copyByteArrayToClipboard()">copy</div>
+            </div>
           </div>
         </div>
 
         <!-- uploaded image preview -->
-        <div id="uploaded_image_settings" style="display:none;">
-          <div style="display:flex; flex-direction:column;">
-            <div id="draw_image_preview" class="tool_button button" onmouseenter="setTooltip('add 2 canvas')"
-              onclick="copyPreviewToCanvas()">
-              <img class="tool_icon" src="designer/images/icons/plus_icon.gif">
-            </div>
-            <div id="uploaded_image_preview">
-              <canvas id="image_preview"></canvas>
-              <div id = "canvas_fit_preview"></div>
-            </div>
-            <div id="clear_image_preview" class="tool_button button" onmouseenter="setTooltip('delete image')"
-              onclick="clearPreviewImage()">
-              <img class="tool_icon" src="designer/images/icons/clear_icon.gif">
-            </div>
-          </div>
-          <!-- settings -->
-          <div style = "display: flex; flex-direction:column; width:fit-content;margin:auto 0;">
-            <!-- render algorithm-->
-            <div style="display:flex; flex-direction:column;width:fit-content;margin:auto 0;">
-              <div class = "ui_label">dither:</div>
-              <div class="button_holder" style = "margin:auto;width:fit-content;">
-                <div id="atkinson_algorithm_button" class="button tool_button" onclick="setRenderAlgorithm('atkinson')"
-                  style="flex-direction: column;" onmouseenter="setTooltip('atkinson dithering')"><img
-                    src="designer/images/icons/atkinson.png"></div>
-                <div id="threshold_algorithm_button" class="button tool_button" onclick="setRenderAlgorithm('threshold')"
-                  style="flex-direction: column;" onmouseenter="setTooltip('brightness threshold')"><img
-                    src="designer/images/icons/threshold.png"></div>
-                <div id="bayer_algorithm_button" class="button tool_button" onclick="setRenderAlgorithm('bayer')"
-                  style="flex-direction: column;" onmouseenter="setTooltip('bayer dithering')"><img
-                    src="designer/images/icons/bayer.png"></div>
-              </div>
-              <div class = "ui_label">brightness:</div>
-              <input type="range" class="control_slider" id="brightness_slider" min="0.01" max="4.0" step="0.01"
-                oninput="setRenderBrightness(event)" onmouseenter="setTooltip('image brightness')">
-            </div>
-            <!-- resize to width or height -->
+        <div id="uploaded_image_settings_container" style="display:none;">
+          <div class = "ui_box_header">image</div>
+          <div id = "uploaded_image_settings">
             <div style="display:flex; flex-direction:column;">
-              <div class = "ui_label">resize to fit:</div>
-              <div class="button_holder">
-                <div class="button" id="upload_fit_width" style="color:var(--button-highlight-text-color);background:var(--button-highlight-color);"
-                  onclick="setUploadFit('width')" onmouseenter="setTooltip('fit canvas width')">width</div>
-                <div class="button" id="upload_fit_height" onclick="setUploadFit('height')"
-                  onmouseenter="setTooltip('fit canvas height')">height</div>
+              <div id="draw_image_preview" class="tool_button button" onmouseenter="setTooltip('add 2 canvas')"
+                onclick="copyPreviewToCanvas()">
+                <img class="tool_icon" src="designer/images/icons/plus_icon.gif">
+              </div>
+              <div id="uploaded_image_preview">
+                <canvas id="image_preview"></canvas>
+                <div id = "canvas_fit_preview"></div>
+              </div>
+              <div id="clear_image_preview" class="tool_button button" onmouseenter="setTooltip('delete image')"
+                onclick="clearPreviewImage()">
+                <img class="tool_icon" src="designer/images/icons/clear_icon.gif">
               </div>
             </div>
-            <div class="button_holder" style = "width:fit-content;margin:auto;">
-              <div id = "image_align_button" class = "button" style = "color:var(--button-highlight-text-color);background:var(--button-highlight-color);" onclick = "toggleImageAlign()">center</div>
+            <div style = "display: flex; flex-direction:column; width:fit-content;margin:auto 0;">
+              <!-- render algorithm-->
+              <div style="display:flex; flex-direction:column;width:fit-content;margin:auto 0;">
+                <div class = "ui_label">dither:</div>
+                <div class="button_holder" style = "margin:auto;width:fit-content;">
+                  <div id="atkinson_algorithm_button" class="button tool_button" onclick="setRenderAlgorithm('atkinson')"
+                    style="flex-direction: column;" onmouseenter="setTooltip('atkinson dithering')"><img
+                      src="designer/images/icons/atkinson.png"></div>
+                  <div id="threshold_algorithm_button" class="button tool_button" onclick="setRenderAlgorithm('threshold')"
+                    style="flex-direction: column;" onmouseenter="setTooltip('brightness threshold')"><img
+                      src="designer/images/icons/threshold.png"></div>
+                  <div id="bayer_algorithm_button" class="button tool_button" onclick="setRenderAlgorithm('bayer')"
+                    style="flex-direction: column;" onmouseenter="setTooltip('bayer dithering')"><img
+                      src="designer/images/icons/bayer.png"></div>
+                </div>
+                <div class = "ui_label">brightness:</div>
+                <input type="range" class="control_slider" id="brightness_slider" min="0.01" max="4.0" step="0.01"
+                  oninput="setRenderBrightness(event)" onmouseenter="setTooltip('image brightness')">
+              </div>
+              <!-- resize to width or height -->
+              <div style="display:flex; flex-direction:column; align-items: center;">
+                <div class = "ui_label">resize to fit:</div>
+                <div class="button_holder">
+                  <div class="button" id="upload_fit_width" style="color:var(--button-highlight-text-color);background:var(--button-highlight-color);"
+                    onclick="setUploadFit('width')" onmouseenter="setTooltip('fit canvas width')">width</div>
+                  <div class="button" id="upload_fit_height" onclick="setUploadFit('height')"
+                    onmouseenter="setTooltip('fit canvas height')">height</div>
+                </div>
+              </div>
+              <div class="button_holder" style = "width:fit-content;margin:auto;">
+                <div id = "image_align_button" class = "button" style = "color:var(--button-highlight-text-color);background:var(--button-highlight-color);" onclick = "toggleImageAlign()">center</div>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- upload/load controls -->
-        <div id="download_controls_container">
-          <div style = "width:fit-content;margin:auto;">export:</div>
-          <div id = "download_controls">
-            <div id="download_icon_holder">
-              <img id="download_icon" src="designer/images/icons/download.gif">
-            </div>
-            <div>
-              <div class="button" onclick="saveGIF();" style="background:#69baae;"
-                onmouseenter="setTooltip('save a .gif')">.gif</div>
-              <div class="button" onclick="saveCurrentFrame();" style="background:#ffd79f;"
-                onmouseenter="setTooltip('save current frame')">.bmp</div>
-              <div class="button" onclick="zipAllFrames();" style="background:#ea10cc;"
-                onmouseenter="setTooltip('save frames as .zip')">.zip</div>
+        <div id = "import_export_controls">
+          <div id="download_controls_container">
+            <div class = "ui_box_header">export</div>
+            <div id = "download_controls" class = "ui_box">
+              <div id="download_icon_holder">
+                <img id="download_icon" src="designer/images/icons/download.gif">
+              </div>
+              <div>
+                <div class="button" onclick="saveGIF();" style="background:#69baae;"
+                  onmouseenter="setTooltip('save a .gif')">.gif</div>
+                <div class="button" onclick="saveCurrentFrame();" style="background:#ffd79f;"
+                  onmouseenter="setTooltip('save current frame')">.bmp</div>
+                <div class="button" onclick="zipAllFrames();" style="background:#ea10cc;"
+                  onmouseenter="setTooltip('save frames as .zip')">.zip</div>
+              </div>
             </div>
           </div>
-        </div>
-        <div id="upload_controls">
-          <div style = "width:fit-content;margin:auto;">import:</div>
-          <label id="drop_zone_sprite" class="button" style="cursor:pointer;">
-            <img src="designer/images/icons/file_upload.gif">
-            <div class="button_holder" style="flex-direction:column;">
-              <div class="ui_label" style="align-self: center;" onmouseenter="setTooltip('load image/gif');">sprite
+          <div id="upload_controls">
+            <div class = "ui_box_header">import</div>
+            <label id="drop_zone_sprite" class="button ui_box" style="cursor:pointer;margin-top:0px;margin-left:0px;">
+              <img src="designer/images/icons/file_upload.gif">
+              <div class="button_holder" style="flex-direction:column;">
+                <div class="ui_label" style="align-self: center;" onmouseenter="setTooltip('load image/gif');">sprite
+                </div>
+                <input type="file" id="file-input" multiple accept="image/*" style="display:none;"
+                  oninput="handleSpriteUpload(event)">
               </div>
-              <input type="file" id="file-input" multiple accept="image/*" style="display:none;"
-                oninput="handleSpriteUpload(event)">
-            </div>
-          </label>
-          <label id="drop_zone_image" class="button" style="cursor:pointer;">
-            <img src="designer/images/icons/image_upload.gif">
-            <div class="button_holder" style="flex-direction:column;">
-              <div class="ui_label" style="align-self: center;" onmouseenter="setTooltip('load image/gif');">image
+            </label>
+            <label id="drop_zone_image" class="button" style="cursor:pointer;">
+              <img src="designer/images/icons/image_upload.gif">
+              <div class="button_holder" style="flex-direction:column;">
+                <div class="ui_label" style="align-self: center;" onmouseenter="setTooltip('load image/gif');">image
+                </div>
+                <input type="file" id="file-input" multiple accept="image/*" style="display:none;"
+                  oninput="handleImageUpload(event)">
               </div>
-              <input type="file" id="file-input" multiple accept="image/*" style="display:none;"
-                oninput="handleImageUpload(event)">
-            </div>
-          </label>
+            </label>
+          </div>
         </div>
         <div id="sprite_loader_controls" class="button_holder">
           <img src="designer/images/icons/tamo_rotate_optimized_cropped.gif" id="hardware_gif">
@@ -256,8 +256,8 @@
         </div>
         <!-- animation controls -->
         <div id = "slideshow_parameter_controls">
-            <div style = "width:fit-content;margin:auto;padding-bottom:4px;">animation:</div>
-            <div id = "animation_controls" class="button_holder">
+            <div class = "ui_box_header">animation</div>
+            <div id = "animation_controls" class="button_holder ui_box">
               <img class = "sprite" src = "designer/images/icons/slideshow.gif" style = "height:60px;width:60px;margin:auto;">
               <div class = "slider_label">--speed--</div>
               <div onmouseenter = "setTooltip('animation speed')" class='button_holder' style="flex-direction:column;align-items: center;">
@@ -283,7 +283,7 @@
         <!-- sprite previews/checklist -->
         <div id="sprite_preview_container">
           <!-- name -->
-          <div style="padding-bottom:4px;width:fit-content;margin:auto;">~spritesheet~</div>
+          <div class = "ui_box_header">spritesheet</div>
           <!-- spritesheet preview -->
           <div id="sprite_previews"></div>
         </div>
@@ -291,9 +291,9 @@
         <!-- preset sprite templates -->
         <div id="preset_sprite_templates">
           <!-- name -->
-          <div style="width:fit-content;margin:auto;padding-bottom:4px;">template:</div>
+          <div class = "ui_box_header">template</div>
           <!-- spritesheet preview -->
-          <div id="sprite_preset_previews">
+          <div id="sprite_preset_previews" class = "ui_box">
             <img class = "sprite_preset_preview" onmouseenter = "setTooltip('tamo')" src = "designer/images/sprites/tamo_full.gif" onclick = "loadPresetSprite('tamo')">
             <img class = "sprite_preset_preview" onmouseenter = "setTooltip('porcini')"src = "designer/images/sprites/porcini_full.gif" onclick = "loadPresetSprite('porcini')">
             <img class = "sprite_preset_preview" onmouseenter = "setTooltip('boto')"src = "designer/images/sprites/boto_full.gif" onclick = "loadPresetSprite('boto')">
@@ -334,13 +334,25 @@
                 onclick="moveCurrentFrameForward()"><img class="tool_icon" src="designer/images/icons/forward_icon.gif">
               </div>
             </div>
-            <div id="misc_buttons" style="display:flex;flex-direction: row;">
-              <div style="width:80px;height:40px;border-radius: 40px;" class="tool_button button" onmouseenter="setTooltip('play [space]')"
-                onclick="togglePlayback()"><img id = "play_icon" class="tool_icon" src="designer/images/icons/play_icon.bmp"></div>
-              <div class="tool_button big_undo_button" onmouseenter="setTooltip('undo [cmd Z]')" onclick="undo()"><img
-                  style="width:40px;height:100%;" src="designer/images/icons/undo_icon.gif"></div>
-              <div class="tool_button big_undo_button" onmouseenter="setTooltip('redo [cmd shift Z]')" onclick="redo()"><img
-                  style="width:40px;height:100%;" src="designer/images/icons/redo_icon.gif"></div>
+            <div id="misc_buttons" style="display:flex;flex-direction: column;">
+              <div style="display:flex;flex-direction: row;">
+                <div id = "play_button" style="width:80px;height:40px;border-radius: 40px;" class="tool_button button" onmouseenter="setTooltip('play [space]')"
+                  onclick="togglePlayback(this,'play_icon')"><img id = "play_icon" class="tool_icon" src="designer/images/icons/play_icon.bmp"></div>
+                <!-- {/* playback speed slider */} -->
+                <div class="button_holder" style="flex-direction:column;padding:10px;">
+                  <div class='button_holder' style="align-items: center;">
+                    <input type="range" class="control_slider" id="frame_speed_slider" name="ms" min="100" max="1000"
+                      step="100" oninput="setAnimationSpeed(event)">
+                  </div>
+                  <div id="frame_speed_label">600ms</div>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction: row; width:fit-content;margin:auto; gap:4px;">
+                <div class="tool_button big_undo_button" onmouseenter="setTooltip('undo [cmd Z]')" onclick="undo()"><img
+                    style="width:40px;height:100%;" src="designer/images/icons/undo_icon.gif"></div>
+                <div class="tool_button big_undo_button" onmouseenter="setTooltip('redo [cmd shift Z]')" onclick="redo()"><img
+                    style="width:40px;height:100%;" src="designer/images/icons/redo_icon.gif"></div>
+              </div>
             </div>
           </div>
           <div class="button_holder" id = "pixel_editing_tools">
