@@ -24,7 +24,6 @@
 
   3. The data we want placed in that section needs :  __attribute__((section(".section_name"))) in its initializer
 
-
   brother... note that i just spent one (1) day debugging the flash page overlay logic to find out that:
   A) code was working fine
   B) the page size is 64 WORDS, not BYTES. It's 128 bytes
@@ -37,7 +36,7 @@
 #include "Tamo.h"
 #include "Display.h"
 
-#define FLASH_PAGE_SIZE 128 //BROTHER... why
+#define FLASH_PAGE_SIZE 128 //BROTHER... why. such a random ass number of bytes. why not 256. why not 64.
 
 // LMA address of the spritesheet, used for WRITING to it
 #define SPRITESHEET_LMA ((uint32_t)(((uint32_t)spritesheet & 0xFFFF) - 0x8000UL))

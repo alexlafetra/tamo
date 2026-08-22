@@ -65,6 +65,7 @@ function swapAboutText(){
     setTimeout(swapAboutText,1000);
 }
 
+checkColorTheme();
 buildCylinder();
 window.setTimeout(swapAboutText,1000);
 window.setTimeout(()=>{togglePanel('identity_panel_items',null)},0);

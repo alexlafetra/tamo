@@ -197,7 +197,7 @@ const templates = {
       'mad',
       'sad',
       'eating',
-      'misc.'
+      // 'misc.'
     ],
     width: 16,
     height: 16,
@@ -1231,7 +1231,7 @@ function checkCanvasOverflowBounds(){
 
 
 }
-
 window.addEventListener("keydown", handleKeyDown);
 window.addEventListener("keyup", handleKeyUp);
 loadApp();
+checkColorTheme();

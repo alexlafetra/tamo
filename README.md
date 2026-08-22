@@ -6,13 +6,13 @@ Tamo is an open source interdisciplinary hardware project designed to be both a 
 
 ### Modes
 
-Tamo supports two modes: the default, "living" mode and an "animation" mode: 
+Tamo supports two modes: the default, "alive" mode and an "animation" mode: 
 
 ###### Animation
 The animation mode is designed to supplement Tamo's usage as jewelry and is a very simple video player which can loop over up to 16 frames of video at different speeds.
 
-###### Living
-Living mode is the default mode for Tamo. While living Tamo ages, feels things, gets hungry, dreams, and eventually dies.
+###### Alive
+Alive mode is the default mode for Tamo. While living, Tamo ages, feels things, gets hungry, dreams, and eventually dies. Tamo gets afflicted by different maladies
 
 
 # Sprites
@@ -44,12 +44,12 @@ A Pi Pico running this [Pico UART Bridge](https://github.com/Noltari/pico-uart-b
 
 ![Image of Tamo with UPDI programmer](readme_assets/UPDI_programmer.jpeg)
 
-### Bitmap workaround
+### Custom fuses
 
-The upload process is fairly standard and would othewise be easy to do using the Arduino IDE except that a few fuse values need to be written during upload.
+The upload process is fairly standard and would othewise be easy to do using the Arduino IDE ~except~ that a few fuse values need to be written to the Attiny3217 during upload.
 
 In order to overwrite bitmap data during runtime (allowing you to store new artwork on Tamo without recompiling the firmware) the Attiny3217 needs to store the bitmap data in the `APPCODE` section of its memory while running the main code from the `BOOT` section.
-To do this, the BOOTEND and APPEND fuses have to be written to demarcate where the BOOT/APP boundary is in memory (and our custom linker script needs to place the spritesheet data into a region past BOOTEND/inside APPCODE). Setting the fuses happens separately from the UPDI uploaded process, and can't easily be done using the Arduino IDE's default upload procedure. To set these fuses using `pymcuprog`, run:
+To do this, the BOOTEND and APPEND fuses have to be written to demarcate where the BOOT/APP boundary is in memory (and our custom linker script needs to place the spritesheet data into a region past BOOTEND/inside APPCODE). Setting the fuses happens separately from the UPDI uploaded process, and so can't easily be done using the Arduino IDE/platformio's default upload procedure. To set these fuses using `pymcuprog`, run:
 
 ```
 pymcuprog write --tool uart --device attiny3217 --uart {USB DEVICE PORT} --clk 230400 --memory fuses --offset 7 --literal 0x00 0x5E 

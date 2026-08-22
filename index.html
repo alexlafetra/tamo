@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme = "light">
 
 <head>
   <meta charset="UTF-8" />
@@ -20,6 +20,7 @@
   <script src="designer/scripts/undo.js"></script>
   <script src="designer/scripts/frameEditing.js"></script>
   <script src="designer/scripts/pixelEditing.js"></script>
+  <script src="designer/scripts/darkMode.js"></script>
   <script src = "designer/scripts/mainMenu.js" defer></script>
   <!-- <script src="designer/scripts/main.js" defer></script> -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -52,12 +53,13 @@
     <div id="title_container" style = "margin-top:80px;">
         <div id="title_gif" class="transparent_img_drop_shadow main_menu_title_image"></div>
     </div>
+
     <div id = "main_menu">
         <div id = "about_container">
             <div id = "about_text">
                                           
  *                                        
-     Tamo is an open source poject which  
+     Tamo is an open source poject that  
    ages, feels things, gets hungry, poops,
        sleeps, thinks, and eventually     
                   dies.               *   
@@ -68,8 +70,8 @@
         <!-- experimenting w cylinder idea! -->
         <div class="scene" id = "cylinder_container">
             <div class="foreground">
-                <img id = "main_menu_hardware_gif" src= "designer/images/icons/rotate_straight.gif">
-                <!-- <img id = "main_menu_hardware_gif" src= "designer/images/combined_optimized.gif"> -->
+                <!-- <img id = "main_menu_hardware_gif" src= "designer/images/icons/rotate_straight.gif"> -->
+                <img id = "main_menu_hardware_gif" src= "designer/images/icons/tamo_combined.gif">
             </div>
         </div>
         <div id = "sprite_designer_container">
@@ -78,7 +80,7 @@
                 <div class = "designer_links_container">
                     <a class = "sprite_gif" style = "--x:-100px;--y:-150px;--x-start:20px;--y-start:0px;" href = "designer.html?sprite">
                         <div class = "sprite_gif_bg"></div>
-                        <img src = "designer/images/icons/heart.gif">
+                        <img src = "designer/images/icons/sprite_designer.gif">
                     </a>
                     <a class = "sprite_gif" style = "--x:-30px;--y:-100px;--x-start:0px;--y-start:0px;" href = "designer.html?animation">
                         <img src = "designer/images/icons/slideshow.gif">
@@ -89,7 +91,7 @@
             <div class = "highlight_icon_container">
                 <div class = "designer_links_container">
                     <a class = "sprite_gif" style = "--x:-100px;--y:-150px;--x-start:20px;--y-start:0px;" href = "designer.html?sprite">
-                        <img src = "designer/images/icons/heart.gif">
+                        <img src = "designer/images/icons/sprite_designer.gif">
                     </a>
                     <a class = "sprite_gif" style = "--x:-30px;--y:-100px;--x-start:0px;--y-start:0px;" href = "designer.html?slideshow">
                         <img src = "designer/images/icons/slideshow.gif">
@@ -192,6 +194,57 @@
                         <textPath startOffset="40%" href="#default_mode_path">random</textPath>
                     </text>
                 </svg>
+                <!-- tamo -->
+                <svg class = "menu_button_label" style = "--x:-100px;--y:-105px;" width="120" height="120" direction="rtl" viewBox="0 0 120 120">
+                    <defs>
+                    <path
+                        id="default_mode_path"
+                        d="M 20 60 A 60 60 20 0 1 120 60"
+                    />
+                    </defs>
+                    <text  class = "menu_button_label_text">
+                        <textPath startOffset="40%" href="#default_mode_path">tamo</textPath>
+                    </text>
+                </svg>
+                <!-- porcini -->
+                <svg class = "menu_button_label" style = "--x:-120px;--y:-20px;" width="120" height="120" viewBox="0 0 120 120">
+                    <defs>
+                    <path
+                        id="custom_identity_path"
+                        fill="none"
+                        stroke="none"
+                        d="M 60 0 A 60 60 0 1 0 60 120 A 60 60 0 1 0 60 0"  />
+                    </defs>
+                    <text class = "menu_button_label_text">
+                        <textPath startOffset="20%" href="#custom_identity_path">porcini</textPath>
+                    </text>
+                </svg>
+                <!-- bug -->
+                <svg class = "menu_button_label" style = "--x:-90px;--y:40px;" width="120" height="120" viewBox="0 0 120 120">
+                    <defs>
+                    <path
+                        id="custom_identity_path"
+                        fill="none"
+                        stroke="none"
+                        d="M 60 0 A 60 60 0 1 0 60 120 A 60 60 0 1 0 60 0"  />
+                    </defs>
+                    <text class = "menu_button_label_text">
+                        <textPath startOffset="33%" href="#custom_identity_path">bug</textPath>
+                    </text>
+                </svg>
+                <!-- boto -->
+                <svg class = "menu_button_label" style = "--x:-30px;--y:80px;" width="120" height="120" viewBox="0 0 120 120">
+                    <defs>
+                    <path
+                        id="custom_identity_path"
+                        fill="none"
+                        stroke="none"
+                        d="M 60 0 A 60 60 0 1 0 60 120 A 60 60 0 1 0 60 0"  />
+                    </defs>
+                    <text class = "menu_button_label_text">
+                        <textPath startOffset="38%" href="#custom_identity_path">boto</textPath>
+                    </text>
+                </svg>
             </div>
         </div>
         <div id = "set_mode_controls">
@@ -229,7 +282,7 @@
                         <textPath startOffset="200" href="#slideshow_mode_path">animation</textPath>
                     </text>
                 </svg>
-                <svg class = "menu_button_label" style = "--x:50px;--y:-50px;" width="120" height="120" direction="rtl" viewBox="0 0 120 120">
+                <svg class = "menu_button_label" style = "--x:50px;--y:-50px;" width="140" height="120" direction="rtl" viewBox="0 0 120 120">
                     <defs>
                     <path
                         id="default_mode_path"
@@ -237,10 +290,10 @@
                     />
                     </defs>
                     <text  class = "menu_button_label_text">
-                        <textPath startOffset="95%" href="#default_mode_path">live</textPath>
+                        <textPath startOffset="98%" href="#default_mode_path">alive</textPath>
                     </text>
                 </svg>
-                <svg class = "menu_button_label" style = "--x:-50px;--y:-120px;--x-start:-30px;--y-start:-150px;font-size:13px;" width="240" height="240" direction="rtl" viewBox="0 0 120 120">
+                <svg class = "menu_button_label" style = "--x:55px;--y:-50px;--x-start:-30px;--y-start:-150px;font-size:30px;" width="120" height="120" direction="rtl" viewBox="0 0 120 120">
                     <defs>
                     <path
                         id="mode_title_path"
@@ -248,16 +301,45 @@
                     />
                     </defs>
                     <text  class = "menu_button_label_title">
-                        <textPath startOffset="90%" href="#mode_title_path">mode</textPath>
+                        <textPath startOffset="58%" href="#mode_title_path">mode</textPath>
                     </text>
                 </svg>
             </div>
         </div>
-        <div class="debug_text"style = "top:10px;left:10px;" >tamo</div>
+        <div class="debug_text"style = "top:500px;left:10px;" >tamo</div>
         <!-- <div class="debug_text" style = "top:100px;left:10px; color:red;">not working in safari</a> -->
         <a class="debug_text" style = "bottom:200px;left:10px;" href = "https://www.instagram.com/alexlafetra">instagram</a>
         <a class="debug_text" style = "bottom:30px;left:10px;" href = "https://github.com/alexlafetra/tamo">github</a>
+        <div id = "dark_mode_button_container" onclick = "toggleDarkMode()">
+            <div id = "dark_mode_button" style = "margin-top:0px;">
+            </div>
+        </div>
         <!-- <img id = "bottom_image" src = "designer/images/tamo_drawing.jpg"> -->
     </div>
 </body>
+<script>
+// Add browser class to body
+document.addEventListener('DOMContentLoaded', function () {
+const userAgent = navigator.userAgent.toLowerCase();
+let browserName = '';
+
+if (userAgent.includes('edge')) {
+    browserName = 'edge';
+} else if (userAgent.includes('chrome')) {
+    browserName = 'chrome';
+} else if (userAgent.includes('firefox')) {
+    browserName = 'firefox';
+} else if (userAgent.includes('safari') && !userAgent.includes('chrome')) {
+    browserName = 'safari';
+} else if (userAgent.includes('opr') || userAgent.includes('opera')) {
+    browserName = 'opera';
+} else if (userAgent.includes('msie') || userAgent.includes('trident')) {
+    browserName = 'ie';
+}
+
+if (browserName) {
+    document.body.classList.add('browser_' + browserName);
+}
+});
+</script>
 </html>

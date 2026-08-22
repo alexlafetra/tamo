@@ -6,7 +6,7 @@
 #include "spriteLoader.h"
 #include "flash.cpp"
 
-enum WEBCOMMANDS:uint8_t{
+enum SERIAL_COMMANDS:uint8_t{
     WEBSERIAL_SPRITE_UPLOAD = 0x01,
     TAMO_HELLO = 0x02,
     REQUEST_NEXT_DATA_PACKET = 0x03,
@@ -14,7 +14,8 @@ enum WEBCOMMANDS:uint8_t{
     TAMO_DISCONNECT = 0x05,
     TARGET_SPRITE_SLOT = 0x06,
     SET_MODE = 0x07,
-    WEBSERIAL_SLIDESHOW_UPLOAD = 0x08
+    WEBSERIAL_SLIDESHOW_UPLOAD = 0x08,
+    OTHER_TAMO_SPRITE_SWAP = 0x09
 };
 
 #define TAMO_SERIAL_BUFFER_SIZE 64
@@ -154,6 +155,10 @@ bool checkSerialConnection(){
             _PROTECTED_WRITE(RSTCTRL.SWRR,1);
             return true;
         }
+    }
+    //sprite swap
+    else if(firstByte[0] == OTHER_TAMO_SPRITE_SWAP){
+
     }
     else if(firstByte[0] == SET_IDENTITY){
         uint8_t secondByte[1] = {0};

@@ -111,13 +111,35 @@ function drawFileToCanvas(file, sprite, startFrame, index) {
     });
 }
 
+async function openZip(zipFile){
+    const zip = new JSZip();
+    const unzipped = await zip.loadAsync(zipFile);
+    const fileList = [];
+    for(let filename in unzipped.files){
+
+        //if not an image, skip!
+        if (!filename.match(/\.(jpg|jpeg|png|gif|bmp|webp)$/i))
+            continue;
+        //if it's a directory, also skip
+        if(unzipped.files[filename].isDir)
+            continue;
+
+        const mimeType = `image/${filename.split('.').pop().toLowerCase()}`;
+
+        const file = await new File([await unzipped.files[filename].async("blob")],filename,{type:mimeType});
+        console.log(file);
+        fileList.push(file);
+    }
+    console.log(fileList);
+    return fileList;
+}
+
 // gets images and turns them into anim frames
 async function processSpriteFiles(fileList, sprite, startFrame) {
     pushUndoState();
     if (fileList.length === 1) {
         fileList = [fileList[0]];
     }
-    console.log(fileList);
     const promises = fileList.map((file, index) => {
         //grabbing sprite frames from a gif
         if (file.type == 'image/gif') {
@@ -234,7 +256,11 @@ async function handleImageUpload(event){
 }
 
 async function handleSpriteUpload(event){
-    const files = event.target.files;
+    let files = event.target.files;
+    console.log(files);
+    if(files[0].type == "application/zip"){
+        files = await openZip(files[0]);
+    }
     //parsing files by name
     if (settings.automaticallyProcessSprites && files.length > 1) {
         const filesByName = [];
@@ -292,10 +318,10 @@ async function handleSpriteUpload(event){
         //reloads the preview frames
     }
     else {
-        const fileList = [];
-        for(let file of files){
-            fileList.push(file);
-        }
+        const fileList = [...files];
+        // for(let file of files){
+        //     fileList.push(file);
+        // }
         //load files like normal, into the current sprite
         processSpriteFiles(fileList, sprites[currentSprite], sprites[currentSprite].currentFrame);
     }

@@ -42,9 +42,8 @@ function exportCompleteSpritesheet(){
     });
 }
 
-let zip = new JSZip();
-
 function downloadZip(fileName){
+    const zip = new JSZip();
     zip.generateAsync({type : 'blob' }).then((content) => {
         const a = document.createElement('a');
         a.href = URL.createObjectURL(content);
@@ -57,7 +56,7 @@ function downloadZip(fileName){
 
 async function zipAllFrames(){
     //create a new JSZip object
-    zip = new JSZip();
+    const zip = new JSZip();
 
     const tempCanvas = document.createElement('canvas');
     const fileName = spriteName;
