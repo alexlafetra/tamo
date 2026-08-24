@@ -122,3 +122,41 @@ function copyByteArrayToClipboard(){
     }
   );
 }
+
+function convertByteArrayToFrameArray(w,h,data){
+  const frameSize = Math.trunc(w*h/8);
+  //not implemented yet!
+  if(settings.bytePackingFormat == 'horizontal'){
+  }
+  else{
+    //Do a pass L-->R, taking one-byte deep (8px) vertical slices. Then do another pass, going another layer deep.
+    //This is to pass the data to tamo as "pages", which is how the OLED driver works
+    const frames = [];
+    //iterate over each frame
+    for(let i = 0; i<data.length;i+=frameSize){
+      frames.push(PixelFrame(w,h,0));
+      //iterate over each byte in the frame
+      for(let bite = 0; bite<frameSize; bite++){
+        let b = data[i+bite];
+        //iterate over each bit in the byte
+        for(let bit = 0; bit<8; bit++){
+          frames[frames.length-1].setPixel(bite%w,bit + Math.trunc(bite/w) * 8,(b>>bit) & (0b00000001));
+        }
+      }
+    }
+    return frames;
+  }
+}
+
+function convertByteArrayToSprite(data){
+  pushUndoState();
+  const spriteSize = Math.trunc(16 * 16 / 8 * 2); // 64
+  for(let sprite = 0; sprite<5; sprite++){
+    const thisData = data.slice(sprite * spriteSize, (sprite + 1) * spriteSize);
+    const newFrames = convertByteArrayToFrameArray(16,16,thisData);
+    sprites[sprite].frames = [...newFrames];
+  }
+  updateCanvas(false);
+  reloadFramePreviews();
+  reloadSpritePreviews();
+}

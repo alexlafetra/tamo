@@ -3,9 +3,6 @@
 #include "Sprite.h"
 #include "Display.h"
 
-extern FrameBuffer fbo;
-extern SSD1306Device oled;
-
 bool Sprite::hasPlayedAtLeastOnce(){
   return loopCount;
 }

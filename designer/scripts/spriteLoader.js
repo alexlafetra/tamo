@@ -3,11 +3,15 @@
 const commands = {
     WEBSERIAL_SPRITE_UPLOAD : 0x01,
     TAMO_HELLO : 0x02,
-    REQUEST_NEXT_SPRITE_PACKET : 0x03,
+    REQUEST_NEXT_DATA_PACKET : 0x03,
     SET_IDENTITY : 0x04,
     TAMO_DISCONNECT : 0x05,
     SET_MODE : 0x07,
-    WEBSERIAL_SLIDESHOW_UPLOAD : 0x08
+    WEBSERIAL_SLIDESHOW_UPLOAD : 0x08,
+    INITIATE_SPRITE_SWAP : 0x09,
+    SPRITE_SWAP_READY : 0x0A,
+    EXPORT_SPRITE : 0x0D,
+    EXPORT_SPRITE_READY : 0x0E
 }
 
 //constants that are stored in EEPROM, define which identity Tamo has when it boots
@@ -52,20 +56,74 @@ async function clearReadBuffer(port) {
 }
 
 //waits until a certain number of bytes have been read
-async function readBytes(port,numberOfBytes){
+// async function readBytes(port,numberOfBytes){
+//     const result = new Uint8Array(numberOfBytes);
+//     console.log("waiting for  "+numberOfBytes+" bytes...")
+//     let offset = 0;
+//     const reader = port.readable.getReader();
+//     while(offset < numberOfBytes){
+//         const {value,done} = await reader.read();
+//         if(done)
+//             break;
+//         result.set(value.slice(0,numberOfBytes),offset);
+//         offset += value.length;
+//     }
+//     reader.releaseLock();
+//     console.log(result);
+//     return result;
+// }
+
+const serialTimeoutDelay = 1000;
+async function readBytes(port, numberOfBytes) {
     const result = new Uint8Array(numberOfBytes);
-    console.log("waiting for  "+numberOfBytes+" bytes...")
     let offset = 0;
+    //get a reader
     const reader = port.readable.getReader();
-    while(offset < numberOfBytes){
-        const {value,done} = await reader.read();
-        if(done)
-            break;
-        result.set(value.slice(0,numberOfBytes),offset);
-        offset += value.length;
+
+    //try/catch block to help handle serial timeouts
+    try {
+        while (offset < numberOfBytes) {
+            //store ref to timeout so it can be cancelled later
+            let timeout;
+            //second try catch block
+            try {
+                //promise.race() to only execute what happens first
+                const { value, done } = await Promise.race([
+                    //start the read from the serial port
+                    reader.read(),
+                    //timeout
+                    new Promise((_, reject) => {
+                        timeout = setTimeout(() => {
+                            reject(new Error("serial connection timed out with no response! closing port"));
+                        }, serialTimeoutDelay);
+                    })
+                ]);
+                //clear the timeout if you make it to this point (meaning the read happened)
+                clearTimeout(timeout);
+
+                if (done)
+                    break;
+
+                const remaining = numberOfBytes - offset;
+                const chunk = value.length > remaining?value.slice(0, remaining):value;
+
+                result.set(chunk, offset);
+                offset += chunk.length;
+
+            }
+            catch (error) {
+                //if the read timed out, gracefully (lol) close the port
+                await reader.cancel();
+                reader.releaseLock();
+                await port.close();
+                throw error;
+            }
+        }
+
     }
-    reader.releaseLock();
-    console.log(result);
+    finally {
+        reader.releaseLock();
+    }
     return result;
 }
 
@@ -77,15 +135,20 @@ async function transmitDataInPackets(data,port){
     writer.releaseLock();
 
     let writeLocation = 0;
-    let dotCounter = 0;
     while(true){
         //read back tamo's response
         value = await readBytes(port,2);
 
         console.log("received:");
-        console.log(value);
+        console.log(value[0],value[1]);
 
-        if(value[0] == commands.REQUEST_NEXT_SPRITE_PACKET){
+        //send the next data packet
+        if(value[0] == commands.REQUEST_NEXT_DATA_PACKET){
+
+            if(writeLocation >= data.byteLength){
+                console.log("uh oh! tamo is requesting data but there's none left");
+                continue;
+            }
 
             const packetSize = value[1];
             console.log("tamo asked for "+packetSize.toString()+" bytes...");
@@ -97,23 +160,18 @@ async function transmitDataInPackets(data,port){
 
             // send the packet
             writer = port.writable.getWriter();
-            writer.write(packet);
+            await writer.write(packet);
             writer.releaseLock();
 
             writeLocation += packetSize;
             
             //update the progress bar
-            dotCounter++;
-            dotCounter%=3;
-            updateUploadProgressBar(writeLocation/data.byteLength*100,dotCounter);
-
-            if(writeLocation >= data.byteLength)
-                return true;
-
+            updateTransmissionProgressBar(writeLocation/data.byteLength*100,"uploading","sent sprites!");
         }
+        //transmission done! safe to close the port now
         else if(value[0] == commands.TAMO_DISCONNECT){
             console.log("tamo disconnected! closing port...");
-            return false;
+            return true;
         }
         else{
             console.log("error! unrecognized command:");
@@ -131,6 +189,8 @@ function setUploadIdentity(val){
 function setUploadMode(event){
     uploadMode = event.target.value;
 }
+
+
 
 async function writeTamoIdentity(){
 //open the port
@@ -219,7 +279,6 @@ async function uploadSpriteData(){
     console.log("getting tamo response...")
     let value = await readBytes(port,1);
 
-    // console.log(commands.TAMO_HELLO);
     if(value[0] == commands.TAMO_HELLO){
         console.log(value);
         console.log("tamo says hello!");
@@ -241,6 +300,7 @@ async function uploadSpriteData(){
         })
         console.log(organizedSprites);
         const spriteData = packSpritesIntoByteArray(organizedSprites,32);
+        // convertByteArrayToSprite(spriteData);
         const success = await transmitDataInPackets(spriteData,port);
         if(success){
             console.log("wrote all data to tamo!");
@@ -249,6 +309,9 @@ async function uploadSpriteData(){
             console.log("error!");
         }
         console.log("closing serial port");
+
+        //important! this caused a nasty bug by closing the port before tamo had read in all the data.
+        //make sure you don't do this before getting an "OK" from the attiny
         await port.close();
     }
     else{
@@ -297,6 +360,63 @@ async function uploadSlideshowData(){
         }
         console.log("closing serial port");
         await port.close();
+    }
+    else{
+        console.log("tamo didn't say hey! Received:");
+        console.log(...value);
+        console.log("closing serial port");
+        await port.close();
+    }
+}
+
+async function downloadSpriteData(){
+    //open the port
+    let port;
+    try{
+        port = await navigator.serial.requestPort();
+    }
+    catch(error){
+        console.log(error);
+        return;
+    }
+
+    await port.open({ baudRate: 115200 });
+    //clear buffer
+    await clearReadBuffer(port);
+
+    //say hello to tamo
+    let writer = port.writable.getWriter();
+    await writer.write(new Uint8Array([commands.EXPORT_SPRITE]));
+    writer.releaseLock();
+
+    console.log("getting tamo response...")
+    let value = await readBytes(port,1);
+    console.log(value);
+
+    if(value[0] == commands.EXPORT_SPRITE_READY){
+
+        const data = new Uint8Array(320);
+        for(let i = 0; i<320; i+=64){
+            //request another data packet
+            let writer = port.writable.getWriter();
+            await writer.write(new Uint8Array([commands.REQUEST_NEXT_DATA_PACKET]));
+            writer.releaseLock();
+
+            //receive data and store in array
+            const chunk = await readBytes(port,64);
+            data.set(chunk,i);
+
+            updateTransmissionProgressBar(i/320*100,"downloading","downloaded sprite!");
+        }
+
+        //tell tamo you're done
+        writer = port.writable.getWriter();
+        await writer.write(new Uint8Array([commands.TAMO_DISCONNECT]));
+        writer.releaseLock();
+        await port.close();
+
+        //parse the received bytes!
+        convertByteArrayToSprite(data);
     }
     else{
         console.log("tamo didn't say hey! Received:");

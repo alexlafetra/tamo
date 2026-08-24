@@ -5,7 +5,6 @@
 
 #include "FrameBuffer.h"
 
-extern FrameBuffer fbo;
 // 'zero_bmp', 3x8px
 const unsigned char  zero_bmp []   = {
 	0x0e, 0x11, 0x0e

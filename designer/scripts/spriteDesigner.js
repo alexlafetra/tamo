@@ -379,15 +379,15 @@ function setRenderBrightness(event){
   renderPreviewImage();
 }
 
-function updateUploadProgressBar(percent,dotCounter){
+function updateTransmissionProgressBar(percent,progString,successString){
   let text;
   let color = 'var(--button-highlight-color)';
   if(percent>=100){
-    text = ' sent sprites!';
+    text = ` ${successString}`;
     color = 'green';
   }
   else{
-    text = ' uploading';
+    text = ` ${progString}`;
     for(let i = 0; i<Math.round(percent/(100/3)); i++){
       text += '.';
     }
@@ -1105,7 +1105,7 @@ function reloadFramePreviews() {
 function updateFramePreviews() {
   reloadFramePreviews();
   updateCanvas(false);
-  document.getElementById('frame_counter_label').innerText = `Frame -- ${sprites[currentSprite].currentFrame + 1} / ${sprites[currentSprite].frames.length}`
+  // document.getElementById('frame_counter_label').innerText = `Frame -- ${sprites[currentSprite].currentFrame + 1} / ${sprites[currentSprite].frames.length}`
 }
 
 function createSpritePreview(domElement,index){

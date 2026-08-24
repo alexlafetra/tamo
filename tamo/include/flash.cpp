@@ -89,18 +89,18 @@ static uint8_t flash_write_buffer[FLASH_PAGE_SIZE] = {0};
 static uint8_t flash_read_buffer[FLASH_PAGE_SIZE] = {0};
 
 //safely "overlays" new data, can handle writing across multiple flash pages :)
-bool update_flash_data(uint32_t byte_location, const uint8_t* newData, uint16_t data_size, const uint8_t* oldData){
+FLASH_WRITE_RESULT update_flash_data(uint32_t byte_location, const uint8_t* newData, uint16_t data_size, const uint8_t* oldData){
   //hardcoded for rn, since we're just working with spritesheet[]
   uint32_t write_addr = SPRITESHEET_LMA+byte_location;
   uint16_t offset = byte_location % FLASH_PAGE_SIZE;
-  uint16_t numberOfFlashPages = (offset + data_size) / FLASH_PAGE_SIZE + 1;
+  uint16_t numberOfFlashPages = (offset + data_size + FLASH_PAGE_SIZE - 1) / FLASH_PAGE_SIZE;
   uint32_t aligned_flash_start_write_addr = write_addr - offset;
   uint16_t locationInData = 0;
 
   //copy over the full pages
-  for(int32_t page = 0; page < numberOfFlashPages; page++){
+  for(uint32_t page = 0; page < numberOfFlashPages; page++){
     memset(flash_read_buffer,0,FLASH_PAGE_SIZE);
-    for(int32_t i = 0; i<FLASH_PAGE_SIZE; i++){
+    for(uint32_t i = 0; i<FLASH_PAGE_SIZE; i++){
       uint32_t index = (page * FLASH_PAGE_SIZE) + i;
       //if theres data for this part of the flash, then copy it into the buffer
       if(( index >= offset ) && (locationInData < data_size)){
@@ -116,8 +116,8 @@ bool update_flash_data(uint32_t byte_location, const uint8_t* newData, uint16_t 
     if(result == WRITE_OK)
       continue;
     else
-      return false;
+      return result;
   }
 
-  return true;
+  return WRITE_OK;
 }

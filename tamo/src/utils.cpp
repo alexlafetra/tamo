@@ -28,11 +28,6 @@ volatile bool SINGLE_CLICK = false;
 volatile uint32_t timeOfLastButtonPress = 0;
 uint32_t lastTime = 0;
 
-extern Tamo tamo;
-extern SSD1306Device oled;
-
-// extern uint8_t customSpriteData[64];
-
 uint8_t get_sprite_data(uint16_t offset){
   // super hacky
   // if(tamo.identity == CUSTOM_SPRITE){
@@ -65,6 +60,7 @@ void checkInput(){
   checkInput(true);
 }
 void checkInput(bool updateLEDs){
+
   checkSerialConnection();
   uint8_t val = digitalRead(BUTTON_PIN);
   // uint8_t val = (PINB & (1<<PB1));//check the value from the PB1 register

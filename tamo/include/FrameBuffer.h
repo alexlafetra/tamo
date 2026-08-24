@@ -40,3 +40,5 @@ class FrameBuffer{
     //stole this from Adafruit GFX!
     void drawLine(int8_t x0, int8_t y0, int8_t x1, int8_t y1, int8_t color);
 };
+
+extern FrameBuffer fbo;

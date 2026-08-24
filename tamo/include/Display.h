@@ -153,3 +153,5 @@ static uint8_t oledPages = SSD1306_PAGES;
 
 static uint8_t oledX = 0, oledY = 0;
 static uint8_t renderingFrame = 0xB0, drawingFrame = 0x40;
+
+extern SSD1306Device oled;

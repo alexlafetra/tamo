@@ -47,6 +47,8 @@
     /* extra settings */
     --extra-settings-display:none;
 
+    --canvas-settings-display:none;
+
     /* ui */
     --drop-shadow-color: #46788b;
     --button-highlight-color: blue;
@@ -60,18 +62,17 @@
     --grid-areas:
                 "title title title title"
                 "null spritesheet canvas_and_tools hardware_gif"
-                "null template canvas_and_tools hardware_gif"
                 "null template canvas_and_tools canvas_settings"
                 "image_preview import_export canvas_and_tools canvas_settings"
                 "image_preview settings settings canvas_settings";
     --skinny-grid-areas:
-                "title title title"
-                "canvas_and_tools canvas_and_tools canvas_and_tools"
-                "import_export canvas_settings spritesheet"
-                "import_export canvas_settings template"
-                "image_preview image_preview image_preview"
-                "hardware_gif hardware_gif hardware_gif"
-                "settings settings settings";
+                "title title"
+                "canvas_and_tools canvas_and_tools"
+                "import_export spritesheet"
+                "import_export template"
+                "image_preview image_preview"
+                "hardware_gif hardware_gif"
+                "settings settings";
 
     /* upload progress bar */
     --upload-progress:0%;
@@ -90,14 +91,17 @@
     --text-color:var(--button-highlight-color);
 }
 
-[data-theme="dark"] img,
+/* [data-theme="dark"] img, */
 [data-theme="dark"] text,
 [data-theme="dark"] #title_container,
 [data-theme="dark"] #about_text,
 [data-theme="dark"] #sprite_designer_container,
 [data-theme="dark"] #set_identity_controls,
 [data-theme="dark"] #set_mode_controls,
+[data-theme="dark"] #dark_mode_button_container,
 [data-theme="dark"] input,
+[data-theme="dark"] .ui_box,
+[data-theme="dark"] .debug_text,
 [data-theme="dark"] .tool_button {
     filter:drop-shadow(0px 0px 6px var(--button-highlight-color));
 }
@@ -183,6 +187,7 @@ select{
 
 .ui_box{
     border-radius:10px;
+    background-color:var(--button-background-color);
     /* border-top-left-radius: 0px; */
 }
 
@@ -648,9 +653,10 @@ text{
 #frame_controls{
     grid-area:frames;
     width:200px;
-    margin-left:20px;
+    /* margin-left:20px; */
     height:fit-content;
     flex-direction: column;
+    justify-self: center;
 }
 
 #preview_gallery_holder{
@@ -1091,7 +1097,7 @@ text{
 }
 #canvas_settings_container{
     grid-area:canvas_settings;
-    display:flex;
+    display:var(--canvas-settings-display);
     flex-direction:column;
     height:fit-content;
 }
@@ -1102,8 +1108,15 @@ text{
     flex-direction: row;
     align-items: center;
     border:var(--button-border);
+    background:var(--button-background-color);
+    justify-items: left;
     padding:10px;
     border-radius: 20px;
+}
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 45px;            /* ⬅️ Adjust this value to change thickness */
+  background: #ccc;        /* Track color */
+  border-radius: 8px;      /* Rounded corners */
 }
 #canvas_settings_buttons{
     flex-direction: row;
@@ -1190,8 +1203,9 @@ text{
 #upload_icon{
     image-rendering: pixelated;
     /* height:fit-content; */
-    width:100%;
+    width:40px;
     mix-blend-mode:difference;
+    filter:none;
 }
 #download_icon{
     image-rendering: pixelated;
@@ -1222,6 +1236,7 @@ text{
 .tool_icon{
     image-rendering: pixelated;
     mix-blend-mode: difference;
+    object-fit: contain;
 }
 .tool_button{
     background-color: var(--button-background-color);
@@ -1454,6 +1469,7 @@ text{
         position:relative;
         gap:10px;
         grid-template-areas:var(--skinny-grid-areas);
+        justify-items: center;
     }
     #canvas_container_container{
         max-width:400px;
@@ -1469,9 +1485,6 @@ text{
         flex-direction: row;
     }
     #hardware_gif{
-        width:80px;
-    }
-    #upload_icon{
         width:80px;
     }
     /* #big_undo_buttons{
@@ -1492,9 +1505,6 @@ text{
     }
     #main_canvas{
         touch-action: pinch-zoom;
-    }
-    #sprite_loader_controls{
-        flex-direction: row-reverse;
     }
     #extra_settings_container{
         width:fit-content;
@@ -1537,30 +1547,34 @@ text{
 /* made with: https://danielstern.ca/range.css/?ref=css-tricks#/ */
 input[type=range] {
   width: 100%;
-  margin: 4.5px 0;
+  margin: 0px;
   background-color: transparent;
   -webkit-appearance: none;
+  appearance:none;
 }
 input[type=range]:focus {
   outline: none;
 }
 input[type=range]::-webkit-slider-runnable-track {
-  background: rgba(102, 102, 84, 0);
+    background: rgba(102, 102, 84, 0);
     border:var(--button-border);
-  border-radius: 25px;
-  width: 100%;
-  height: 9px;
-  cursor: pointer;
+    border-radius: 27px;
+    width: 100%;
+    height: 27px;
+    cursor: pointer;
 }
 input[type=range]::-webkit-slider-thumb {
-  margin-top: -5.5px;
-  width: 18px;
-  height: 18px;
-  background: var(--button-highlight-color);
-  border: 0;
-  border-radius: 50px;
-  cursor: pointer;
-  -webkit-appearance: none;
+    margin-top: 0px;
+    width: 25px;
+    height: 25px;
+    background: var(--button-highlight-color);
+    border: 0;
+    border-radius: 50px;
+    cursor: pointer;
+    -webkit-appearance: none;
+}
+input[type=range]:focus::-webkit-slider-thumb {
+  background: var(--button-background-color);
 }
 input[type=range]:focus::-webkit-slider-runnable-track {
   background: var(--button-highlight-color);
@@ -1570,16 +1584,19 @@ input[type=range]::-moz-range-track {
     border:var(--button-border);
   border-radius: 25px;
   width: 100%;
-  height: 9px;
+  height: 27px;
   cursor: pointer;
 }
 input[type=range]::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
+  width: 25px;
+  height: 25px;
   background: var(--button-highlight-color);
   border: 0;
   border-radius: 50px;
   cursor: pointer;
+}
+input[type=range]:focus::-moz-range-thumb  {
+  background: var(--button-background-color);
 }
 input[type=range]::-ms-track {
   background: transparent;
@@ -1587,7 +1604,7 @@ input[type=range]::-ms-track {
   border-width: 18.5px 0;
   color: transparent;
   width: 100%;
-  height: 9px;
+  height: 27px;
   cursor: pointer;
 }
 input[type=range]::-ms-fill-lower {
@@ -1601,14 +1618,17 @@ input[type=range]::-ms-fill-upper {
   border-radius: 50px;
 }
 input[type=range]::-ms-thumb {
-  width: 18px;
-  height: 18px;
+  width: 25px;
+  height: 25px;
   background: var(--button-highlight-color);
   border: 0;
   border-radius: 50px;
   cursor: pointer;
   margin-top: 0px;
   /*Needed to keep the Edge thumb centred*/
+}
+input[type=range]:focus::-ms-thumb  {
+  background: var(--button-background-color);
 }
 input[type=range]:focus::-ms-fill-lower {
   background: rgba(102, 102, 84, 0);

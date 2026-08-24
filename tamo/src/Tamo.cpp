@@ -6,8 +6,6 @@
 #include "spriteFrames.h"
 #include <EEPROM.h>
 
-extern SSD1306Device oled;
-
 Tamo::Tamo(){
   sprite = Sprite(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(IDLE_SPRITE),2,MEDIUM);
 }

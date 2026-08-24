@@ -102,9 +102,9 @@
         </div>
         <!-- extra settings -->
         <div id="extra_settings_container">
-          <div id="extra_settings_button" class="button" onclick="toggleExtraSettingsVisibility(this)"><img
+          <div id="extra_settings_button" class="button ui_box" onclick="toggleExtraSettingsVisibility(this)"><img
               id="settings_icon" src="designer/images/icons/settings_icon.gif">settings</div>
-          <div id="misc_settings" class="button_holder">
+          <div id="misc_settings" class="button_holder ui_box">
             <!-- canvas overlays -->
             <div class="button_holder" style="flex-direction: column;">
               <div style = "flex-direction: row; display:flex;">
@@ -152,7 +152,7 @@
         </div>
 
         <!-- uploaded image preview -->
-        <div id="uploaded_image_settings_container" style="display:none;">
+        <div id="uploaded_image_settings_container" class = "ui_box" style="display:none;">
           <div class = "ui_box_header">image</div>
           <div id = "uploaded_image_settings">
             <div style="display:flex; flex-direction:column;">
@@ -234,7 +234,7 @@
                   oninput="handleSpriteUpload(event)">
               </div>
             </label>
-            <label id="drop_zone_image" class="button" style="cursor:pointer;">
+            <label id="drop_zone_image" class="button ui_box" style="cursor:pointer;">
               <img src="designer/images/icons/image_upload.gif">
               <div class="button_holder" style="flex-direction:column;">
                 <div class="ui_label" style="align-self: center;" onmouseenter="setTooltip('load image/gif');">image
@@ -247,12 +247,19 @@
         </div>
         <div id="sprite_loader_controls" class="button_holder">
           <img src="designer/images/icons/tamo_rotate_optimized_cropped.gif" id="hardware_gif">
-          <div
-            style="padding:10px;border:none;background:var(--button-highlight-color);flex-direction: column; border-radius: 20px;">
-            <img id="upload_icon" src="designer/images/icons/upload_icon.gif">
-            <div class="button tool_button" id="upload_sprites_button" onclick="uploadData()"
-              onmouseenter="setTooltip('flash to tamo');">
-              <div class="ui_label">upload to Tamo</div>
+          <div class = "ui_box" style="display:flex; flex-direction:column; padding:10px;border:none;background:var(--button-highlight-color);border-radius: 20px;">
+            <div style="display:flex; flex-direction: row;">
+              <div class="tool_button button" id="upload_sprites_button" onclick="uploadData()"
+                onmouseenter="setTooltip('upload to tamo');">
+                <!-- <div class="ui_label">upload to Tamo</div> -->
+                <img class="tool_icon" src="designer/images/icons/upload_arrow.gif">
+              </div>
+              <img id="upload_icon" src="designer/images/icons/tamo_icon.gif">
+              <div class="tool_button button" id="download_sprites_button" onclick="downloadSpriteData()"
+                onmouseenter="setTooltip('download from tamo');">
+                <img class="tool_icon" src="designer/images/icons/download_arrow.gif">
+                <!-- <div class="ui_label">download from Tamo</div> -->
+              </div>
             </div>
             <div id="upload_progress_bar_container">
               <div id="upload_progress_bar"></div>
@@ -290,7 +297,7 @@
           <!-- name -->
           <div class = "ui_box_header">spritesheet</div>
           <!-- spritesheet preview -->
-          <div id="sprite_previews"></div>
+          <div id="sprite_previews" class = "ui_box"></div>
         </div>
 
         <!-- preset sprite templates -->
@@ -318,8 +325,8 @@
           </div>
           <div id="frame_controls">
             <!-- preview canvases -->
-            <div id="frame_counter_label" class="ui_label" style="font-family:chopin;font-size:25px;width:fit-content;">
-              Frame -- 1 / 1</div>
+            <!-- <div id="frame_counter_label" class="ui_label" style="font-family:chopin;font-size:25px;width:fit-content;">
+              Frame -- 1 / 1</div> -->
             <div id="preview_gallery_holder" ondragover="handleFrameHolderDragOver(event,this)"></div>
             <!-- frame editing -->
             <div id="frame_editing_controls" class="button_holder">

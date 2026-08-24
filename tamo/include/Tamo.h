@@ -1,4 +1,5 @@
 #pragma once
+#include "Display.h"
 
 #define SPRITESTARTX 8
 #define SPRITESTARTY 0
@@ -179,3 +180,5 @@ class Tamo{
     void slideshow();
     void qrCode();
 };
+
+extern Tamo tamo;
