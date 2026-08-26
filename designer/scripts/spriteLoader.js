@@ -298,7 +298,7 @@ async function transmitDataInPackets(data,port){
     writer.releaseLock();
 
     let writeLocation = 0;
-    while(writeLocation < 320){
+    while(true){
         //read back tamo's response
         const command = await readBytes(port,2);
 
