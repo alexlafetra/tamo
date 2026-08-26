@@ -22,6 +22,14 @@ enum SERIAL_COMMANDS:uint8_t{
     EXPORT_SPRITE_READY = 0x0E
 };
 
+enum PACKET_STATUS:uint8_t{
+    NO_DATA_RECEIVED,
+    EEPROM_FULL,
+    FLASH_FULL,
+    FLASH_WRITE_ERROR,
+    READY_TO_CONTINUE
+};
+
 #define TAMO_SERIAL_BUFFER_SIZE 64
 #define SERIAL_IDLE_TIME 1000 //1s
 
@@ -37,16 +45,11 @@ bool idleSerial(){
     return idleSerial(1);
 }
 
-#include "debug/numbers.cpp";
-
 bool awaitBytes(uint16_t size, uint8_t * buffer){
-    // oled.fill(size);
-    drawNumber(size);
-    //wait for web response
-    lastTime = millis();
+
     //wait for connection to timeout
-    // if(!idleSerial(10))
-    //     return false;
+    if(!idleSerial())
+        return false;
 
     //read in the sprite data
     // return (Serial.readBytes(buffer,size) == size);
@@ -54,38 +57,22 @@ bool awaitBytes(uint16_t size, uint8_t * buffer){
     return true;
 }
 
-// downloads a packet and writes 
-PACKET_STATUS downloadDataPacket(uint16_t size, uint32_t &flash_write_location, uint8_t * buffer){
+// requests a packet, and a size, then waits for it to be received
+PACKET_STATUS downloadDataPacket(uint8_t * buffer, uint8_t size){
     //clear out buffer
+    clearSerialBuffer();
     memset(buffer, 0x00, size);
-
+    uint8_t request[2] = {REQUEST_NEXT_DATA_PACKET,size};
     //request the next data packet
-    Serial.write(REQUEST_NEXT_DATA_PACKET);
-    //ask for this many bytes
-    Serial.write(size);
+    Serial.write(request,2);
     Serial.flush();
 
     if(!awaitBytes(size,buffer)){
-        digitalWrite(LED_A,HIGH);
-        digitalWrite(LED_B,HIGH);
         return NO_DATA_RECEIVED;
     }
-    switch(update_flash_data(flash_write_location,buffer,size,spritesheet)){
-        case WRITE_OK:
-            break; 
-        case NOT_A_PAGE_BOUNDARY:
-            break;
-        case ADDRESS_IN_BOOT_SECTION:
-            break;
-        case ADDRESS_BEYOND_FLASH:
-            break;
-        case WRITE_ERROR:
-            break;
-        default:
-            break;
+    else{
+        return READY_TO_CONTINUE;
     }
-    flash_write_location += size;
-    return READY_TO_CONTINUE;
 }
 
 // main receiving function for saying hello & grabbing data
@@ -96,18 +83,20 @@ bool loadDataFromSerial(uint32_t flash_write_location){
         return false;
     
     //get the size of the data
-    uint8_t packetSize[2] = {0};
-    Serial.readBytes(packetSize,2);
+    uint8_t size[2] = {0};
+    Serial.readBytes(size,2);
 
-    uint16_t dataSize = (((uint16_t)packetSize[0])<<8)|((uint16_t)packetSize[1]);
+    uint16_t dataSize = (((uint16_t)size[0])<<8)|((uint16_t)size[1]);
     uint16_t numberOfPacketsNeeded = dataSize/TAMO_SERIAL_BUFFER_SIZE;
 
     //get sprite data in 64-byte packets, since that's the Serial buffer's size
     for(uint8_t i = 0; i<numberOfPacketsNeeded; i++){
         //if you run out of space, get outta here
-        PACKET_STATUS status = downloadDataPacket(TAMO_SERIAL_BUFFER_SIZE,flash_write_location,flash_write_buffer);
-        switch(status){
+        PACKET_STATUS download_status = downloadDataPacket(flash_write_buffer,TAMO_SERIAL_BUFFER_SIZE);
+        FLASH_WRITE_RESULT write_status= update_flash_data(flash_write_location,flash_write_buffer,TAMO_SERIAL_BUFFER_SIZE,spritesheet);
+        switch(download_status){
             case READY_TO_CONTINUE:
+                flash_write_location += TAMO_SERIAL_BUFFER_SIZE;
                 continue;
             case FLASH_FULL:
             case NO_DATA_RECEIVED:
@@ -117,17 +106,14 @@ bool loadDataFromSerial(uint32_t flash_write_location){
     }
     //if it's not a clean multiple of 64, grab the rest of it
     if(dataSize%TAMO_SERIAL_BUFFER_SIZE){
-        //and if you run out of space here, get outta here
-        PACKET_STATUS status = downloadDataPacket(dataSize%TAMO_SERIAL_BUFFER_SIZE,flash_write_location,flash_write_buffer);
-        switch(status){
+        PACKET_STATUS download_status = downloadDataPacket(flash_write_buffer,TAMO_SERIAL_BUFFER_SIZE);
+        FLASH_WRITE_RESULT write_status= update_flash_data(flash_write_location,flash_write_buffer,TAMO_SERIAL_BUFFER_SIZE,spritesheet);
+        switch(download_status){
             case READY_TO_CONTINUE:
                 break;
             case FLASH_FULL:
-            case EEPROM_FULL:
-                return true;
             case NO_DATA_RECEIVED:
             default:
-                // blinkForABit(500,4);
                 return false;
         }
     }
@@ -165,80 +151,118 @@ the serial buffer completely, and don't check if there's not enough data to do s
 if the sprite data WASN'T a multiple of TAMO_SERIAL_BUFFER_SIZE, this would be a problem!
 
 */
-bool exchangeSprites_follower(){
 
-    uint32_t flash_read_location = custom_sprite_idle_1;
 
-    //tell other tamo you're ready
-    Serial.write(SPRITE_SWAP_READY);
+//waits for a request byte, then sends a packet of that size
+uint8_t sendDataPacket(uint8_t * buffer, uint32_t& flash_read_location){
+    //wait for go ahead
+    if(!idleSerial())
+        return 0;
+    uint8_t command[2] = {0};
+    Serial.readBytes(command,2);
+    if(command[0] != REQUEST_NEXT_DATA_PACKET)
+        return 0;
+    uint8_t size = command[1];
 
-    while(flash_read_location <= (custom_sprite_eating_2)){
-        //if you don't get anything back, something's wrong
-        if(!idleSerial())
-            return false;
-
-        //check to make sure leader is asking for a data chunk
-        uint8_t firstByte[1] = {0};
-        Serial.readBytes(firstByte,1);
-        if(firstByte[0] != REQUEST_NEXT_DATA_PACKET)
-            return false;
-        clearSerialBuffer();
-        //send your data to the leader
-        //fill read buffer
-        for(uint8_t i = 0; i<TAMO_SERIAL_BUFFER_SIZE; i++){
-            flash_read_buffer[i] = spritesheet[flash_read_location+i];
-        }
-        //send data
-        Serial.write(flash_read_buffer,TAMO_SERIAL_BUFFER_SIZE);
-        if(!awaitBytes(TAMO_SERIAL_BUFFER_SIZE,flash_write_buffer))
-            return false;
-
-        //write data to flash
-        update_flash_data(flash_read_location,flash_write_buffer,TAMO_SERIAL_BUFFER_SIZE,spritesheet);
-
-        flash_read_location += TAMO_SERIAL_BUFFER_SIZE;
+    //send your data
+    //fill read buffer
+    memset(buffer,0,size);
+    for(uint8_t i = 0; i<size; i++){
+        buffer[i] = spritesheet[flash_read_location+i];
     }
-    return true;
+    Serial.write(buffer,size);
+    return size;
 }
 
 //run the sprite swap routine as the leader
-bool exchangeSprites_leader(){
-    //it's always this
-    uint32_t flash_read_location = custom_sprite_idle_1;
+bool exchangeSprites(bool leader){
+
+    SPRITE_IDENTITY otherSpriteID = NO_IDENTITY;
 
     //this tamo is starting it, send sprite_swap command and wait
-    Serial.write(INITIATE_SPRITE_SWAP);
-    //wait for response
-    if(!idleSerial())
-        return false;
-    uint8_t firstByte[1] = {0};
-    Serial.readBytes(firstByte,1);
-    //if response wasn't "ready for sprite swap", just return
-    if(firstByte[0] != SPRITE_SWAP_READY)
-        return false;
-    
-    while(flash_read_location <= (custom_sprite_eating_2)){
-        //empty out input buffer
-        clearSerialBuffer();
-        //get data from follower
-        Serial.write(REQUEST_NEXT_DATA_PACKET);
-        if(!awaitBytes(TAMO_SERIAL_BUFFER_SIZE,flash_write_buffer))
-            return false; //return false if you didn't get enough data! this will be a huge prob, since sprites will be partially overwritten, but oh well
-        //future solution is writing received data to a totally diff location in flash, then overwriting at the end. Idk if there's enough flash space for that though
+    if(leader){
+        Serial.write(INITIATE_SPRITE_SWAP);
+        //wait for response
+        if(!idleSerial())
+            return false;
+        uint8_t swapResponse[2] = {0,0};
+        Serial.readBytes(swapResponse,2);
+        //if response wasn't "ready for sprite swap", just return
+        if(swapResponse[0] != SPRITE_SWAP_READY)
+            return false;
         
-        //send your data to the follower
-        //fill read buffer
-        for(uint8_t i = 0; i<TAMO_SERIAL_BUFFER_SIZE; i++){
-            flash_read_buffer[i] = spritesheet[flash_read_location+i];
-        }
-        Serial.write(flash_read_buffer,TAMO_SERIAL_BUFFER_SIZE);
-
-        //write data to flash
-        update_flash_data(flash_read_location,flash_write_buffer,TAMO_SERIAL_BUFFER_SIZE,spritesheet);
-
-        //increment your write location
-        flash_read_location += TAMO_SERIAL_BUFFER_SIZE;
+        otherSpriteID = SPRITE_IDENTITY(swapResponse[1]);
     }
+
+    //tell the other tamo you're ready, and your identity
+    uint8_t startSwap[2] = {SPRITE_SWAP_READY,tamo.identity};
+    Serial.write(startSwap,2);
+
+    //wait for the leader to respond & tell you its identity
+    if(!leader){
+        //wait for response
+        if(!idleSerial())
+            return false;
+        uint8_t swapResponse[2] = {0,0};
+        Serial.readBytes(swapResponse,2);
+        //if response wasn't "ready for sprite swap", just return
+        if(swapResponse[0] != SPRITE_SWAP_READY)
+            return false;
+        
+        otherSpriteID = SPRITE_IDENTITY(swapResponse[1]);
+    }
+
+    if(leader){
+        Serial.write(REQUEST_NEXT_DATA_PACKET);
+    }
+
+    //walk sprite offscreen
+    tamo.walkOff();
+    
+    //if either tamo has a custom sprite active, run this
+    if(tamo.identity == CUSTOM_SPRITE || otherSpriteID == CUSTOM_SPRITE){
+        //it's always this
+        uint32_t flash_read_location = custom_sprite_idle_1;
+        while(flash_read_location <= (custom_sprite_eating_2)){
+            uint8_t size_of_packet_sent = 0;
+            //switch send/receive order based on who's the leader
+            if(leader){
+                //receive sprite data
+                if(otherSpriteID == CUSTOM_SPRITE){
+                    downloadDataPacket(flash_write_buffer,TAMO_SERIAL_BUFFER_SIZE);
+                }
+                //send sprite data
+                if(tamo.identity == CUSTOM_SPRITE){
+                    size_of_packet_sent = sendDataPacket(flash_read_buffer,flash_read_location);
+                }
+                //only update your own flash data AFTER you sent your sprite data! 
+                if(otherSpriteID == CUSTOM_SPRITE){
+                    update_flash_data(flash_read_location,flash_write_buffer,TAMO_SERIAL_BUFFER_SIZE,spritesheet);
+                }
+            }
+            else{
+                //send sprite data
+                if(tamo.identity == CUSTOM_SPRITE){
+                    size_of_packet_sent = sendDataPacket(flash_read_buffer,flash_read_location);
+                }
+                //receive sprite data
+                if(otherSpriteID == CUSTOM_SPRITE){
+                    downloadDataPacket(flash_write_buffer,TAMO_SERIAL_BUFFER_SIZE);
+                    //only update your own flash data AFTER you sent your sprite data! 
+                    update_flash_data(flash_read_location,flash_write_buffer,TAMO_SERIAL_BUFFER_SIZE,spritesheet);
+                }
+            }
+
+            //increment your write location
+            flash_read_location += size_of_packet_sent;
+        }
+    }
+    //set tamo identity
+    tamo.setIdentity(otherSpriteID);
+
+    //walk sprite back onscreen
+    tamo.walkOn();
+
     return true;
 }
 
@@ -248,24 +272,10 @@ bool uploadSpriteToSerial(uint32_t flash_read_location){
 
     while(flash_read_location <= (custom_sprite_eating_2)){
         //if you don't get anything back, something's wrong
-        if(!idleSerial())
+        uint8_t size_of_packet_sent = sendDataPacket(flash_read_buffer,flash_read_location);
+        if(size_of_packet_sent == 0)
             return false;
-
-        //check to make sure leader is asking for a data chunk
-        uint8_t firstByte[1] = {0};
-        Serial.readBytes(firstByte,1);
-        if(firstByte[0] != REQUEST_NEXT_DATA_PACKET)
-            return false;
-
-        //send data to the webserial port
-        //fill read buffer
-        for(uint8_t i = 0; i<TAMO_SERIAL_BUFFER_SIZE; i++){
-            flash_read_buffer[i] = spritesheet[flash_read_location+i];
-        }
-        //send data
-        Serial.write(flash_read_buffer,TAMO_SERIAL_BUFFER_SIZE);
-
-        flash_read_location += TAMO_SERIAL_BUFFER_SIZE;
+        flash_read_location += size_of_packet_sent;
     }
     return true;
 }
@@ -300,7 +310,7 @@ bool checkSerialConnection(){
 
         //sprite swap
         case INITIATE_SPRITE_SWAP:
-            exchangeSprites_follower();
+            exchangeSprites(false);
             break;
         case EXPORT_SPRITE:
             uploadSpriteToSerial(custom_sprite_idle_1);
@@ -310,7 +320,7 @@ bool checkSerialConnection(){
             if(!idleSerial())
                 return;
             Serial.readBytes(secondByte,1);
-            EEPROM.update(EEPROM_IDENTITY_ADDR,secondByte[0]);
+            tamo.setIdentity(secondByte[0]);
             //reset the system, do a lil dance first
             // blinkForABit(50,10);
             _PROTECTED_WRITE(RSTCTRL.SWRR,1);

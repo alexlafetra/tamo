@@ -32,6 +32,7 @@ const settings = {
   slideshowBlinkInterval : 0,
   spritesheetExportDirection : 'vertical',
   showSettings : false,
+  showCanvasSettings : false
 };
 
 function toggleResizeCanvas(element){
@@ -45,6 +46,19 @@ function toggleResizeCanvas(element){
     element.style.color = null;
   }
 }
+function toggleCanvasSettings(element){
+  settings.showCanvasSettings = !settings.showCanvasSettings;
+  if (settings.showCanvasSettings) {
+    element.style.background = "var(--button-highlight-color)";
+    element.style.color = "var(--button-highlight-text-color)";
+  }
+  else {
+    element.style.background = null;
+    element.style.color = null;
+  }
+  document.documentElement.style.setProperty('--canvas-settings-display',settings.showCanvasSettings?'flex':'none');
+}
+
 
 function toggleAutoProcessSprites(element){
   settings.automaticallyProcessSprites = !settings.automaticallyProcessSprites;

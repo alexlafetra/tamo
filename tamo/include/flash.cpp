@@ -76,6 +76,7 @@ FLASH_WRITE_RESULT flash_write_page_safe(uint32_t flash_addr, const uint8_t* dat
     _PROTECTED_WRITE_SPM(NVMCTRL.CTRLA, NVMCTRL_CMD_PAGEERASEWRITE_gc);
     nvm_wait();
     SREG = sreg;
+    sei();
 
     if (NVMCTRL.STATUS & NVMCTRL_WRERROR_bm) {
         NVMCTRL.STATUS = NVMCTRL_WRERROR_bm;

@@ -11,8 +11,8 @@ Tamo::Tamo(){
 }
 
 void Tamo::init(){
-  mode = TamoMode(EEPROM.read(EEPROM_MODE_ADDR));
-  identity = EEPROM.read(EEPROM_IDENTITY_ADDR);
+  mode = TAMO_MODE(EEPROM.read(EEPROM_MODE_ADDR));
+  identity = SPRITE_IDENTITY(EEPROM.read(EEPROM_IDENTITY_ADDR));
   health = uint16_t(EEPROM.read(EEPROM_HEALTH_ADDR))<<8 | uint16_t(EEPROM.read(EEPROM_HEALTH_ADDR+1));
   // status = EEPROM.read(EEPROM_STATUS_ADDR); //this is causing weird problems with sleep, smoking on reboot
   setStatusBit(NEEDS_TO_SMOKE_BIT,false);
@@ -42,11 +42,17 @@ void Tamo::sleep(){
 
   //when the RTC interrupt finishes it goes to this line and tamo can go back to sleep
   while(isAsleep()){
+    // digitalWrite(LED_A,CHANGE);
     //put the attiny to sleep
     sleepHardware();
   }
 
   wakeHardware();
+}
+
+void Tamo::setIdentity(SPRITE_IDENTITY i){
+  EEPROM.update(EEPROM_IDENTITY_ADDR,i);
+  identity = i;
 }
 
 const uint16_t * Tamo::getSprite(uint8_t whichSprite){
@@ -60,8 +66,6 @@ const uint16_t * Tamo::getSprite(uint8_t whichSprite){
     case BOTO:
       return boto_spritesheet[whichSprite];
     case CUSTOM_SPRITE:
-      // loadCustomSpriteIntoRAM(whichSprite);
-      // return customSpriteOffsets;
       return custom_spritesheet[whichSprite];
     default:
       return tamo_spritesheet[whichSprite];
@@ -169,7 +173,7 @@ void Tamo::body(){
   if(mood ==  MOOD_BIRTH || mood == MOOD_DEAD)
     return;
 
-  timeSinceLastCig+=1;
+  timeSinceLastCig++;
   //tamo only smokes if it's asleep, not dead, and not being born, since smoking can change tamo's mood
   if(timeSinceLastCig > 600 && isAsleep() &&  !getStatusBit(IS_DEAD_BIT)){
     mood = MOOD_SMOKING;
@@ -602,6 +606,29 @@ void Tamo::dead(){
     }
   }
   SINGLE_CLICK = false;
+}
+
+void Tamo::walkOn(){
+  sprite.yCoord = SPRITESTARTY-16;
+  lastTime = millis();
+  //slide in
+  int8_t i = 0;
+  while(i < 16){
+    sprite.yCoord = SPRITESTARTY-16+i;
+    i++;
+    sprite.update();
+  }
+}
+void Tamo::walkOff(){
+  sprite.yCoord = SPRITESTARTY;
+  lastTime = millis();
+  //slide in
+  int8_t i = 0;
+  while(i < 16){
+    sprite.yCoord = SPRITESTARTY+i;
+    i++;
+    sprite.update();
+  }
 }
 
 void Tamo::talk(){

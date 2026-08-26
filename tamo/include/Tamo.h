@@ -12,47 +12,26 @@
 #define MEDIUM 2400
 #define SLOW 9600
 
-// Thoughts
-#define THOUGHT_OF_LOVE 0 //heart
-#define THOUGHT_OF_HEARTBREAK 1 //heart breaking
-#define THOUGHT_OF_DEATH 2 //skull
-#define THOUGHT_OF_REVENGE 3 //gun
-#define THOUGHT_OF_FOOD 4 //pacman? don't like this one
-#define THOUGHT_OF_MUSIC 5 //music note
-#define THOUGHT_OF_MONEY 6 //$$$
-#define THOUGHT_OF_LOWBATTERY 7 //empty battery
-#define THOUGHT_OF_CHARGING 8 // charging battery
-#define THOUGHT_OF_SADTHOUGHTS 9 //crying face
-#define THOUGHT_OF_NEUTRALTHOUGHTS 10 //neutral face
-#define THOUGHT_OF_HAPPYTHOUGHTS 11//happy face
-#define THOUGHT_OF_SMOKING 12
-#define THOUGHT_OF_FLOWERS 13
+enum TAMO_THOUGHT:uint8_t{
+  THOUGHT_OF_LOVE = 0, //heart
+  THOUGHT_OF_HEARTBREAK = 1, //heart breaking
+  THOUGHT_OF_DEATH = 2, //skull
+  THOUGHT_OF_REVENGE = 3, //gun
+  THOUGHT_OF_FOOD = 4, //pacman? don't like this one
+  THOUGHT_OF_MUSIC = 5, //music note
+  THOUGHT_OF_MONEY = 6, //$$$
+  THOUGHT_OF_LOWBATTERY = 7, //empty battery
+  THOUGHT_OF_CHARGING = 8, // charging battery
+  THOUGHT_OF_SADTHOUGHTS = 9, //crying face
+  THOUGHT_OF_NEUTRALTHOUGHTS = 10, //neutral face
+  THOUGHT_OF_HAPPYTHOUGHTS = 11,//happy face
+  THOUGHT_OF_SMOKING = 12,
+  THOUGHT_OF_FLOWERS = 13
+};
 
-// Moods
-#define MOOD_NEUTRAL 0
-#define MOOD_SAD 1
-#define MOOD_ANGRY 2
-#define MOOD_HAPPY 3
-#define MOOD_EATING 4
-#define MOOD_DEAD 5
-#define MOOD_BIRTH 6
-#define MOOD_RANDOM 7
-#define MOOD_SMOKING 8
-#define MOOD_POOPING 9
-#define MOOD_TALKING 10
-#define MOOD_PECKISH 11
-#define MOOD_QR_CODE 12
-
-// Sprite ID's
-#define IDLE_SPRITE MOOD_NEUTRAL
-#define SAD_SPRITE MOOD_SAD
-#define MAD_SPRITE MOOD_ANGRY
-#define HAPPY_SPRITE MOOD_HAPPY
-#define EATING_SPRITE MOOD_EATING
-
-const uint8_t happyThoughts[7] = {THOUGHT_OF_FLOWERS,THOUGHT_OF_HAPPYTHOUGHTS,THOUGHT_OF_LOVE,THOUGHT_OF_MUSIC,THOUGHT_OF_MONEY,THOUGHT_OF_REVENGE,THOUGHT_OF_SMOKING};
-const uint8_t neutralThoughts[6] = {THOUGHT_OF_NEUTRALTHOUGHTS,THOUGHT_OF_MUSIC,THOUGHT_OF_MONEY,THOUGHT_OF_REVENGE,THOUGHT_OF_DEATH,THOUGHT_OF_SMOKING};
-const uint8_t sadThoughts[6] = {THOUGHT_OF_SADTHOUGHTS,THOUGHT_OF_HEARTBREAK,THOUGHT_OF_DEATH,THOUGHT_OF_REVENGE,THOUGHT_OF_MONEY,THOUGHT_OF_SMOKING};
+const TAMO_THOUGHT happyThoughts[7] = {THOUGHT_OF_FLOWERS,THOUGHT_OF_HAPPYTHOUGHTS,THOUGHT_OF_LOVE,THOUGHT_OF_MUSIC,THOUGHT_OF_MONEY,THOUGHT_OF_REVENGE,THOUGHT_OF_SMOKING};
+const TAMO_THOUGHT neutralThoughts[6] = {THOUGHT_OF_NEUTRALTHOUGHTS,THOUGHT_OF_MUSIC,THOUGHT_OF_MONEY,THOUGHT_OF_REVENGE,THOUGHT_OF_DEATH,THOUGHT_OF_SMOKING};
+const TAMO_THOUGHT sadThoughts[6] = {THOUGHT_OF_SADTHOUGHTS,THOUGHT_OF_HEARTBREAK,THOUGHT_OF_DEATH,THOUGHT_OF_REVENGE,THOUGHT_OF_MONEY,THOUGHT_OF_SMOKING};
 
 #define HEALTH_LOSS 1
 #define HEALTH_GAIN 10000
@@ -75,24 +54,51 @@ const uint8_t sadThoughts[6] = {THOUGHT_OF_SADTHOUGHTS,THOUGHT_OF_HEARTBREAK,THO
 #define RESET_BIT 7
 
 // EEPROM memory addresses
-#define EEPROM_MODE_ADDR 0
-#define EEPROM_IDENTITY_ADDR 1
-#define EEPROM_HEALTH_ADDR 2//2bytes
-#define EEPROM_STATUS_ADDR 4
-#define EEPROM_SLIDESHOW_FRAME_COUNT_ADDR 6
-#define EEPROM_SLIDESHOW_SPEED_ADDR 7
-#define EEPROM_SLIDESHOW_SLEEP_TIME_ADDR 8
-#define EEPROM_SLIDESHOW_BLINK_TIME_ADDR 9
+enum EEPROM_ADDRESS:uint8_t{
+  EEPROM_MODE_ADDR = 0,
+  EEPROM_IDENTITY_ADDR = 1,
+  EEPROM_HEALTH_ADDR = 2,//2bytes
+  EEPROM_STATUS_ADDR = 4,
+  EEPROM_SLIDESHOW_FRAME_COUNT_ADDR = 6,
+  EEPROM_SLIDESHOW_SPEED_ADDR = 7,
+  EEPROM_SLIDESHOW_SLEEP_TIME_ADDR = 8,
+  EEPROM_SLIDESHOW_BLINK_TIME_ADDR = 9
+};
 
 // #define EEPROM_SIZE 256
 
 // Creature identities
-#define NO_IDENTITY 255
-#define TAMO 0
-#define PORCINI 1
-#define BUG 2
-#define BOTO 3
-#define CUSTOM_SPRITE 4
+enum SPRITE_IDENTITY:uint8_t{
+  NO_IDENTITY = 255,
+  TAMO = 0,
+  PORCINI = 1,
+  BUG = 2,
+  BOTO = 3,
+  CUSTOM_SPRITE = 4
+};
+
+enum TAMO_MOOD:uint8_t{
+  MOOD_NEUTRAL = 0,
+  MOOD_SAD = 1,
+  MOOD_ANGRY = 2,
+  MOOD_HAPPY = 3,
+  MOOD_EATING = 4,
+  MOOD_DEAD = 5,
+  MOOD_BIRTH = 6,
+  MOOD_RANDOM = 7,
+  MOOD_SMOKING = 8,
+  MOOD_POOPING = 9,
+  MOOD_TALKING = 10,
+  MOOD_PECKISH = 11,
+  MOOD_QR_CODE  = 12
+};
+
+// Sprite ID's
+#define IDLE_SPRITE MOOD_NEUTRAL
+#define SAD_SPRITE MOOD_SAD
+#define MAD_SPRITE MOOD_ANGRY
+#define HAPPY_SPRITE MOOD_HAPPY
+#define EATING_SPRITE MOOD_EATING
 
 #define NO_FOOD_PREFERENCE 255
 #define PREFERS_CHEESE 0
@@ -102,7 +108,7 @@ const uint8_t sadThoughts[6] = {THOUGHT_OF_SADTHOUGHTS,THOUGHT_OF_HEARTBREAK,THO
 
 #include "Sprite.h"
 
-enum TamoMode:uint8_t{
+enum TAMO_MODE:uint8_t{
   NORMAL_TAMO = 0,
   SLIDESHOW = 1,
   TEXT = 2
@@ -117,16 +123,17 @@ class Tamo{
   public:
     Tamo();
     Sprite sprite;
-    TamoMode mode = NORMAL_TAMO;
+    TAMO_MODE mode = NORMAL_TAMO;
+    //When tamo boots with "NO_IDENTITY", it reads identity from EEPROM
+    SPRITE_IDENTITY identity = NO_IDENTITY;
     // default: birth sequence
-    uint8_t mood = MOOD_BIRTH;
-    uint8_t thought = THOUGHT_OF_LOVE;
+    TAMO_MOOD mood = MOOD_BIRTH;
+    TAMO_THOUGHT thought = THOUGHT_OF_LOVE;
     int16_t moodTime = 0;
     uint16_t timeSinceLastCig = 0;
     uint8_t timeSinceLastTalk = 0;
     //status register (volatile so that sleep can be turned off from interrupts)
     volatile uint8_t status = 0b00000000;
-    uint8_t identity = NO_IDENTITY;//which sprites to chose from
     /*
       health decreases every 1 second. Food resets it
     */
@@ -154,10 +161,13 @@ class Tamo{
     void game();
 
     void setMoodSprite(uint8_t mood);
+    void setIdentity(SPRITE_IDENTITY i);
 
     void basicEmotion();
     void waitAndPlayThruSprite(uint16_t,bool);
     void waitAndBlink(uint16_t);
+    void walkOn();
+    void walkOff();
     void idle();
     void smokeBreak();
     void smokingDamage();

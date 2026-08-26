@@ -29,8 +29,137 @@ const modes = {
     SLIDESHOW_MODE: 1
 }
 
+const TAMO_SERIAL_BUFFER_SIZE = 64;
+
 let uploadIdentity = identities.CUSTOM_SPRITE;
 let uploadMode = modes.NORMAL_MODE;
+
+async function emulateSpriteSwap(leader){
+
+    //array to hold the received data
+    const newSpriteData = new Uint8Array(320);
+    //array holding the current data
+    const currentSpriteData = getCompressedSpriteData();
+
+    let otherSpriteID = identities.NO_IDENTITY;
+    const thisSpriteID = identities.CUSTOM_SPRITE;
+
+    let writer;
+
+    //open the port
+    let port;
+    try{
+        port = await navigator.serial.requestPort();
+    }
+    catch(error){
+        console.log(error);
+        return;
+    }
+    await port.open({ baudRate: 115200 });
+
+    //clear buffer
+    await clearReadBuffer(port);
+
+    if(leader){
+        console.log("initializing sprite swap!");
+        writer = port.writable.getWriter();
+        await writer.write(new Uint8Array([commands.INITIATE_SPRITE_SWAP]));
+        writer.releaseLock();
+        //wait for response from tamo
+        const response = await readBytes(port,2);
+        if(response[0] != commands.SPRITE_SWAP_READY){
+            console.log("other tamo wasn't ready!");
+            return;
+        }
+        //store other id
+        otherSpriteID = response[1];
+    }
+
+    //tell other tamo you're ready, and your identity
+    writer = port.writable.getWriter();
+    await writer.write(new Uint8Array([commands.SPRITE_SWAP_READY,identities.CUSTOM_SPRITE]));
+    writer.releaseLock();
+
+    if(!leader){
+        const response = await readBytes(port,2);
+        if(response[0] != commands.SPRITE_SWAP_READY){
+            console.log("other tamo wasn't ready!");
+            return;
+        }
+        //store other id
+        otherSpriteID = response[1];
+    }
+
+    //ask for the first packet
+    if(leader){
+        writer = port.writable.getWriter();
+        await writer.write(new Uint8Array([commands.REQUEST_NEXT_DATA_PACKET]));
+        writer.releaseLock();
+    }
+
+
+    console.log("beginning swap!");
+    let read_location = 0;
+
+    const receiveSpritePacket = async () => {
+        //clear buffer
+        clearReadBuffer();
+        //request data from follower
+        console.log("requesting data packet...");
+        writer = port.writable.getWriter();
+        await writer.write(new Uint8Array([commands.REQUEST_NEXT_DATA_PACKET]));
+        writer.releaseLock();
+
+        //read in new data
+        const data = await readBytes(port,TAMO_SERIAL_BUFFER_SIZE);
+        console.log("received data packet:",data);
+        return data;
+    }
+    const sendSpritePacket = async () => {
+        console.log("waiting for data packet request...");
+        const response = await readBytes(port,1);
+        if(response[0] != commands.REQUEST_NEXT_DATA_PACKET)
+            return;
+        console.log("sending data packet!");
+        const sentData = currentSpriteData.slice(read_location,read_location+TAMO_SERIAL_BUFFER_SIZE);
+        writer = port.writable.getWriter();
+        await writer.write(sentData);
+        writer.releaseLock();
+    }
+
+    while(read_location < (currentSpriteData.length - TAMO_SERIAL_BUFFER_SIZE)){
+
+        if(leader){
+            let data;
+            if(otherSpriteID == identities.CUSTOM_SPRITE){
+                data = await receiveSpritePacket();
+            }
+            if(thisSpriteID == identities.CUSTOM_SPRITE){
+                await sendSpritePacket();
+            }
+            if(otherSpriteID == identities.CUSTOM_SPRITE){
+                //save to array
+                newSpriteData.set(data,read_location);
+            }
+        }
+        else{
+            if(thisSpriteID == identities.CUSTOM_SPRITE){
+                await sendSpritePacket();
+            }
+            if(otherSpriteID == identities.CUSTOM_SPRITE){
+                data = await receiveSpritePacket();
+                newSpriteData.set(data,read_location);
+            }
+        }
+        //increment read location
+        read_location+=TAMO_SERIAL_BUFFER_SIZE;
+    }
+    
+    //parse the received bytes!
+    if(otherSpriteID == identities.CUSTOM_SPRITE){
+        convertByteArrayToSprite(newSpriteData);
+    }
+}
 
 //digests everything in the input buffer
 async function clearReadBuffer(port) {
@@ -74,6 +203,7 @@ async function clearReadBuffer(port) {
 // }
 
 const serialTimeoutDelay = 1000;
+
 async function readBytes(port, numberOfBytes) {
     const result = new Uint8Array(numberOfBytes);
     let offset = 0;
@@ -105,7 +235,7 @@ async function readBytes(port, numberOfBytes) {
                     break;
 
                 const remaining = numberOfBytes - offset;
-                const chunk = value.length > remaining?value.slice(0, remaining):value;
+                const chunk = (value.length > remaining)?value.slice(0, remaining):value;
 
                 result.set(chunk, offset);
                 offset += chunk.length;
@@ -255,6 +385,27 @@ function uploadData(){
 
 }
 
+//organizes sprites into the correct order for sending to tamo, then
+//converts them to a byte array
+function getCompressedSpriteData(){
+    //quickly filter sprites to only send the relevant 5
+    const organizedSprites = [];
+    presetSpriteNames.map((name,nameIndex) => {
+        let found = false;
+        for(let sprite of sprites){
+            if(sprite.fileName.includes(name)){
+                found = true;
+                organizedSprites[nameIndex] = sprite;
+                break;
+            }
+        }
+        //if there isn't one, pass undefined (packSpritesIntoByteArray will substitute it for spriteNotFound)
+        if(!found)
+            organizedSprites[nameIndex] = undefined;
+    })
+    return packSpritesIntoByteArray(organizedSprites,32);
+}
+
 async function uploadSpriteData(){
     //open the port
     let port;
@@ -283,23 +434,7 @@ async function uploadSpriteData(){
         console.log(value);
         console.log("tamo says hello!");
 
-        //quickly filter sprites to only send the relevant 5
-        const organizedSprites = [];
-        presetSpriteNames.map((name,nameIndex) => {
-            let found = false;
-            for(let sprite of sprites){
-                if(sprite.fileName.includes(name)){
-                    found = true;
-                    organizedSprites[nameIndex] = sprite;
-                    break;
-                }
-            }
-            //if there isn't one, pass undefined (packSpritesIntoByteArray will substitute it for spriteNotFound)
-            if(!found)
-                organizedSprites[nameIndex] = undefined;
-        })
-        console.log(organizedSprites);
-        const spriteData = packSpritesIntoByteArray(organizedSprites,32);
+        const spriteData = getCompressedSpriteData();
         // convertByteArrayToSprite(spriteData);
         const success = await transmitDataInPackets(spriteData,port);
         if(success){
@@ -399,11 +534,11 @@ async function downloadSpriteData(){
         for(let i = 0; i<320; i+=64){
             //request another data packet
             let writer = port.writable.getWriter();
-            await writer.write(new Uint8Array([commands.REQUEST_NEXT_DATA_PACKET]));
+            await writer.write(new Uint8Array([commands.REQUEST_NEXT_DATA_PACKET,TAMO_SERIAL_BUFFER_SIZE]));
             writer.releaseLock();
 
             //receive data and store in array
-            const chunk = await readBytes(port,64);
+            const chunk = await readBytes(port,TAMO_SERIAL_BUFFER_SIZE);
             data.set(chunk,i);
 
             updateTransmissionProgressBar(i/320*100,"downloading","downloaded sprite!");
