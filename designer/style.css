@@ -64,7 +64,9 @@
                 "null spritesheet canvas_and_tools hardware_gif"
                 "null template canvas_and_tools canvas_settings"
                 "image_preview import_export canvas_and_tools canvas_settings"
-                "image_preview settings settings canvas_settings";
+                "image_preview import_export settings settings"
+                "null1 null1 settings settings";
+                /* "image_preview settings settings canvas_settings"; */
     --skinny-grid-areas:
                 "title title"
                 "canvas_and_tools canvas_and_tools"
@@ -72,6 +74,7 @@
                 "import_export template"
                 "image_preview image_preview"
                 "hardware_gif hardware_gif"
+                "canvas_settings canvas_settings"
                 "settings settings";
 
     /* upload progress bar */
@@ -126,7 +129,7 @@
     border:2px solid;
     border-color:var(--button-highlight-color);
     padding:2px;
-    position:absolute;
+    position:fixed;
     cursor:pointer;
     z-index:10;
     left: 8px;
@@ -646,7 +649,9 @@ text{
     cursor:pointer;
 }
 .sprite_preset_preview:hover{
+    mix-blend-mode: difference;
     background:var(--button-highlight-color);
+    /* background-color: rgb(255, 0, 255); */
     /* mix-blend-mode: difference; */
 }
 
@@ -1152,7 +1157,8 @@ input[type="range"]::-webkit-slider-runnable-track {
     display:flex;
     flex-direction: column;
     grid-area:import_export;
-    gap:5px;
+    /* gap:5px; */
+    margin:auto;
 }
 #upload_controls{
     width:fit-content;
@@ -1288,6 +1294,7 @@ input[type="range"]::-webkit-slider-runnable-track {
     background-color:var(--button-highlight-color);
     color:var(--button-highlight-text-color);
     border-color:var(--button-highlight-color);
+    /* background-color: rgb(255, 0, 255); */
 }
 .tool_button img{
     image-rendering: pixelated;

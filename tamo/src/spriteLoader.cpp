@@ -33,6 +33,13 @@ enum PACKET_STATUS:uint8_t{
 #define TAMO_SERIAL_BUFFER_SIZE 64
 #define SERIAL_IDLE_TIME 1000 //1s
 
+
+void clearSerialBuffer(){
+    while(Serial.available()){
+        Serial.read();
+    }
+}
+
 bool idleSerial(uint16_t amount){
     uint32_t time = millis();
     while((Serial.available() < amount)){
@@ -135,13 +142,6 @@ void blinkForABit(uint16_t d, uint8_t n){
     digitalWrite(LED_A,LOW);
     digitalWrite(LED_B,HIGH);
 }
-
-void clearSerialBuffer(){
-    while(Serial.available()){
-        Serial.read();
-    }
-}
-
 
 //Note about the exchange functions:
 /*
