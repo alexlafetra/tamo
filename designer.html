@@ -280,7 +280,7 @@
               <div class = "slider_label">--speed--</div>
               <div onmouseenter = "setTooltip('animation speed')" class='button_holder' style="flex-direction:column;align-items: center;">
                 <input type="range" class="control_slider" id="frame_speed_slider"min="0" max="7"
-                  step="1" value = "3" oninput="setSlideshowSpeed(event)">
+                  onmouseenter = "setTooltip('animation speed')" nstep="1" value = "3" oninput="setSlideshowSpeed(event)">
                 <div class = "slider_value_label" id="slideshow_speed_label">1fps</div>
               </div>
               <div class = "slider_label">--sleep--</div>
@@ -310,13 +310,22 @@
         <div id="preset_sprite_templates">
           <!-- name -->
           <div class = "ui_box_header">template</div>
+          <select name="sprite_preset_select" class = "tool_button button" id="sprite_preset_select" onchange = "loadPresetSprite(event.target.value)">
+            <option value="tamo">tamo</option>
+            <option value="porcini">porcini</option>
+            <option value="bug">bug</option>
+            <option value="boto">boto</option>
+            <option value="onion">onion</option>
+            <option value="chuga">chuga</option>
+            <option value="excalibur">excalibur</option>
+          </select>
           <!-- spritesheet preview -->
-          <div id="sprite_preset_previews" class = "ui_box">
+          <!-- <div id="sprite_preset_previews" class = "ui_box">
             <img class = "sprite_preset_preview" onmouseenter = "setTooltip('tamo')" src = "designer/images/sprites/tamo_full.gif" onclick = "loadPresetSprite('tamo')">
             <img class = "sprite_preset_preview" onmouseenter = "setTooltip('porcini')"src = "designer/images/sprites/porcini_full.gif" onclick = "loadPresetSprite('porcini')">
             <img class = "sprite_preset_preview" onmouseenter = "setTooltip('boto')"src = "designer/images/sprites/boto_full.gif" onclick = "loadPresetSprite('boto')">
             <img class = "sprite_preset_preview" onmouseenter = "setTooltip('bug')"src = "designer/images/sprites/bug_full.gif" onclick = "loadPresetSprite('bug')">
-          </div>
+          </div> -->
         </div>
         <div id="canvas_and_tools">
           <!-- sprite name -->
@@ -360,7 +369,7 @@
                 <div class="button_holder" style="flex-direction:column;padding:10px;">
                   <div class='button_holder' style="align-items: center;">
                     <input type="range" class="control_slider" id="frame_speed_slider" name="ms" min="100" max="1000"
-                      step="100" oninput="setAnimationSpeed(event)">
+                      onmouseenter = "setTooltip('animation speed')" step="100" oninput="setAnimationSpeed(event)">
                   </div>
                   <div id="frame_speed_label">600ms</div>
                 </div>

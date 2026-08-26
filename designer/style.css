@@ -623,6 +623,13 @@ text{
     width:fit-content;
     height:fit-content;
     grid-area:template;
+    margin:auto;
+}
+#sprite_preset_select{
+    color: var(--button-background-color);
+    background:var(--button-highlight-color);
+    border-radius: 20px;
+    padding:4px;
 }
 #sprite_preset_previews{
     padding:10px;

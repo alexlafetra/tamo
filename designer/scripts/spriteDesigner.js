@@ -200,8 +200,8 @@ function loadApp(){
 //resets the full app
 function resetSprites(){
   pushUndoState();
-  loadTemplate(templates[settings.type]);
   currentSprite = 0;
+  loadTemplate(templates[settings.type]);
   reloadSpritePreviews();
   updateFramePreviews();
 }
