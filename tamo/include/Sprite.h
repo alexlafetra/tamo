@@ -5,12 +5,6 @@
 
 void printScreenToSerial();
 
-extern uint32_t lastTime;
-extern volatile bool LONG_PRESS;
-extern volatile bool ULTRA_LONG_PRESS;
-extern volatile bool DOUBLE_CLICK;
-extern volatile bool SINGLE_CLICK;
-
 class Sprite{
   public:
     //number of times the anim has looped

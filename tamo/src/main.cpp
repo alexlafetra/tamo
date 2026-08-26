@@ -153,63 +153,43 @@ void onBeforeInit(){
 void setup(){
 
   //connect pins to leds, button
-  pinMode(LED_B,OUTPUT);
   pinMode(LED_A,OUTPUT);
-  pinMode(PIN_PB1,INPUT_PULLUP);
-  // pinMode(LED_B,OUTPUT);
-  // pinMode(BUTTON_PIN,INPUT_PULLUP);
+  pinMode(LED_B,OUTPUT);
+  pinMode(BUTTON_PIN,INPUT_PULLUP);
 
   //set floating pins to OUTPUT (to save power during sleep)
-  // disconnectUnusedPins();
+  disconnectUnusedPins();
 
-  // //this sleep mode only leaves the RTC running, and it's the one that saves the most energy
-  // set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+  //this sleep mode only leaves the RTC running, and it's the one that saves the most energy
+  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
   
-  // //allows the CPU to go to sleep
-  // sleep_enable();
+  //allows the CPU to go to sleep
+  sleep_enable();
 
   // Enable global interrupts
   sei();
 
-  // //turn on RTC timer
-  // RTC_init();
+  //turn on RTC timer
+  RTC_init();
 
-  // //turn on/set up the screen
-  // oled.begin(72, 40);
+  //turn on/set up the screen
+  oled.begin(72, 40);
   
   //initialize UART
-  // Serial.begin(115200);
-  Serial.swap(1);
-  Serial.begin(115200, (SERIAL_8N1 | SERIAL_HALF_DUPLEX));
+  Serial.begin(115200);
 
-  // tamo.init();
+  tamo.init();
 }
 
-#define TOGGLE 16
-
-bool state = false;
-bool justWritten = false;
-
 void loop() {
-  bool val = !digitalRead(PIN_PB1);
-  if(val && !justWritten){
-    digitalWrite(LED_B,HIGH);
-    Serial.write(TOGGLE);
-    justWritten = true;
-    delay(2000);
-    // state = !state;
-    // digitalWrite(LED_B,state);
-    // delay(1000);
-  }
-  else{
-    justWritten = false;
-    digitalWrite(LED_B,LOW);
-  }
-  if(Serial.available()){
-    uint8_t byte = Serial.read();
-    if(byte == TOGGLE){
-      state = !state;
-      digitalWrite(LED_A,state);
-    }
+  // tamo.qrCode();
+  switch(tamo.mode){
+    default:
+    case NORMAL_TAMO:
+      tamo.live();
+      break;
+    case SLIDESHOW:
+      tamo.slideshow();
+      break;
   }
 }

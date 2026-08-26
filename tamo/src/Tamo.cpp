@@ -4,6 +4,7 @@
 #include "utils.h"
 #include "Display.h"
 #include "spriteFrames.h"
+#include "spriteLoader.h"
 #include <EEPROM.h>
 
 Tamo::Tamo(){
@@ -53,6 +54,7 @@ void Tamo::sleep(){
 void Tamo::setIdentity(SPRITE_IDENTITY i){
   EEPROM.update(EEPROM_IDENTITY_ADDR,i);
   identity = i;
+  setMoodSprite();
 }
 
 const uint16_t * Tamo::getSprite(uint8_t whichSprite){
@@ -142,7 +144,9 @@ void Tamo::qrCode(){
   uint32_t ledTime = millis();
   oled.clear();
   while(true){
-    oled.bitmap_from_spritesheet(22,0,25,25,qr_code);
+    // oled.bitmap_from_spritesheet(22,0,25,25,qr_code);
+    oled.bitmap_from_spritesheet(4,0,25,25,qr_code);
+    oled.bitmap_from_spritesheet(41,0,25,25,qr_code);
     if(itsbeen(1000)){
       checkInput(false);
       if(SINGLE_CLICK)
@@ -307,7 +311,18 @@ void Tamo::basicEmotion(){
     //feed tamo!
     if(LONG_PRESS){
       lastTime = millis();
-      mood = MOOD_EATING;
+      //try a sprite exchange, and if it fails start eating lol
+      //(this is so the long-press can double up as
+      //the sprite exchange initiator AND the feed control)
+      if(exchangeSprites(true)){
+        lastTime = millis();
+        LONG_PRESS = false;
+        //clear long-press
+        BUTTON = false;
+        return;
+      }
+      else
+        mood = MOOD_EATING;
       return;
     }
     //talk to tamo!
@@ -438,12 +453,15 @@ void Tamo::feed(){
   do{
     if(counter < 16){
       sprite.yCoord = counter-16+1;
+      digitalWrite(LED_B,LOW);
     }
     else if(counter > 80){
       sprite.yCoord = counter-80+1;
+      digitalWrite(LED_B,LOW);
     }
     else{
       sprite.yCoord = 1;
+      digitalWrite(LED_B,HIGH);
     }
     sprite.showCurrentFrame(true,false);
     drawReticle(counter>48);
@@ -451,15 +469,15 @@ void Tamo::feed(){
     checkInput();
     if(ULTRA_LONG_PRESS){
       qrCode();
-      // EEPROM.update(EEPROM_MODE_ADDR,SLIDESHOW);
-      // mode = SLIDESHOW;
-      // return;
+      lastTime = millis();
+      mood = MOOD_NEUTRAL;
+      return;
     }
     if(SINGLE_CLICK && itsbeen(500)){
       break;
     }
     sleepCheck();
-    digitalWrite(LED_B,(counter/24)%2);
+    // digitalWrite(LED_B,(counter/24)%2);
     counter = (counter+2);
     if(counter == 96){
       counter = 0;
@@ -472,7 +490,9 @@ void Tamo::feed(){
   lastTime = millis();
   digitalWrite(LED_B,false);
 
+  //don't still be eating on wakeup
   if(isAsleep()){
+    mood = MOOD_NEUTRAL;
     return;
   }
 
@@ -546,7 +566,7 @@ void Tamo::birth(){
     sprite.showCurrentFrame();
     //wait for button press
     // waitAndBlink(VFAST);
-    uint8_t counter;
+    uint8_t counter = 0;
     while(!SINGLE_CLICK && !isAsleep()){
       if(itsbeen(500))
         checkInput();
@@ -609,22 +629,20 @@ void Tamo::dead(){
 }
 
 void Tamo::walkOn(){
-  sprite.yCoord = SPRITESTARTY-16;
   lastTime = millis();
   //slide in
   int8_t i = 0;
   while(i < 16){
-    sprite.yCoord = SPRITESTARTY-16+i;
+    sprite.yCoord = SPRITESTARTY-15+i;
     i++;
     sprite.update();
   }
 }
 void Tamo::walkOff(){
-  sprite.yCoord = SPRITESTARTY;
   lastTime = millis();
   //slide in
   int8_t i = 0;
-  while(i < 16){
+  while(i < 17){
     sprite.yCoord = SPRITESTARTY+i;
     i++;
     sprite.update();
@@ -690,7 +708,7 @@ void Tamo::talk(){
   sprite.xCoord = SPRITESTARTX;//move sprite back
 }
 
-void Tamo::setMoodSprite(uint8_t m){
+void Tamo::setMoodSprite(TAMO_MOOD m){
   switch(m){
     case MOOD_NEUTRAL:
       sprite = Sprite(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(IDLE_SPRITE),2,FAST);
@@ -708,6 +726,10 @@ void Tamo::setMoodSprite(uint8_t m){
       sprite = Sprite(SPRITESTARTX,SPRITESTARTY,16,16,getSprite(IDLE_SPRITE),2,FAST);
       return;
   }
+}
+
+void Tamo::setMoodSprite(){
+  setMoodSprite(mood);
 }
 
 void Tamo::poop(){

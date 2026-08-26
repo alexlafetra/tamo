@@ -31,7 +31,7 @@ enum PACKET_STATUS:uint8_t{
 };
 
 #define TAMO_SERIAL_BUFFER_SIZE 64
-#define SERIAL_IDLE_TIME 1000 //1s
+#define SERIAL_IDLE_TIME 100 //0.1s
 
 
 void clearSerialBuffer(){
@@ -52,7 +52,7 @@ bool idleSerial(){
     return idleSerial(1);
 }
 
-bool awaitBytes(uint16_t size, uint8_t * buffer){
+bool awaitBytes(uint8_t * buffer,uint16_t size){
 
     //wait for connection to timeout
     if(!idleSerial())
@@ -74,7 +74,7 @@ PACKET_STATUS downloadDataPacket(uint8_t * buffer, uint8_t size){
     Serial.write(request,2);
     Serial.flush();
 
-    if(!awaitBytes(size,buffer)){
+    if(!awaitBytes(buffer,size)){
         return NO_DATA_RECEIVED;
     }
     else{
@@ -86,8 +86,9 @@ PACKET_STATUS downloadDataPacket(uint8_t * buffer, uint8_t size){
 bool loadDataFromSerial(uint32_t flash_write_location){
 
     //wait for web response
-    if(!idleSerial())
+    if(!idleSerial()){
         return false;
+    }
     
     //get the size of the data
     uint8_t size[2] = {0};
@@ -124,9 +125,6 @@ bool loadDataFromSerial(uint32_t flash_write_location){
                 return false;
         }
     }
-
-    //tell the browser you're done
-    Serial.write(TAMO_DISCONNECT);
     return true;
 }
 
@@ -173,6 +171,10 @@ uint8_t sendDataPacket(uint8_t * buffer, uint32_t& flash_read_location){
     Serial.write(buffer,size);
     return size;
 }
+
+// void requestSpriteExchange(){
+
+// }
 
 //run the sprite swap routine as the leader
 bool exchangeSprites(bool leader){
@@ -223,21 +225,26 @@ bool exchangeSprites(bool leader){
     if(tamo.identity == CUSTOM_SPRITE || otherSpriteID == CUSTOM_SPRITE){
         //it's always this
         uint32_t flash_read_location = custom_sprite_idle_1;
-        while(flash_read_location <= (custom_sprite_eating_2)){
+        while(flash_read_location < (custom_sprite_eating_2)){
             uint8_t size_of_packet_sent = 0;
             //switch send/receive order based on who's the leader
             if(leader){
+                PACKET_STATUS received = NO_DATA_RECEIVED;
                 //receive sprite data
                 if(otherSpriteID == CUSTOM_SPRITE){
-                    downloadDataPacket(flash_write_buffer,TAMO_SERIAL_BUFFER_SIZE);
+                    received = downloadDataPacket(flash_write_buffer,TAMO_SERIAL_BUFFER_SIZE);
                 }
                 //send sprite data
                 if(tamo.identity == CUSTOM_SPRITE){
                     size_of_packet_sent = sendDataPacket(flash_read_buffer,flash_read_location);
                 }
                 //only update your own flash data AFTER you sent your sprite data! 
-                if(otherSpriteID == CUSTOM_SPRITE){
+                if(otherSpriteID == CUSTOM_SPRITE && received != NO_DATA_RECEIVED){
                     update_flash_data(flash_read_location,flash_write_buffer,TAMO_SERIAL_BUFFER_SIZE,spritesheet);
+                    //if you're not sending data, make sure to still increment your write loc!
+                    if(tamo.identity != CUSTOM_SPRITE){
+                        flash_read_location += TAMO_SERIAL_BUFFER_SIZE;
+                    }
                 }
             }
             else{
@@ -246,10 +253,16 @@ bool exchangeSprites(bool leader){
                     size_of_packet_sent = sendDataPacket(flash_read_buffer,flash_read_location);
                 }
                 //receive sprite data
-                if(otherSpriteID == CUSTOM_SPRITE){
-                    downloadDataPacket(flash_write_buffer,TAMO_SERIAL_BUFFER_SIZE);
+                if(otherSpriteID == CUSTOM_SPRITE ){
+                    PACKET_STATUS received = downloadDataPacket(flash_write_buffer,TAMO_SERIAL_BUFFER_SIZE);
                     //only update your own flash data AFTER you sent your sprite data! 
-                    update_flash_data(flash_read_location,flash_write_buffer,TAMO_SERIAL_BUFFER_SIZE,spritesheet);
+                    if(received != NO_DATA_RECEIVED){
+                        update_flash_data(flash_read_location,flash_write_buffer,TAMO_SERIAL_BUFFER_SIZE,spritesheet);
+                        //if you're not sending data, make sure to still increment your write loc!
+                        if(tamo.identity != CUSTOM_SPRITE){
+                            flash_read_location += TAMO_SERIAL_BUFFER_SIZE;
+                        }
+                    }
                 }
             }
 
@@ -259,9 +272,13 @@ bool exchangeSprites(bool leader){
     }
     //set tamo identity
     tamo.setIdentity(otherSpriteID);
+    tamo.setMoodSprite();
 
     //walk sprite back onscreen
     tamo.walkOn();
+
+    Serial.write(TAMO_DISCONNECT);
+    Serial.write(TAMO_DISCONNECT);
 
     return true;
 }
@@ -294,21 +311,23 @@ bool checkSerialConnection(){
         case WEBSERIAL_SPRITE_UPLOAD:
             //send hello to web
             Serial.write(TAMO_HELLO);
+            tamo.walkOff();
             if(loadDataFromSerial(custom_sprite_idle_1)){
+                //tell the browser you're done
                 Serial.write(TAMO_DISCONNECT);
+                Serial.write(TAMO_DISCONNECT);//twice for browser compatibility...v silly
 
                 //set tamo's identity to the custom sprite
-                EEPROM.update(EEPROM_IDENTITY_ADDR,CUSTOM_SPRITE);
-                EEPROM.update(EEPROM_MODE_ADDR,NORMAL_TAMO);
+                tamo.setIdentity(CUSTOM_SPRITE);
+                tamo.setMoodSprite();
 
-                //reset the system, do a lil dance first
-                // blinkForABit(50,10);
-                _PROTECTED_WRITE(RSTCTRL.SWRR,1);
+                tamo.walkOn();
                 return true;
             }
+            tamo.walkOn();
             break;
 
-        //sprite swap
+        //sprite swap as the follower
         case INITIATE_SPRITE_SWAP:
             exchangeSprites(false);
             break;
@@ -320,10 +339,9 @@ bool checkSerialConnection(){
             if(!idleSerial())
                 return;
             Serial.readBytes(secondByte,1);
-            tamo.setIdentity(secondByte[0]);
-            //reset the system, do a lil dance first
-            // blinkForABit(50,10);
-            _PROTECTED_WRITE(RSTCTRL.SWRR,1);
+            tamo.setIdentity(SPRITE_IDENTITY(secondByte[0]));
+            tamo.setMoodSprite();
+
             return true;
         }
         case SET_MODE:{
@@ -333,14 +351,14 @@ bool checkSerialConnection(){
             Serial.readBytes(secondByte,1);
             EEPROM.update(EEPROM_MODE_ADDR,secondByte[0]);
             //reset the system, do a lil dance first
-            // blinkForABit(50,10);
+            blinkForABit(10,10);
             _PROTECTED_WRITE(RSTCTRL.SWRR,1);
             return true;
         }
         case WEBSERIAL_SLIDESHOW_UPLOAD:
 
             uint8_t settingsBytes[4] = {0};
-            if(!awaitBytes(4,settingsBytes)){
+            if(!awaitBytes(settingsBytes,4)){
                 return false;
             }
             EEPROM.update(EEPROM_SLIDESHOW_FRAME_COUNT_ADDR,settingsBytes[0]);
@@ -353,12 +371,13 @@ bool checkSerialConnection(){
 
             if(loadDataFromSerial(slideshow_frame_0)){
                 Serial.write(TAMO_DISCONNECT);
+                Serial.write(TAMO_DISCONNECT);//twice for browser compatibility...v silly
 
                 //set tamo's mode to slideshow mode
                 EEPROM.update(EEPROM_MODE_ADDR,SLIDESHOW);
 
                 //reset the system, do a lil dance first
-                blinkForABit(50,10);
+                blinkForABit(10,10);
                 _PROTECTED_WRITE(RSTCTRL.SWRR,1);
                 return true;
             }

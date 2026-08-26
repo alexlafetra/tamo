@@ -84,7 +84,10 @@ void checkInput(bool updateLEDs){
     BUTTON = true;
     //check to see if it's been held
     if((millis() - timeOfLastButtonPress) > (LONG_PRESS_TIME) ){
-      LONG_PRESS = true;
+      if(LONG_PRESS)
+        ULTRA_LONG_PRESS = true;
+      else
+        LONG_PRESS = true;
       timeOfLastButtonPress = millis();
     }
   }
@@ -100,6 +103,7 @@ void checkInput(bool updateLEDs){
         LONG_PRESS = true;
         DOUBLE_CLICK = false;
         SINGLE_CLICK = false;
+        ULTRA_LONG_PRESS = false;
         timeOfLastButtonPress = millis();
       }
       //if it wasn't, then it's a single click
@@ -107,6 +111,7 @@ void checkInput(bool updateLEDs){
         SINGLE_CLICK = true;
         LONG_PRESS = false;
         DOUBLE_CLICK = false;
+        ULTRA_LONG_PRESS = false;
         timeOfLastButtonPress = millis();
       }
     }
@@ -115,6 +120,7 @@ void checkInput(bool updateLEDs){
       SINGLE_CLICK = false;
       LONG_PRESS = false;
       DOUBLE_CLICK = false;
+      ULTRA_LONG_PRESS = false;
     }
     BUTTON = false;
   }

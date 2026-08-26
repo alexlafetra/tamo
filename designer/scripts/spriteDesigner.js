@@ -397,11 +397,11 @@ function updateTransmissionProgressBar(percent,progString,successString){
   let text;
   let color = 'var(--button-highlight-color)';
   if(percent>=100){
-    text = ` ${successString}`;
+    text = successString;
     color = 'green';
   }
   else{
-    text = ` ${progString}`;
+    text = progString;
     for(let i = 0; i<Math.round(percent/(100/3)); i++){
       text += '.';
     }

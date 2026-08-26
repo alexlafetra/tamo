@@ -205,13 +205,13 @@
         </div>
 
         <!-- upload/load controls -->
-        <div id = "import_export_controls">
+        <div id = "file_controls">
           <div id="download_controls_container">
-            <div class = "ui_box_header">export</div>
+            <div class = "ui_box_header">save<div id="download_icon_holder">
+                <img id="download_icon" src="designer/images/icons/save.gif">
+              </div></div>
             <div id = "download_controls" class = "ui_box">
-              <div id="download_icon_holder">
-                <img id="download_icon" src="designer/images/icons/download.gif">
-              </div>
+
               <div>
                 <div class="button" onclick="saveGIF();" style="background:#69baae;"
                   onmouseenter="setTooltip('save a .gif')">.gif</div>
@@ -244,20 +244,25 @@
             </label>
           </div>
         </div>
-        <div id="sprite_loader_controls" class="button_holder">
+        <div id="tamo_serial_controls" class="button_holder">
           <img src="designer/images/icons/tamo_rotate_optimized_cropped.gif" id="hardware_gif">
           <div class = "ui_box" style="display:flex; flex-direction:column; padding:10px;border:none;background:var(--button-highlight-color);border-radius: 20px;">
-            <div style="display:flex; flex-direction: row;">
-              <div class="tool_button button" id="upload_sprites_button" onclick="uploadData()"
-                onmouseenter="setTooltip('upload to tamo');">
-                <!-- <div class="ui_label">upload to Tamo</div> -->
-                <img class="tool_icon" src="designer/images/icons/upload_arrow.gif">
-              </div>
-              <img id="upload_icon" src="designer/images/icons/tamo_icon.gif">
+            <div id = "serial_controls_button_container">
               <div class="tool_button button" id="download_sprites_button" onclick="downloadSpriteData()"
                 onmouseenter="setTooltip('download from tamo');">
-                <img class="tool_icon" src="designer/images/icons/download_arrow.gif">
-                <!-- <div class="ui_label">download from Tamo</div> -->
+                <img class="tool_icon" src="designer/images/icons/download.gif">
+              </div>
+              <div class="tool_button button" id="upload_sprites_button" onclick="uploadData()"
+                onmouseenter="setTooltip('upload to tamo');">
+                <img class="tool_icon" src="designer/images/icons/upload.gif">
+              </div>
+              <div class="tool_button button" id="swap_sprites_button" onclick="emulateSpriteSwap(true)"
+                onmouseenter="setTooltip('swap sprites with tamo');">
+                <img class="tool_icon" src="designer/images/icons/exchange_sprites.gif">
+              </div>
+              <div class="tool_button button" id="swap_sprites_button" onclick="emulateSpriteSwap(false)"
+                onmouseenter="setTooltip('swap sprites with tamo [follower]');">
+                <img class="tool_icon" src="designer/images/icons/exchange_sprites.gif">
               </div>
             </div>
             <div id="upload_progress_bar_container">

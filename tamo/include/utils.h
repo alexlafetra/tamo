@@ -32,3 +32,10 @@ void checkInput(bool);
 
 void sleepHardware();
 void wakeHardware();
+
+extern uint32_t lastTime;
+extern volatile bool BUTTON;
+extern volatile bool LONG_PRESS;
+extern volatile bool ULTRA_LONG_PRESS;
+extern volatile bool DOUBLE_CLICK;
+extern volatile bool SINGLE_CLICK;

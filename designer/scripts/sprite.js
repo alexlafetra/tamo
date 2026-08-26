@@ -92,6 +92,13 @@ const PixelFrame = (w,h,fill) => {
             this.drawLine(topL.x,bottomR.y,bottomR.x,bottomR.y,val);//bottom
             this.drawLine(topL.x,bottomR.y,topL.x,topL.y,val);//left
         },
+        fillRectangle : function(x0,y0,x1,y1,val){
+            const topL = {x:Math.min(x0,x1),y:Math.min(y0,y1)};
+            const bottomR = {x:Math.max(x0,x1),y:Math.max(y0,y1)};
+            for(let i = topL.y; i<bottomR.y; i++){
+                this.drawLine(topL.x,i,bottomR.x,i,val);
+            }
+        },
         drawCircle : function(x0,y0,r,color) {
             let f = 1 - r;
             let ddF_x = 1;
@@ -126,6 +133,12 @@ const PixelFrame = (w,h,fill) => {
         },
         // https://codeheir.com/blog/2022/08/21/comparing-flood-fill-algorithms-in-javascript/
         fill : function(x,y,fillColor){
+
+            //if a selection box is active, and you're within it, fill the box
+            if(selectionBox.active && x >= selectionBox.startCoord.x && x <= selectionBox.endCoord.x && y >= selectionBox.startCoord.y && y <= selectionBox.endCoord.y){
+                this.fillRectangle(selectionBox.startCoord.x,selectionBox.startCoord.y,selectionBox.endCoord.x-1,selectionBox.endCoord.y,fillColor);
+                return;
+            }
 
             //seed-checking fn that checks bounds and color to see if a pixel should be a new seed
             const isValid = (xi,yi,color) => {

@@ -160,8 +160,9 @@ class Tamo{
 
     void game();
 
-    void setMoodSprite(uint8_t mood);
-    void setIdentity(SPRITE_IDENTITY i);
+    void setMoodSprite(TAMO_MOOD);
+    void setMoodSprite();
+    void setIdentity(SPRITE_IDENTITY);
 
     void basicEmotion();
     void waitAndPlayThruSprite(uint16_t,bool);
