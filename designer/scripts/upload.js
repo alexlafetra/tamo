@@ -127,10 +127,8 @@ async function openZip(zipFile){
         const mimeType = `image/${filename.split('.').pop().toLowerCase()}`;
 
         const file = await new File([await unzipped.files[filename].async("blob")],filename,{type:mimeType});
-        console.log(file);
         fileList.push(file);
     }
-    console.log(fileList);
     return fileList;
 }
 
@@ -253,6 +251,7 @@ async function handleImageUpload(event){
     reloadFramePreviews();
     reloadSpritePreviews();
     updateCanvas();
+    pushUndoState();
 }
 
 async function handleSpriteUpload(event){

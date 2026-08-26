@@ -42,18 +42,6 @@ function exportCompleteSpritesheet(){
     });
 }
 
-function downloadZip(fileName){
-    const zip = new JSZip();
-    zip.generateAsync({type : 'blob' }).then((content) => {
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(content);
-        a.download = fileName+'.zip';
-        a.click();
-        a.remove();
-    });
-}
-
-
 async function zipAllFrames(){
     //create a new JSZip object
     const zip = new JSZip();
@@ -62,9 +50,9 @@ async function zipAllFrames(){
     const fileName = spriteName;
 
     //iterate over each sprite
-    sprites.map((sprite,spriteIndex) => {
+    sprites.map(async (sprite,spriteIndex) => {
         //& iterate over each frame in the sprite
-        sprite.frames.map(async (frame,frameIndex) => {
+        await sprite.frames.map(async (frame,frameIndex) => {
             //resize canvas to fit frame
             tempCanvas.width = frame.width;
             tempCanvas.height = frame.height;
@@ -80,7 +68,14 @@ async function zipAllFrames(){
     });
 
     tempCanvas.remove();
-    downloadZip(fileName);
+
+    zip.generateAsync({type : 'blob' }).then((content) => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(content);
+        a.download = fileName+'.zip';
+        a.click();
+        a.remove();
+    });
 }
 
 async function saveGIF(){

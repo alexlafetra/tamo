@@ -46,7 +46,7 @@
 
     /* extra settings */
     --extra-settings-display:none;
-
+    --exchange-sprites-debug-display:none;
     --canvas-settings-display:none;
 
     /* ui */
@@ -769,6 +769,7 @@ text{
     flex-direction: column;
 }
 
+
 #upload_progress_bar_container{
     display:var(--progress-bar-display);
     width:100%;
@@ -1328,6 +1329,11 @@ input[type="range"]::-webkit-slider-runnable-track {
     position:relative;
     pointer-events: none;
 }
+
+.debug_sprite_exchange_button{
+    display:var(--exchange-sprites-debug-display);
+}
+
 
 .dimension_input{
     white-space: pre;

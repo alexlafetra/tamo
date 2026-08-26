@@ -115,6 +115,8 @@
                   automatically create sprites</div>
                 <div class="button" onclick="toggleResizeCanvas(this)">
                   resize canvas to images</div>
+                <div class="button" onclick="toggleExchangeSpritesEmulation(this)">
+                  show debug transmission buttons</div>
                 <div class="button" onclick="toggleCanvasSettings(this)">
                   show canvas settings</div>
             </div>
@@ -256,12 +258,12 @@
                 onmouseenter="setTooltip('upload to tamo');">
                 <img class="tool_icon" src="designer/images/icons/upload.gif">
               </div>
-              <div class="tool_button button" id="swap_sprites_button" onclick="emulateSpriteSwap(true)"
+              <div class="tool_button button" id="swap_sprites_button"  onclick="emulateSpriteSwap(true)"
                 onmouseenter="setTooltip('swap sprites with tamo');">
                 <img class="tool_icon" src="designer/images/icons/exchange_sprites.gif">
               </div>
-              <div class="tool_button button" id="swap_sprites_button" onclick="emulateSpriteSwap(false)"
-                onmouseenter="setTooltip('swap sprites with tamo [follower]');">
+              <div class="tool_button button debug_sprite_exchange_button" onclick="emulateSpriteSwap(false)"
+                onmouseenter="setTooltip('await sprite exchange');">
                 <img class="tool_icon" src="designer/images/icons/exchange_sprites.gif">
               </div>
             </div>
