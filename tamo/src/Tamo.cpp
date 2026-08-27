@@ -14,7 +14,7 @@ Tamo::Tamo(){
 void Tamo::init(){
   mode = TAMO_MODE(EEPROM.read(EEPROM_MODE_ADDR));
   identity = SPRITE_IDENTITY(EEPROM.read(EEPROM_IDENTITY_ADDR));
-  health = uint16_t(EEPROM.read(EEPROM_HEALTH_ADDR))<<8 | uint16_t(EEPROM.read(EEPROM_HEALTH_ADDR+1));
+  health = uint16_t(EEPROM.read(EEPROM_HEALTH_ADDR_MSB))<<8 | uint16_t(EEPROM.read(EEPROM_HEALTH_ADDR_LSB));
   // status = EEPROM.read(EEPROM_STATUS_ADDR); //this is causing weird problems with sleep, smoking on reboot
   setStatusBit(NEEDS_TO_SMOKE_BIT,false);
 }
@@ -58,20 +58,21 @@ void Tamo::setIdentity(SPRITE_IDENTITY i){
 }
 
 const uint16_t * Tamo::getSprite(uint8_t whichSprite){
-  switch(identity){
-    case TAMO:
-      return tamo_spritesheet[whichSprite];
-    case PORCINI:
-      return porcini_spritesheet[whichSprite];
-    case BUG:
-      return bug_spritesheet[whichSprite];
-    case BOTO:
-      return boto_spritesheet[whichSprite];
-    case CUSTOM_SPRITE:
-      return custom_spritesheet[whichSprite];
-    default:
-      return tamo_spritesheet[whichSprite];
-  }
+  return creature_sprites[identity][whichSprite];
+  // switch(identity){
+  //   case TAMO:
+  //     return tamo_spritesheet[whichSprite];
+  //   case PORCINI:
+  //     return porcini_spritesheet[whichSprite];
+  //   case BUG:
+  //     return bug_spritesheet[whichSprite];
+  //   case BOTO:
+  //     return boto_spritesheet[whichSprite];
+  //   case CUSTOM_SPRITE:
+  //     return custom_spritesheet[whichSprite];
+  //   default:
+  //     return tamo_spritesheet[whichSprite];
+  // }
 }
 
 void Tamo::slideshow(){
@@ -169,6 +170,8 @@ bool Tamo::isFeeling(){
   //over ride this if tamo dies!
   return ((moodTime>0 || !(sprite.isNextFrameReady() && sprite.hasPlayedAtLeastOnce())) && !getStatusBit(IS_DEAD_BIT));
 }
+
+// update function that runs on a timer interrupt every 1s
 void Tamo::body(){
 
   if(mode != NORMAL_TAMO)
@@ -200,7 +203,7 @@ void Tamo::body(){
   //hunger hits 28800 every 8 hrs
   if(hunger > 28800){
     //you loose health half as quickly for the first 8 hrs of being hungry
-    if(hunger < 57,600){
+    if(hunger < 57600){
       if(hunger%2)
         healthLoss = HEALTH_LOSS;
     }
@@ -220,11 +223,12 @@ void Tamo::body(){
   setStatusBit(IS_DEAD_BIT,health == 0);
 
   //update EEPROM
+  //eeprom has 100k write cycles, 1 write/two hours ==> 23yrs
   updatesSinceLastEEPROMSave++;
   if(updatesSinceLastEEPROMSave >= 7200){
     updatesSinceLastEEPROMSave = 0;
-    EEPROM.update(EEPROM_HEALTH_ADDR,health>>8);
-    EEPROM.update(EEPROM_HEALTH_ADDR+1,health&255);
+    EEPROM.update(EEPROM_HEALTH_ADDR_MSB,health>>8);
+    EEPROM.update(EEPROM_HEALTH_ADDR_LSB,health&255);
     EEPROM.update(EEPROM_STATUS_ADDR,status);
   }
 }
@@ -443,8 +447,8 @@ void Tamo::eat(const uint16_t * food){
 }
 
 void Tamo::feed(){
-  const uint16_t * foodAnimations[] = {cheese_animation,apple_animation,penny_animation,cig_animation};
-  uint8_t currentFood = randomInt(4);
+  const uint16_t * foodAnimations[] = {cheese_animation,apple_animation,penny_animation,cig_animation,whiskey_animation};
+  uint8_t currentFood = randomInt(5);
   sprite = Sprite(SPRITESTARTX,SPRITESTARTY,16,16,foodAnimations[currentFood],5,SLOW);
   //counter goes from 0-64, when it's 0-16 the sprite moves in, when it's 48-64 the sprite moves out
   int16_t counter = 0;
@@ -481,7 +485,7 @@ void Tamo::feed(){
     counter = (counter+2);
     if(counter == 96){
       counter = 0;
-      currentFood = (currentFood + 1)%4;
+      currentFood = (currentFood + 1)%5;
       sprite = Sprite(SPRITESTARTX,SPRITESTARTY,16,16,foodAnimations[currentFood],5,SLOW);
     }
   }
@@ -500,8 +504,8 @@ void Tamo::feed(){
 }
 
 void Tamo::feedSelf(){
-  const uint16_t * foodAnimations[] = {cheese_animation,apple_animation,penny_animation,cig_animation};
-  uint8_t currentFood = randomInt(4);
+  const uint16_t * foodAnimations[] = {cheese_animation,apple_animation,penny_animation,cig_animation,whiskey_animation};
+  uint8_t currentFood = randomInt(5);
   eat(foodAnimations[currentFood]);
 }
 

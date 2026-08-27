@@ -16,11 +16,11 @@ const commands = {
 
 //constants that are stored in EEPROM, define which identity Tamo has when it boots
 const identities = {
-    TAMO : 0,
     NO_IDENTITY : 255,
-    PORCINI : 1,
-    BUG : 2,
-    BOTO : 3,
+    SPRITE_0 : 0,
+    SPRITE_1 : 1,
+    SPRITE_2 : 2,
+    SPRITE_3 : 3,
     CUSTOM_SPRITE : 4
 };
 

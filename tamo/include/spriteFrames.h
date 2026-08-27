@@ -11,182 +11,128 @@
 ----------------------------------
 */
 
-/*
-		Boto
-*/
+// Creature sprites
 
-//a constant ptr to a uint16
-
-const uint16_t boto_idle_sprite[2] = {
-	boto_sprite_idle_1,
-	boto_sprite_idle_2
+const uint16_t idle_sprite_0[2] = {
+	sprite_0_idle_1,
+	sprite_0_idle_2
 };
-const uint16_t boto_eating_sprite[2] = {
-	boto_sprite_eating_1,
-	boto_sprite_eating_2
+const uint16_t eating_sprite_0[2] = {
+	sprite_0_eating_1,
+	sprite_0_eating_2
 };
-const uint16_t boto_sad_sprite[2] = {
-	boto_sprite_sad_1,
-	boto_sprite_sad_2
+const uint16_t sad_sprite_0[2] = {
+	sprite_0_sad_1,
+	sprite_0_sad_2
 };
-const uint16_t boto_mad_sprite[2] = {
-	boto_sprite_mad_1,
-	boto_sprite_mad_2
+const uint16_t mad_sprite_0[2] = {
+	sprite_0_mad_1,
+	sprite_0_mad_2
 };
-const uint16_t boto_happy_sprite[2] = {
-	boto_sprite_happy_1,
-	boto_sprite_happy_2
+const uint16_t happy_sprite_0[2] = {
+	sprite_0_happy_1,
+	sprite_0_happy_2
 };
 
-const uint16_t * boto_spritesheet[5] = {
-	boto_idle_sprite,
-	boto_sad_sprite,
-	boto_mad_sprite,
-	boto_happy_sprite,
-	boto_eating_sprite
+const uint16_t * sprite_0_spritesheet[5] = {
+	idle_sprite_0,
+	sad_sprite_0,
+	mad_sprite_0,
+	happy_sprite_0,
+	eating_sprite_0
 };
 
-/*
-		Tamo
-*/
 
-const uint16_t tamo_idle_sprite[2] = {
-	tamo_sprite_idle_1,
-	tamo_sprite_idle_2
+const uint16_t idle_sprite_1[2] = {
+	sprite_1_idle_1,
+	sprite_1_idle_2
 };
-const uint16_t tamo_eating_sprite[2] = {
-	tamo_sprite_eating_1,
-	tamo_sprite_eating_2,
+const uint16_t eating_sprite_1[2] = {
+	sprite_1_eating_1,
+	sprite_1_eating_2
 };
-const uint16_t tamo_sad_sprite[2] = {
-	tamo_sprite_sad_1,
-	tamo_sprite_sad_2
+const uint16_t sad_sprite_1[2] = {
+	sprite_1_sad_1,
+	sprite_1_sad_2
 };
-const uint16_t tamo_mad_sprite[2] = {
-	tamo_sprite_mad_1,
-	tamo_sprite_mad_2
+const uint16_t mad_sprite_1[2] = {
+	sprite_1_mad_1,
+	sprite_1_mad_2
 };
-const uint16_t tamo_happy_sprite[2] = {
-	tamo_sprite_happy_1,
-	tamo_sprite_happy_2
+const uint16_t happy_sprite_1[2] = {
+	sprite_1_happy_1,
+	sprite_1_happy_2
 };
 
-const uint16_t * tamo_spritesheet[5] = {
-	tamo_idle_sprite,
-	tamo_sad_sprite,
-	tamo_mad_sprite,
-	tamo_happy_sprite,
-	tamo_eating_sprite
+const uint16_t * sprite_1_spritesheet[5] = {
+	idle_sprite_1,
+	sad_sprite_1,
+	mad_sprite_1,
+	happy_sprite_1,
+	eating_sprite_1
 };
 
-/*
-		Bug
-*/
 
-const uint16_t bug_idle_sprite[2] = {
-	bug_sprite_idle_1,
-	bug_sprite_idle_2
+const uint16_t idle_sprite_2[2] = {
+	sprite_2_idle_1,
+	sprite_2_idle_2
 };
-const uint16_t bug_eating_sprite[2] = {
-	bug_sprite_eating_1,
-	bug_sprite_eating_2,
+const uint16_t eating_sprite_2[2] = {
+	sprite_2_eating_1,
+	sprite_2_eating_2
 };
-const uint16_t bug_sad_sprite[2] = {
-	bug_sprite_sad_1,
-	bug_sprite_sad_2
+const uint16_t sad_sprite_2[2] = {
+	sprite_2_sad_1,
+	sprite_2_sad_2
 };
-const uint16_t bug_mad_sprite[2] = {
-	bug_sprite_mad_1,
-	bug_sprite_mad_2
+const uint16_t mad_sprite_2[2] = {
+	sprite_2_mad_1,
+	sprite_2_mad_2
 };
-const uint16_t bug_happy_sprite[2] = {
-	bug_sprite_happy_1,
-	bug_sprite_happy_2
+const uint16_t happy_sprite_2[2] = {
+	sprite_2_happy_1,
+	sprite_2_happy_2
 };
 
-const uint16_t * bug_spritesheet[5] = {
-	bug_idle_sprite,
-	bug_sad_sprite,
-	bug_mad_sprite,
-	bug_happy_sprite,
-	bug_eating_sprite
+const uint16_t * sprite_2_spritesheet[5] = {
+	idle_sprite_2,
+	sad_sprite_2,
+	mad_sprite_2,
+	happy_sprite_2,
+	eating_sprite_2
 };
 
-// const uint16_t chuga_idle_sprite[2] = {
-// 	chuga_sprite_idle_1,
-// 	chuga_sprite_idle_2
-// };
-// const uint16_t chuga_eating_sprite[2] = {
-// 	chuga_sprite_eating_1,
-// 	chuga_sprite_eating_2,
-// };
-// const uint16_t chuga_sad_sprite[2] = {
-// 	chuga_sprite_sad_1,
-// 	chuga_sprite_sad_2
-// };
-// const uint16_t chuga_mad_sprite[2] = {
-// 	chuga_sprite_mad_1,
-// 	chuga_sprite_mad_2
-// };
-// const uint16_t chuga_happy_sprite[2] = {
-// 	chuga_sprite_happy_1,
-// 	chuga_sprite_happy_2
-// };
 
-// const uint16_t * chuga_spritesheet[5] = {
-// 	chuga_idle_sprite,
-// 	chuga_sad_sprite,
-// 	chuga_mad_sprite,
-// 	chuga_happy_sprite,
-// 	chuga_eating_sprite
-// };
-
-
-/*
-		Porcini
-*/
-
-const uint16_t porcini_idle_sprite[2] = {
-	porcini_sprite_idle_1,
-	porcini_sprite_idle_2
+const uint16_t idle_sprite_3[2] = {
+	sprite_3_idle_1,
+	sprite_3_idle_2
 };
-const uint16_t porcini_eating_sprite[2] = {
-	porcini_sprite_eating_1,
-	porcini_sprite_eating_2,
+const uint16_t eating_sprite_3[2] = {
+	sprite_3_eating_1,
+	sprite_3_eating_2
 };
-const uint16_t porcini_sad_sprite[2] = {
-	porcini_sprite_sad_1,
-	porcini_sprite_sad_2
+const uint16_t sad_sprite_3[2] = {
+	sprite_3_sad_1,
+	sprite_3_sad_2
 };
-const uint16_t porcini_mad_sprite[2] = {
-	porcini_sprite_mad_1,
-	porcini_sprite_mad_2
+const uint16_t mad_sprite_3[2] = {
+	sprite_3_mad_1,
+	sprite_3_mad_2
 };
-const uint16_t porcini_happy_sprite[2] = {
-	porcini_sprite_happy_1,
-	porcini_sprite_happy_2
+const uint16_t happy_sprite_3[2] = {
+	sprite_3_happy_1,
+	sprite_3_happy_2
 };
 
-const uint16_t * porcini_spritesheet[5] = {
-	porcini_idle_sprite,
-	porcini_sad_sprite,
-	porcini_mad_sprite,
-	porcini_happy_sprite,
-	porcini_eating_sprite
+const uint16_t * sprite_3_spritesheet[5] = {
+	idle_sprite_3,
+	sad_sprite_3,
+	mad_sprite_3,
+	happy_sprite_3,
+	eating_sprite_3
 };
 
-/*
-		Baby
-*/
 
-// const uint16_t baby_idle_sprite[2] = {
-// 	porcini_sprite_idle_1,
-// 	porcini_sprite_idle_2
-// };
-// const uint16_t baby_sad_sprite[2] = {
-// 	porcini_sprite_idle_1,
-// 	porcini_sprite_sad_2
-// };
 
 /*
 		Custom
@@ -221,6 +167,15 @@ const uint16_t * custom_spritesheet[5] = {
 	custom_eating_sprite
 };
 
+// superarray holding all the creature spritesheets
+
+const uint16_t ** creature_sprites[5] = {
+	sprite_0_spritesheet,
+	sprite_1_spritesheet,
+	sprite_2_spritesheet,
+	sprite_3_spritesheet,
+	custom_spritesheet
+};
 
 
 /*
@@ -338,13 +293,13 @@ const uint16_t egg_sprite[4] = {
 // 	cookie_sprite_4,
 // 	cookie_sprite_5
 // };
-// const uint16_t whiskey_animation[5] = {
-// 	whiskey_sprite_1,
-// 	whiskey_sprite_2,
-// 	whiskey_sprite_3,
-// 	whiskey_sprite_4,
-// 	whiskey_sprite_5
-// };
+const uint16_t whiskey_animation[5] = {
+	whiskey_sprite_1,
+	whiskey_sprite_2,
+	whiskey_sprite_3,
+	whiskey_sprite_4,
+	whiskey_sprite_5
+};
 
 const uint16_t penny_animation[5] = {
 	penny_sprite_1,

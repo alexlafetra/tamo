@@ -121,23 +121,23 @@ Archive member included to satisfy reference by file (symbol)
 /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avrxmega3/libgcc.a(_umulhisi3.o)
                               /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avrxmega3/libgcc.a(_muluhisi3.o) (__umulhisi3)
 /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avrxmega3/libgcc.a(_udivmodhi4.o)
-                              /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//ccpPqE3J.ltrans0.ltrans.o (__udivmodhi4)
+                              /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//cceYksGp.ltrans0.ltrans.o (__udivmodhi4)
 /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avrxmega3/libgcc.a(_divmodhi4.o)
-                              /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//ccpPqE3J.ltrans0.ltrans.o (__divmodhi4)
+                              /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//cceYksGp.ltrans0.ltrans.o (__divmodhi4)
 /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avrxmega3/libgcc.a(_udivmodsi4.o)
-                              /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//ccpPqE3J.ltrans0.ltrans.o (__udivmodsi4)
+                              /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//cceYksGp.ltrans0.ltrans.o (__udivmodsi4)
 /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avrxmega3/libgcc.a(_copy_data.o)
-                              /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//ccpPqE3J.ltrans0.ltrans.o (__do_copy_data)
+                              /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//cceYksGp.ltrans0.ltrans.o (__do_copy_data)
 /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avrxmega3/libgcc.a(_ctors.o)
-                              /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//ccpPqE3J.ltrans0.ltrans.o (__do_global_ctors)
+                              /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//cceYksGp.ltrans0.ltrans.o (__do_global_ctors)
 /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avrxmega3/libgcc.a(_dtors.o)
-                              /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//ccpPqE3J.ltrans0.ltrans.o (__do_global_dtors)
+                              /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//cceYksGp.ltrans0.ltrans.o (__do_global_dtors)
 /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avrxmega3/libgcc.a(_tablejump2.o)
                               /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avrxmega3/libgcc.a(_ctors.o) (__tablejump2__)
 /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avrxmega3/libc.a(malloc.o)
-                              /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//ccpPqE3J.ltrans0.ltrans.o (malloc)
+                              /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//cceYksGp.ltrans0.ltrans.o (malloc)
 /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avrxmega3/libc.a(memset.o)
-                              /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//ccpPqE3J.ltrans0.ltrans.o (memset)
+                              /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//cceYksGp.ltrans0.ltrans.o (memset)
 
 Allocating common symbols
 Common symbol       size              file
@@ -659,7 +659,7 @@ Address of section .data set to 0x803800
 LOAD /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avrxmega3/crtattiny3217.o
 Address of section .text set to 0x0
 LOAD .pio/build/Attiny3217_pymcuprog_updi/src/Display.cpp.o
-LOAD /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//ccpPqE3J.ltrans0.ltrans.o
+LOAD /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//cceYksGp.ltrans0.ltrans.o
 LOAD .pio/build/Attiny3217_pymcuprog_updi/src/FrameBuffer.cpp.o
 LOAD .pio/build/Attiny3217_pymcuprog_updi/src/Sprite.cpp.o
 LOAD .pio/build/Attiny3217_pymcuprog_updi/src/Tamo.cpp.o
@@ -778,7 +778,7 @@ END GROUP
 .rela.plt
  *(.rela.plt)
 
-.text           0x0000000000000000     0x3698
+.text           0x0000000000000000     0x3682
  *(.vectors)
  .vectors       0x0000000000000000       0x7c /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avrxmega3/crtattiny3217.o
                 0x0000000000000000                __vectors
@@ -801,11 +801,11 @@ END GROUP
  *(.lowtext*)
                 0x000000000000007c                __ctors_start = .
  *(.ctors)
- .ctors         0x000000000000007c        0x2 /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//ccpPqE3J.ltrans0.ltrans.o
+ .ctors         0x000000000000007c        0x2 /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//cceYksGp.ltrans0.ltrans.o
                 0x000000000000007e                __ctors_end = .
                 0x000000000000007e                __dtors_start = .
  *(.dtors)
- .dtors         0x000000000000007e        0x2 /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//ccpPqE3J.ltrans0.ltrans.o
+ .dtors         0x000000000000007e        0x2 /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//cceYksGp.ltrans0.ltrans.o
                 0x0000000000000080                __dtors_end = .
  SORT(*)(.ctors)
  SORT(*)(.dtors)
@@ -819,7 +819,7 @@ END GROUP
  .init2         0x0000000000000080        0xc /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avrxmega3/crtattiny3217.o
  *(.init2)
  *(.init3)
- .init3         0x000000000000008c       0x18 /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//ccpPqE3J.ltrans0.ltrans.o
+ .init3         0x000000000000008c       0x18 /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//cceYksGp.ltrans0.ltrans.o
                 0x000000000000008c                _Z15_initThreeStuffv
  *(.init3)
  *(.init4)
@@ -867,60 +867,60 @@ END GROUP
                 0x00000000000000e8                __vector_16
                 0x00000000000000e8                __vector_18
                 0x00000000000000e8                __vector_22
- .text          0x00000000000000ec     0x244e /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//ccpPqE3J.ltrans0.ltrans.o
-                0x00000000000020aa                __vector_15
-                0x000000000000211e                __vector_28
-                0x000000000000212c                __vector_27
-                0x000000000000213a                __vector_29
-                0x0000000000002146                _Z7_do_drev
-                0x00000000000021a4                _Z7_do_rxcv
-                0x00000000000021fe                _Z7_do_txcv
-                0x0000000000002230                __vector_24
-                0x0000000000002378                __vector_7
-                0x000000000000250a                __vector_3
-                0x000000000000253a                . = ALIGN (0x2)
+ .text          0x00000000000000ec     0x2430 /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//cceYksGp.ltrans0.ltrans.o
+                0x000000000000208c                __vector_15
+                0x0000000000002100                __vector_28
+                0x000000000000210e                __vector_27
+                0x000000000000211c                __vector_29
+                0x0000000000002128                _Z7_do_drev
+                0x0000000000002186                _Z7_do_rxcv
+                0x00000000000021e0                _Z7_do_txcv
+                0x0000000000002212                __vector_24
+                0x000000000000235a                __vector_7
+                0x00000000000024ec                __vector_3
+                0x000000000000251c                . = ALIGN (0x2)
  *(.text.*)
- .text.startup  0x000000000000253a      0xe06 /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//ccpPqE3J.ltrans0.ltrans.o
-                0x00000000000026f0                main
- .text.exit     0x0000000000003340       0x12 /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//ccpPqE3J.ltrans0.ltrans.o
+ .text.startup  0x000000000000251c      0xe0e /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//cceYksGp.ltrans0.ltrans.o
+                0x00000000000026d2                main
+ .text.exit     0x000000000000332a       0x12 /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//cceYksGp.ltrans0.ltrans.o
  .text.libgcc.mul
-                0x0000000000003352       0x16 /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avrxmega3/libgcc.a(_muluhisi3.o)
-                0x0000000000003352                __muluhisi3
+                0x000000000000333c       0x16 /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avrxmega3/libgcc.a(_muluhisi3.o)
+                0x000000000000333c                __muluhisi3
  .text.libgcc.mul
-                0x0000000000003368       0x1e /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avrxmega3/libgcc.a(_umulhisi3.o)
-                0x0000000000003368                __umulhisi3
+                0x0000000000003352       0x1e /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avrxmega3/libgcc.a(_umulhisi3.o)
+                0x0000000000003352                __umulhisi3
  .text.libgcc.div
-                0x0000000000003386       0x28 /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avrxmega3/libgcc.a(_udivmodhi4.o)
-                0x0000000000003386                __udivmodhi4
+                0x0000000000003370       0x28 /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avrxmega3/libgcc.a(_udivmodhi4.o)
+                0x0000000000003370                __udivmodhi4
  .text.libgcc.div
-                0x00000000000033ae       0x28 /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avrxmega3/libgcc.a(_divmodhi4.o)
-                0x00000000000033ae                __divmodhi4
-                0x00000000000033ae                _div
+                0x0000000000003398       0x28 /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avrxmega3/libgcc.a(_divmodhi4.o)
+                0x0000000000003398                __divmodhi4
+                0x0000000000003398                _div
  .text.libgcc.div
-                0x00000000000033d6       0x44 /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avrxmega3/libgcc.a(_udivmodsi4.o)
-                0x00000000000033d6                __udivmodsi4
- .text.libgcc   0x000000000000341a        0xc /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avrxmega3/libgcc.a(_tablejump2.o)
-                0x000000000000341a                __tablejump2__
+                0x00000000000033c0       0x44 /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avrxmega3/libgcc.a(_udivmodsi4.o)
+                0x00000000000033c0                __udivmodsi4
+ .text.libgcc   0x0000000000003404        0xc /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avrxmega3/libgcc.a(_tablejump2.o)
+                0x0000000000003404                __tablejump2__
  .text.avr-libc
-                0x0000000000003426      0x24a /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avrxmega3/libc.a(malloc.o)
-                0x0000000000003426                malloc
-                0x000000000000355e                free
+                0x0000000000003410      0x24a /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avrxmega3/libc.a(malloc.o)
+                0x0000000000003410                malloc
+                0x0000000000003548                free
  .text.avr-libc
-                0x0000000000003670        0xe /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avrxmega3/libc.a(memset.o)
-                0x0000000000003670                memset
-                0x000000000000367e                . = ALIGN (0x2)
+                0x000000000000365a        0xe /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avrxmega3/libc.a(memset.o)
+                0x000000000000365a                memset
+                0x0000000000003668                . = ALIGN (0x2)
  *(.fini9)
- .fini9         0x000000000000367e        0x0 /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avrxmega3/libgcc.a(_exit.o)
-                0x000000000000367e                exit
-                0x000000000000367e                _exit
+ .fini9         0x0000000000003668        0x0 /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avrxmega3/libgcc.a(_exit.o)
+                0x0000000000003668                exit
+                0x0000000000003668                _exit
  *(.fini9)
  *(.fini8)
  *(.fini8)
  *(.fini7)
  *(.fini7)
  *(.fini6)
- .fini6         0x000000000000367e       0x16 /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avrxmega3/libgcc.a(_dtors.o)
-                0x000000000000367e                __do_global_dtors
+ .fini6         0x0000000000003668       0x16 /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avrxmega3/libgcc.a(_dtors.o)
+                0x0000000000003668                __do_global_dtors
  *(.fini6)
  *(.fini5)
  *(.fini5)
@@ -933,57 +933,57 @@ END GROUP
  *(.fini1)
  *(.fini1)
  *(.fini0)
- .fini0         0x0000000000003694        0x4 /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avrxmega3/libgcc.a(_exit.o)
+ .fini0         0x000000000000367e        0x4 /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/avrxmega3/libgcc.a(_exit.o)
  *(.fini0)
-                0x0000000000003698                _etext = .
+                0x0000000000003682                _etext = .
 
-.rodata         0x000000000000b698      0x1ff load address 0x0000000000003698
+.rodata         0x000000000000b682      0x1e3 load address 0x0000000000003682
  *(.rodata)
- .rodata        0x000000000000b698      0x1ff /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//ccpPqE3J.ltrans0.ltrans.o
+ .rodata        0x000000000000b682      0x1e3 /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//cceYksGp.ltrans0.ltrans.o
  *(.rodata*)
  *(.gnu.linkonce.r*)
 
-.data           0x0000000000803800        0x8 load address 0x0000000000003897
+.data           0x0000000000803800       0x3a load address 0x0000000000003865
                 0x0000000000803800                PROVIDE (__data_start, .)
  *(.data)
- .data          0x0000000000803800        0x2 /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//ccpPqE3J.ltrans0.ltrans.o
- .data          0x0000000000803802        0x6 /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avrxmega3/libc.a(malloc.o)
-                0x0000000000803802                __malloc_heap_end
-                0x0000000000803804                __malloc_heap_start
-                0x0000000000803806                __malloc_margin
+ .data          0x0000000000803800       0x34 /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//cceYksGp.ltrans0.ltrans.o
+ .data          0x0000000000803834        0x6 /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avrxmega3/libc.a(malloc.o)
+                0x0000000000803834                __malloc_heap_end
+                0x0000000000803836                __malloc_heap_start
+                0x0000000000803838                __malloc_margin
  *(.data*)
  *(.gnu.linkonce.d*)
-                0x0000000000803808                . = ALIGN (0x2)
-                0x0000000000803808                _edata = .
-                0x0000000000803808                PROVIDE (__data_end, .)
+                0x000000000080383a                . = ALIGN (0x2)
+                0x000000000080383a                _edata = .
+                0x000000000080383a                PROVIDE (__data_end, .)
 
-.bitmap_data    0x000000000000e000     0x1ac0 load address 0x0000000000006000
+.bitmap_data    0x000000000000e000     0x1b80 load address 0x0000000000006000
                 0x000000000000e000                __bitmap_start = .
  *(.bitmap_data)
- .bitmap_data   0x000000000000e000     0x1aac /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//ccpPqE3J.ltrans0.ltrans.o
-                0x000000000000fac0                . = ALIGN (0x40)
- *fill*         0x000000000000faac       0x14 
-                0x000000000000fac0                __bitmap_end = .
+ .bitmap_data   0x000000000000e000     0x1b4c /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//cceYksGp.ltrans0.ltrans.o
+                0x000000000000fb80                . = ALIGN (0x40)
+ *fill*         0x000000000000fb4c       0x34 
+                0x000000000000fb80                __bitmap_end = .
 
-.bss            0x0000000000803808      0x22f
-                0x0000000000803808                PROVIDE (__bss_start, .)
+.bss            0x000000000080383a      0x22f
+                0x000000000080383a                PROVIDE (__bss_start, .)
  *(.bss)
- .bss           0x0000000000803808      0x22b /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//ccpPqE3J.ltrans0.ltrans.o
+ .bss           0x000000000080383a      0x22b /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//cceYksGp.ltrans0.ltrans.o
  *(.bss*)
  *(COMMON)
- COMMON         0x0000000000803a33        0x4 /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avrxmega3/libc.a(malloc.o)
-                0x0000000000803a33                __brkval
-                0x0000000000803a35                __flp
-                0x0000000000803a37                PROVIDE (__bss_end, .)
-                0x0000000000003897                __data_load_start = LOADADDR (.data)
+ COMMON         0x0000000000803a65        0x4 /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avrxmega3/libc.a(malloc.o)
+                0x0000000000803a65                __brkval
+                0x0000000000803a67                __flp
+                0x0000000000803a69                PROVIDE (__bss_end, .)
+                0x0000000000003865                __data_load_start = LOADADDR (.data)
                 0x000000000000389f                __data_load_end = (__data_load_start + SIZEOF (.data))
 
-.noinit         0x0000000000803a37        0x0
+.noinit         0x0000000000803a69        0x0
                 [!provide]                        PROVIDE (__noinit_start, .)
  *(.noinit*)
                 [!provide]                        PROVIDE (__noinit_end, .)
-                0x0000000000803a37                _end = .
-                0x0000000000803a37                PROVIDE (__heap_start, .)
+                0x0000000000803a69                _end = .
+                0x0000000000803a69                PROVIDE (__heap_start, .)
 
 .eeprom         0x0000000000810000        0x0
  *(.eeprom*)
@@ -1024,7 +1024,7 @@ END GROUP
 
 .comment        0x0000000000000000       0x11
  *(.comment)
- .comment       0x0000000000000000       0x11 /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//ccpPqE3J.ltrans0.ltrans.o
+ .comment       0x0000000000000000       0x11 /var/folders/1l/rytzh70141xgg88yzt_pm9940000gn/T//cceYksGp.ltrans0.ltrans.o
                                          0x12 (size before relaxing)
  .comment       0x0000000000000011       0x12 /Users/alex/.platformio/packages/toolchain-atmelavr/bin/../lib/gcc/avr/7.3.0/../../../../avr/lib/avrxmega3/libc.a(malloc.o)
 

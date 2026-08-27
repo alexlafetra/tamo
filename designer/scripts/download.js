@@ -1,6 +1,6 @@
 function saveCurrentFrame(){
     window.CanvasToBMP.toBlob(document.getElementById('main_canvas'),(blob) => {
-        const filename = spriteName+'_'+sprites[currentSprite].fileName+'_'+(sprites[currentSprite].currentFrame)+'.bmp';
+        const filename = sprites[currentSprite].fileName+'_'+(sprites[currentSprite].currentFrame)+'.bmp';
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
         a.download = filename;
@@ -60,7 +60,7 @@ async function zipAllFrames(){
             renderFrame(tempCanvas.getContext('2d'),frame,settings.outputColors);
             //compile a .bmp file
             await window.CanvasToBMP.toBlob(tempCanvas,(blob) => {
-                const filename = spriteName+'_'+sprite.fileName+'_'+(frameIndex+1)+'.bmp';
+                const filename = sprite.fileName+'_'+(frameIndex+1)+'.bmp';
                 zip.file(filename,blob);
             });
 
