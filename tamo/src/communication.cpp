@@ -3,7 +3,7 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 #include "Tamo.h"
-#include "spriteLoader.h"
+#include "communication.h"
 #include "flash.cpp"
 #include "Display.h"
 
@@ -40,9 +40,9 @@ void clearSerialBuffer(){
     }
 }
 
-bool idleSerial(uint16_t amount){
+bool idleSerial(uint16_t byteCount){
     uint32_t time = millis();
-    while((Serial.available() < amount)){
+    while((Serial.available() < byteCount)){
         if((millis() - time) > SERIAL_IDLE_TIME)
             return false;
     }
@@ -52,6 +52,25 @@ bool idleSerial(){
     return idleSerial(1);
 }
 
+void initSerial(TAMO_SERIAL_MODE newMode){
+    if(newMode == tamo.serialMode)
+        return;
+    else tamo.serialMode = newMode;
+    if(Serial){
+        Serial.end();
+    }
+    //set to default pins
+    Serial.swap(uint8_t(newMode));
+    //initialize UART
+    Serial.begin(115200);
+}
+
+void set_USB_mode(){
+    initSerial(FULL_DUPLEX_UART);
+}
+void set_UART_half_duplex_mode(){
+    initSerial(HALF_DUPLEX_UART);
+}
 bool awaitBytes(uint8_t * buffer,uint16_t size){
 
     //wait for connection to timeout
@@ -132,13 +151,13 @@ bool loadDataFromSerial(uint32_t flash_write_location){
 void blinkForABit(uint16_t d, uint8_t n){
     uint8_t i = 0;
     while(i < n){
-        digitalWrite(LED_A,(i%2)?HIGH:LOW);
-        digitalWrite(LED_B,(i%2)?LOW:HIGH);
+        digitalWrite(LED_1,(i%2)?HIGH:LOW);
+        digitalWrite(LED_0,(i%2)?LOW:HIGH);
         delay(d);
         i++;
     }
-    digitalWrite(LED_A,LOW);
-    digitalWrite(LED_B,HIGH);
+    digitalWrite(LED_1,LOW);
+    digitalWrite(LED_0,HIGH);
 }
 
 //Note about the exchange functions:
@@ -297,8 +316,17 @@ bool uploadSpriteToSerial(uint32_t flash_read_location){
     return true;
 }
 
-//checks to see if board is connected
+//checks to see if usb is connected, swaps serial ports if needed, and reads in input if there's anything awaiting
 bool checkSerialConnection(){
+
+    //if internal voltage is below 260, vcc is at about 5v
+    //meaning it's connected to USB and the analog switch IC has swapped over
+    if(readVcc() < 260){
+        set_USB_mode();
+    }
+    else{
+        set_UART_half_duplex_mode();
+    }
     //return immediately if nothing to read
     if(!Serial.available())
         return false;

@@ -6,11 +6,19 @@
 #include "Display.h"
 #include "utils.h"
 #include "Tamo.h"
-#include "spriteLoader.h"
+#include "communication.h"
 
-#define BUTTON_PIN PIN_PA2
-#define LED_A PIN_PA6
-#define LED_B PIN_PC0
+// #define BUTTON_PIN PIN_PA2
+// #define LED_1 PIN_PA6
+// #define LED_0 PIN_PC0
+// #define UART_RX_PIN PIN_PB3
+// #define UART_TX_PIN PIN_PB2
+
+#define BUTTON_PIN PIN_PB4
+#define LED_0 PIN_PC1
+#define LED_1 PIN_PA6
+#define LED_2 PIN_PC0
+
 #define UART_RX_PIN PIN_PB3
 #define UART_TX_PIN PIN_PB2
 
@@ -79,7 +87,7 @@ void checkInput(bool updateLEDs){
     }
     //turn on the LED
     if(updateLEDs)
-      digitalWrite(LED_A,true);
+      digitalWrite(LED_1,true);
     //set the button flag
     BUTTON = true;
     //check to see if it's been held
@@ -95,7 +103,7 @@ void checkInput(bool updateLEDs){
   else{
     //turn off the LED
     if(updateLEDs)
-      digitalWrite(LED_A,false);
+      digitalWrite(LED_1,false);
     //if the button *was* held, then you just released it
     if(BUTTON){
       //if it was held for a while, it's a long press
@@ -135,8 +143,8 @@ void sleepHardware(){
   ADC0.CTRLA &= ~ADC_ENABLE_bm;
   //turn off OLED, LEDs
   oled.off();
-  digitalWrite(LED_A,false);
-  digitalWrite(LED_B,false);
+  digitalWrite(LED_1,false);
+  digitalWrite(LED_0,false);
   
   sleep_enable();
   sleep_cpu();

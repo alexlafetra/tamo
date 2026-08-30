@@ -6,8 +6,8 @@
 #include <avr/interrupt.h>
 
 #define BUTTON_PIN PIN_PA2
-#define LED_A PIN_PA6
-#define LED_B PIN_PC0
+#define LED_1 PIN_PA6
+#define LED_0 PIN_PC0
 #define UART_RX_PIN PIN_PB3
 #define UART_TX_PIN PIN_PB2
 

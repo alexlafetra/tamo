@@ -94,6 +94,12 @@ enum TAMO_MOOD:uint8_t{
   MOOD_QR_CODE  = 12
 };
 
+enum TAMO_SERIAL_MODE:uint8_t{
+  FULL_DUPLEX_UART = 0,
+  HALF_DUPLEX_UART = 1,
+  SERIAL_UNINITIALIZED = 255
+};
+
 // Sprite ID's
 #define IDLE_SPRITE MOOD_NEUTRAL
 #define SAD_SPRITE MOOD_SAD
@@ -130,6 +136,7 @@ class Tamo{
     // default: birth sequence
     TAMO_MOOD mood = MOOD_BIRTH;
     TAMO_THOUGHT thought = THOUGHT_OF_LOVE;
+    TAMO_SERIAL_MODE serialMode = SERIAL_UNINITIALIZED;
     int16_t moodTime = 0;
     uint16_t timeSinceLastCig = 0;
     uint8_t timeSinceLastTalk = 0;

@@ -26,8 +26,8 @@ SUPER annoying highkey annoying vibes
 
 
 #define BUTTON_PIN PIN_PA2
-#define LED_A PIN_PA6
-#define LED_B PIN_PC0
+#define LED_1 PIN_PA6
+#define LED_0 PIN_PC0
 #define UART_RX_PIN PIN_PB3
 #define UART_TX_PIN PIN_PB2
 
@@ -51,7 +51,7 @@ using namespace std;
 
 #include <EEPROM.h>
 #include "utils.h"
-#include "spriteLoader.h"
+#include "communication.h"
 #include "spritesheet.h"
 
 //this stores the active graphics area! which is half-res of the screen, sprites are drawn 2x
@@ -153,8 +153,8 @@ void onBeforeInit(){
 void setup(){
 
   //connect pins to leds, button
-  pinMode(LED_A,OUTPUT);
-  pinMode(LED_B,OUTPUT);
+  pinMode(LED_1,OUTPUT);
+  pinMode(LED_0,OUTPUT);
   pinMode(BUTTON_PIN,INPUT_PULLUP);
 
   //set floating pins to OUTPUT (to save power during sleep)

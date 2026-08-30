@@ -4,7 +4,7 @@
 #include "utils.h"
 #include "Display.h"
 #include "spriteFrames.h"
-#include "spriteLoader.h"
+#include "communication.h"
 #include <EEPROM.h>
 
 Tamo::Tamo(){
@@ -43,7 +43,7 @@ void Tamo::sleep(){
 
   //when the RTC interrupt finishes it goes to this line and tamo can go back to sleep
   while(isAsleep()){
-    // digitalWrite(LED_A,CHANGE);
+    // digitalWrite(LED_1,CHANGE);
     //put the attiny to sleep
     sleepHardware();
   }
@@ -95,8 +95,8 @@ void Tamo::slideshow(){
   uint8_t counter = 0;
 
   //offset LEDs so they're opposite
-  digitalWrite(LED_A,LOW);
-  digitalWrite(LED_B,HIGH);
+  digitalWrite(LED_1,LOW);
+  digitalWrite(LED_0,HIGH);
 
   LONG_PRESS = false;
   lastTime = millis();
@@ -109,13 +109,13 @@ void Tamo::slideshow(){
 
     //if the speed is slow, change LEDs on each frame
     if(slideshow_speed > 100){
-      digitalWrite(LED_A,CHANGE);
-      digitalWrite(LED_B,CHANGE);
+      digitalWrite(LED_1,CHANGE);
+      digitalWrite(LED_0,CHANGE);
     }
     //if it's fast, change LEDs when frames wrap around
     else if(counter == 0){
-      digitalWrite(LED_A,CHANGE);
-      digitalWrite(LED_B,CHANGE);
+      digitalWrite(LED_1,CHANGE);
+      digitalWrite(LED_0,CHANGE);
     }
 
     do{
@@ -125,8 +125,8 @@ void Tamo::slideshow(){
         sleep();
         lastTime = millis();
         timeOfLastFrame = millis();
-        digitalWrite(LED_A,LOW);
-        digitalWrite(LED_B,HIGH);
+        digitalWrite(LED_1,LOW);
+        digitalWrite(LED_0,HIGH);
       }
       if(LONG_PRESS && itsbeen(1000)){
         EEPROM.update(EEPROM_MODE_ADDR,NORMAL_TAMO);
@@ -140,8 +140,8 @@ void Tamo::slideshow(){
 
 void Tamo::qrCode(){
   lastTime = millis();
-  digitalWrite(LED_A,HIGH);
-  digitalWrite(LED_B,LOW);
+  digitalWrite(LED_1,HIGH);
+  digitalWrite(LED_0,LOW);
   uint32_t ledTime = millis();
   oled.clear();
   while(true){
@@ -154,14 +154,14 @@ void Tamo::qrCode(){
         break;
     }
     if((millis() - ledTime) > 1000){
-      digitalWrite(LED_A,CHANGE);
-      digitalWrite(LED_B,CHANGE);
+      digitalWrite(LED_1,CHANGE);
+      digitalWrite(LED_0,CHANGE);
       ledTime = millis();
     }
   }
   oled.clear();
-  digitalWrite(LED_A,LOW);
-  digitalWrite(LED_B,LOW);
+  digitalWrite(LED_1,LOW);
+  digitalWrite(LED_0,LOW);
   mood = MOOD_RANDOM;
 }
 
@@ -384,7 +384,7 @@ void Tamo::eat(const uint16_t * food){
       lastTime = millis();
       offset = 2; 
       currentFrame = foodSprite.currentFrame;
-      digitalWrite(LED_A,CHANGE);
+      digitalWrite(LED_1,CHANGE);
     }
     else{
       offset = 0;
@@ -407,7 +407,7 @@ void Tamo::eat(const uint16_t * food){
     sprite.update(false,true);
   }
 
-  digitalWrite(LED_A,LOW);
+  digitalWrite(LED_1,LOW);
 
   //determine if tamo liked it or not
   const uint16_t * foodPreference;
@@ -457,15 +457,15 @@ void Tamo::feed(){
   do{
     if(counter < 16){
       sprite.yCoord = counter-16+1;
-      digitalWrite(LED_B,LOW);
+      digitalWrite(LED_0,LOW);
     }
     else if(counter > 80){
       sprite.yCoord = counter-80+1;
-      digitalWrite(LED_B,LOW);
+      digitalWrite(LED_0,LOW);
     }
     else{
       sprite.yCoord = 1;
-      digitalWrite(LED_B,HIGH);
+      digitalWrite(LED_0,HIGH);
     }
     sprite.showCurrentFrame(true,false);
     drawReticle(counter>48);
@@ -481,7 +481,7 @@ void Tamo::feed(){
       break;
     }
     sleepCheck();
-    // digitalWrite(LED_B,(counter/24)%2);
+    // digitalWrite(LED_0,(counter/24)%2);
     counter = (counter+2);
     if(counter == 96){
       counter = 0;
@@ -492,7 +492,7 @@ void Tamo::feed(){
   while(!isAsleep());
 
   lastTime = millis();
-  digitalWrite(LED_B,false);
+  digitalWrite(LED_0,false);
 
   //don't still be eating on wakeup
   if(isAsleep()){
@@ -517,13 +517,13 @@ void Tamo::waitAndBlink(uint16_t speed){
     if((millis() - lastBlink)>speed){
       lastBlink = millis();
       on = !on;
-      digitalWrite(LED_B,on);
+      digitalWrite(LED_0,on);
     }
     sleepCheck();
     checkInput();
   }
   //turn off LED
-  digitalWrite(LED_B,0);
+  digitalWrite(LED_0,0);
 }
 
 void Tamo::waitAndPlayThruSprite(uint16_t speed,bool bounce){
@@ -785,7 +785,7 @@ attiny85 can operate from 1.8v - 5.5v
 void Tamo::batteryCheck(){
   uint16_t vcc = readVcc();
   setStatusBit(LOW_BATTERY_BIT,vcc > 400);
-  setStatusBit(IS_CHARGING_BIT,vcc < 260);//assume tamo is plugged in, if vcc is this high
+  setStatusBit(IS_CHARGING_BIT,vcc < 260);//assume tamo is plugged in, if vcc is this low
 }
 
 //function selecting which emotion loop to run based on tamo's mood
